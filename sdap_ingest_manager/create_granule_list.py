@@ -89,7 +89,7 @@ def collection_row_callback(row):
                           netcdf_variable,
                           dataset_configuration_file_path)
 
-    pod_launch_cmd = ['python', '-u', os.path.join(RUN_JOB_PATH, 'runjobs.py'),
+    pod_launch_cmd = ['python', '-u', 'runjobs.py',
                       '-flp',  granule_list_file_path,
                       '-jc',  dataset_configuration_file_path,
                       '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
@@ -106,6 +106,7 @@ def collection_row_callback(row):
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
     with open(os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
         process = subprocess.Popen(pod_launch_cmd,
+                         cwd=RUN_JOB_PATH,
                          stdout=logfile,
                          stderr=logfile)
         process.wait()
