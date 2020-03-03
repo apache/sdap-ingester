@@ -43,7 +43,8 @@ def create_granule_list(file_path_pattern, granule_list_file_path):
     logger.info("Create granule list file %s", granule_list_file_path)
 
     logger.info("using file pattern %s", file_path_pattern)
-    logger.info("from current work directory %s", os.getcwd())
+    cwd = os.getcwd()
+    logger.info("from current work directory %s", cwd)
     file_list = glob.glob(file_path_pattern)
 
     logger.info("%i files found", len(file_list))
@@ -54,7 +55,8 @@ def create_granule_list(file_path_pattern, granule_list_file_path):
 
     with open(granule_list_file_path, 'w') as file_handle:
         for list_item in file_list:
-            file_handle.write(f'{list_item}\n')
+            file_path = os.path.join(cwd, list_item)
+            file_handle.write(f'{file_path}\n')
 
 
 def create_dataset_config(dataset_id, variable_name, target_config_file_path):
