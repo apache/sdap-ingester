@@ -26,6 +26,7 @@ GRANULE_FILE_ROOT = './tmp/granule_lists'
 
 CONFIG_TEMPLATE = 'dataset_config_template.yaml'
 CONFIG_FILE_ROOT = './tmp/dataset_config'
+LOG_FILE_ROOT = './tmp/logs'
 
 JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/job-deployment-template.yml"
 CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
@@ -99,13 +100,11 @@ def collection_row_callback(row):
                       '-mj', '8',
                       '-nv',  '1.0.0-rc1',
                       '-ns', NAMESPACE,
-                      '-ds',
-                      '|',
-                      'tee', f'{dataset_id}.out',
-                      '&'
+                      '-ds'
                       ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
-    subprocess.Popen(pod_launch_cmd)
+    subprocess.Popen(pod_launch_cmd,
+                     stdout=os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'))
 
 
 def read_google_spreadsheet(tab, row_callback):
