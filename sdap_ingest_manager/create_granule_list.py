@@ -88,18 +88,24 @@ def collection_row_callback(row):
                           netcdf_variable,
                           dataset_configuration_file_path)
 
-    pod_launch_cmd = [f'python -u {RUN_JOB_PATH}runjobs.py -flp {granule_list_file_path}',
-                      f'-jc {dataset_configuration_file_path}',
-                      f'-jg {dataset_id[:19]}',                 # the name of container must be less than 63 in total
-                      f'-jdt {JOB_DEPLOYMENT_TEMPLATE}',
-                      f'-c {CONNECTION_CONFIG}',
-                      f'-p {CONNECTION_PROFILE}',
-                      'solr cassandra -mj 8 -nv 1.0.0-rc1',
-                      f'-ns {NAMESPACE} -ds',
-                      f'| tee {dataset_id}.out &'
+    pod_launch_cmd = ['python', '-u', os.path.join(RUN_JOB_PATH, runjobs.py),
+                      '-flp',  granule_list_file_path,
+                      '-jc',  dataset_configuration_file_path,
+                      '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
+                      '-jdt', JOB_DEPLOYMENT_TEMPLATE,
+                      '-c', CONNECTION_CONFIG,
+                      '-p', CONNECTION_PROFILE,
+                      'solr', 'cassandra',
+                      '-mj', '8',
+                      '-nv',  '1.0.0-rc1',
+                      '-ns', NAMESPACE,
+                      '-ds',
+                      '|',
+                      'tee', f'{dataset_id}.out',
+                      '&'
                       ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
-    subprocess.Popen: row(pod_launch_cmd)
+    subprocess.Popen(pod_launch_cmd)
 
 
 def read_google_spreadsheet(tab, row_callback):
