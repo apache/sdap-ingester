@@ -37,7 +37,7 @@ class TestValidationMgr(unittest.TestCase):
     def tearDown(self):
         logger.info("tear down test results")
         os.remove(self.granule_list_file_result)
-        #os.remove(self.dataset_config_file_result)
+        os.remove(self.dataset_config_file_result)
 
 
 if __name__ == '__main__':
