@@ -1,0 +1,46 @@
+# Tile Slicer Config
+ningester:
+    tile_slicer: sliceFileByTilesDesired
+    sliceFileByTilesDesired:
+      tilesDesired: 1296
+      timeDimension: time
+      dimensions:
+        - lat
+        - lon
+
+---
+# Tile processors configuration
+ningester:
+  tile_processors:
+    - pythonChainProcessor
+    - generateTileId
+    - addDatasetName
+  pythonChainProcessor:
+    enabled:
+    processor_list:
+      -
+        name: GridReadingProcessor
+        config:
+          latitude: lat
+          longitude: lon
+          time: time
+          variable_to_read: analysed_sst
+      -
+        name: EmptyTileFilter
+      -
+        name: TileSummarizingProcessor
+        config:
+          stored_var_name: analysed_sst
+  generateTileId:
+    enabled:
+    salt: analysed_sst
+  addDatasetName:
+    enabled:
+    datasetName: AVHRR_OI_analysed_sst
+---
+# Tile writer configuration
+ningester:
+  tile_writer:
+    data_store: cassandraStore
+    metadata_store: solrStore
+
