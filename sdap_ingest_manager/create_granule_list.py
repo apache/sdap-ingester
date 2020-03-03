@@ -31,7 +31,7 @@ JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-j
 CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
 CONNECTION_PROFILE = "sdap-dev"
 NAMESPACE = "nexus-dev"
-RUN_JOB_PATH = ""
+RUN_JOB_PATH = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/"
 
 
 
