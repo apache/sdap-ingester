@@ -102,7 +102,7 @@ def collection_row_callback(row):
                       '-ns', NAMESPACE,
                       '-ds'
                       ]
-    logger.info("launch pod with command:\n%s", pod_launch_cmd)
+    logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
     with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
         process = subprocess.Popen(pod_launch_cmd,
