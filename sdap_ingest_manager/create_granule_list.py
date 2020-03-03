@@ -88,7 +88,7 @@ def collection_row_callback(row):
                           netcdf_variable,
                           dataset_configuration_file_path)
 
-    pod_launch_cmd = ['python', '-u', os.path.join(RUN_JOB_PATH, runjobs.py),
+    pod_launch_cmd = ['python', '-u', os.path.join(RUN_JOB_PATH, 'runjobs.py'),
                       '-flp',  granule_list_file_path,
                       '-jc',  dataset_configuration_file_path,
                       '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
