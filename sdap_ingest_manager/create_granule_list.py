@@ -108,6 +108,7 @@ def collection_row_callback(row):
     subprocess.Popen(pod_launch_cmd,
                      stdout=logfile,
                      stderr=logfile)
+    subprocess.wait()
 
 
 def read_google_spreadsheet(tab, row_callback):
