@@ -11,6 +11,7 @@ https://www.anaconda.com/distribution/#macos
 
 ### deploy project
 
+    bash
     git clone ...
     cd sdap_ingest_manager
     python -m venv venv

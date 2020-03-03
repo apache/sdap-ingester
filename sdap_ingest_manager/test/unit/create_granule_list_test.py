@@ -34,7 +34,7 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_create_dataset_config(self):
         logger.info("test create_dataset_config")
-        create_granule_list.create_dataset_config("AVHRR_OI_analysed_sst",
+        create_granule_list.create_dataset_config("AVHRR-OI.analysed-sst",
                                                   "analysed_sst",
                                                   self.target_dataset_config_file)
 
