@@ -96,7 +96,7 @@ def collection_row_callback(row):
                       f'-p {CONNECTION_PROFILE}',
                       'solr cassandra -mj 8 -nv 1.0.0-rc1',
                       f'-ns {NAMESPACE} -ds',
-                      f'| & tee {dataset_id}.out &'
+                      f'| tee {dataset_id}.out &'
                       ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
     subprocess.Popen: row(pod_launch_cmd)
