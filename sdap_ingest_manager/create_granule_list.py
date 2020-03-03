@@ -27,8 +27,8 @@ GRANULE_FILE_ROOT = './tmp/granule_lists'
 CONFIG_TEMPLATE = 'dataset_config_template.yaml'
 CONFIG_FILE_ROOT = './tmp/dataset_config'
 
-JOB_DEPLOYMENT_TEMPLATE = "./job-deployment-template.yml"
-CONNECTION_CONFIG = "./connection-config.yml"
+JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/job-deployment-template.yml"
+CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
 CONNECTION_PROFILE = "sdap-dev"
 NAMESPACE = "nexus-dev"
 RUN_JOB_PATH = ""
