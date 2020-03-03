@@ -90,7 +90,7 @@ def collection_row_callback(row):
                           dataset_configuration_file_path)
     cwd = os.getcwd()
     pod_launch_cmd = ['python', '-u', 'runjobs.py',
-                      '-flp',  os.path.join(csw, granule_list_file_path),
+                      '-flp',  os.path.join(cwd, granule_list_file_path),
                       '-jc',  os.path.join(cwd, dataset_configuration_file_path),
                       '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
                       '-jdt', JOB_DEPLOYMENT_TEMPLATE,
