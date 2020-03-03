@@ -8,18 +8,16 @@ import glob
 from pathlib import Path
 import logging
 import pystache
-
+import subprocess
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 # The ID and range of a sample spreadsheet.
 # https://docs.google.com/spreadsheets/d/1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E/edit?usp=sharing
-
 SPREADSHEET_ID = '1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E'
 SHEET_NAME = 'DEV'
 RANGE_NAME = 'D2:F'
@@ -33,6 +31,9 @@ JOB_DEPLOYMENT_TEMPLATE = "./job-deployment-template.yml"
 CONNECTION_CONFIG = "./connection-config.yml"
 CONNECTION_PROFILE = "sdap-dev"
 NAMESPACE = "nexus-dev"
+RUN_JOB_PATH = ""
+
+
 
 def create_granule_list(file_path_pattern, granule_list_file_path):
     """ Creates a granule list file from a file path pattern
@@ -70,8 +71,6 @@ def create_dataset_config(dataset_id, variable_name, target_config_file_path):
         f.write(config_content)
 
 
-
-
 def collection_row_callback(row):
     """ Create the configuration launch the ingestion
         for the given collection row
@@ -80,26 +79,27 @@ def collection_row_callback(row):
     netcdf_variable = row[1].strip()
     netcdf_file_pattern = row[2].strip()
 
-    granule_list_file_path = os.path.join(GRANULE_FILE_ROOT,  f'{dataset_id}.lst')
+    granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}.lst')
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path)
 
-    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT,  f'{dataset_id}.yaml')
+    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}.yaml')
     create_dataset_config(dataset_id,
                           netcdf_variable,
                           dataset_configuration_file_path)
 
-
-    pod_launch_cmd = f'python -u runjobs.py -flp {granule_list_file_path} \
-        -jc {dataset_configuration_file_path} \
-        -jg {dataset_id} \
-        -jdt {JOB_DEPLOYMENT_TEMPLATE} \
-        -c {CONNECTION_CONFIG} \
-        -p {CONNECTION_PROFILE} \
-        solr cassandra -mj 8 -nv 1.0.0-rc1 \
-        -ns {NAMESPACE} -ds | & tee {dataset_id}.out &'
+    pod_launch_cmd = [f'python -u {RUN_JOB_PATH}runjobs.py -flp {granule_list_file_path}',
+                      f'-jc {dataset_configuration_file_path}',
+                      f'-jg {dataset_id}',
+                      f'-jdt {JOB_DEPLOYMENT_TEMPLATE}',
+                      f'-c {CONNECTION_CONFIG}',
+                      f'-p {CONNECTION_PROFILE}',
+                      'solr cassandra -mj 8 -nv 1.0.0-rc1',
+                      f'-ns {NAMESPACE} -ds',
+                      f'| & tee {dataset_id}.out &'
+                      ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
-    os.system(pod_launch_cmd)
+    subprocess.Popen: row(pod_launch_cmd)
 
 
 def read_google_spreadsheet(tab, row_callback):
@@ -120,7 +120,7 @@ def read_google_spreadsheet(tab, row_callback):
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_console()
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
@@ -155,4 +155,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
