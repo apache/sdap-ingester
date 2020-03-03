@@ -22,11 +22,11 @@ SPREADSHEET_ID = '1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E'
 SHEET_NAME = 'DEV'
 RANGE_NAME = 'D2:F'
 
-GRANULE_FILE_ROOT = './tmp/granule_lists'
+GRANULE_FILE_ROOT = 'tmp/granule_lists'
 
 CONFIG_TEMPLATE = 'dataset_config_template.yaml'
-CONFIG_FILE_ROOT = './tmp/dataset_config'
-LOG_FILE_ROOT = './tmp/logs'
+CONFIG_FILE_ROOT = 'tmp/dataset_config'
+LOG_FILE_ROOT = 'tmp/logs'
 
 JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/job-deployment-template.yml"
 CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
@@ -88,10 +88,10 @@ def collection_row_callback(row):
     create_dataset_config(dataset_id,
                           netcdf_variable,
                           dataset_configuration_file_path)
-
+    cwd = os.getcwd()
     pod_launch_cmd = ['python', '-u', 'runjobs.py',
-                      '-flp',  granule_list_file_path,
-                      '-jc',  dataset_configuration_file_path,
+                      '-flp',  os.path.join(csw, granule_list_file_path),
+                      '-jc',  os.path.join(cwd, dataset_configuration_file_path),
                       '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
                       '-jdt', JOB_DEPLOYMENT_TEMPLATE,
                       '-c', CONNECTION_CONFIG,
@@ -104,7 +104,7 @@ def collection_row_callback(row):
                       ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
-    with open(os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
+    with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
         process = subprocess.Popen(pod_launch_cmd,
                          cwd=RUN_JOB_PATH,
                          stdout=logfile,
