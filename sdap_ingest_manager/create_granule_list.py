@@ -105,10 +105,10 @@ def collection_row_callback(row):
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
     with open(os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
-        subprocess.Popen(pod_launch_cmd,
+        process = subprocess.Popen(pod_launch_cmd,
                          stdout=logfile,
                          stderr=logfile)
-        subprocess.wait()
+        process.wait()
 
 
 def read_google_spreadsheet(tab, row_callback):
