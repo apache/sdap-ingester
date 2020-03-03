@@ -103,8 +103,10 @@ def collection_row_callback(row):
                       '-ds'
                       ]
     logger.info("launch pod with command:\n%s", pod_launch_cmd)
+    logfile = open(os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'), 'w')
     subprocess.Popen(pod_launch_cmd,
-                     stdout=os.path.join(LOG_FILE_ROOT, f'{dataset_id}.out'))
+                     stdout=logfile,
+                     stderr=logfile)
 
 
 def read_google_spreadsheet(tab, row_callback):
