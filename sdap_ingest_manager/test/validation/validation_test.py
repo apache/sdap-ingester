@@ -13,9 +13,9 @@ class TestValidationMgr(unittest.TestCase):
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
         super().setUp()
-        self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yaml"
+        self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yml"
         self.granule_list_file_result = "tmp/granule_lists/avhrr-oi-analysed-sst-granules.lst"
-        self.dataset_config_file_result = "tmp/dataset_config/avhrr-oi-analysed-sst-config.yaml"
+        self.dataset_config_file_result = "tmp/dataset_config/avhrr-oi-analysed-sst-config.yml"
         self.test_tab = "VALIDATION_TAB_DO_NOT_TOUCH"
 
     def test_validation(self):
@@ -31,13 +31,16 @@ class TestValidationMgr(unittest.TestCase):
         self.assertEqual(2, line_number)
 
         # test the configuration file
+        error_message = f'the dataset configuration file created does not match the expected results\n' \
+                        'to compare run ' \
+                        f'diff {self.expected_dataset_configuration_file} {self.dataset_config_file_result} '
         self.assertTrue(filecmp.cmp(self.expected_dataset_configuration_file, self.dataset_config_file_result),
-                        "the dataset configuration file created does not match the expected results")
+                        error_message)
 
     def tearDown(self):
         logger.info("tear down test results")
-        os.remove(self.granule_list_file_result)
-        os.remove(self.dataset_config_file_result)
+        #os.remove(self.granule_list_file_result)
+        #os.remove(self.dataset_config_file_result)
 
 
 if __name__ == '__main__':

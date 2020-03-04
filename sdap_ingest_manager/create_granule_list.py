@@ -24,7 +24,7 @@ RANGE_NAME = 'D2:F'
 
 GRANULE_FILE_ROOT = 'tmp/granule_lists'
 
-CONFIG_TEMPLATE = 'dataset_config_template.yaml'
+CONFIG_TEMPLATE = 'dataset_config_template.yml'
 CONFIG_FILE_ROOT = 'tmp/dataset_config'
 LOG_FILE_ROOT = 'tmp/logs'
 
@@ -86,7 +86,7 @@ def collection_row_callback(row):
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path)
 
-    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yaml')
+    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yml')
     create_dataset_config(dataset_id,
                           netcdf_variable,
                           dataset_configuration_file_path)

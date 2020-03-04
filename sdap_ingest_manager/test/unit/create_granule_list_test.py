@@ -14,9 +14,9 @@ class TestUnitMgr(unittest.TestCase):
         logger.info("\n===== UNIT TESTS =====")
         super().setUp()
         self.target_granule_list_file = "tmp/target_granule_list_file.lst"
-        self.target_dataset_config_file = "tmp/dataset_config_file.yaml"
+        self.target_dataset_config_file = "tmp/dataset_config_file.yml"
         self.granule_file_pattern = "sdap_ingest_manager/test/data/avhrr_oi/*.nc"
-        self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yaml"
+        self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yml"
 
     def test_create_granule_list(self):
         logger.info("test create_granule_list")
