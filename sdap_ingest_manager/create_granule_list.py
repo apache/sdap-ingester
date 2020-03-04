@@ -34,7 +34,7 @@ CONNECTION_PROFILE = "sdap-dev"
 NAMESPACE = "nexus-dev"
 RUN_JOB_PATH = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/"
 
-
+kubenetes_available = False
 
 def create_granule_list(file_path_pattern, granule_list_file_path):
     """ Creates a granule list file from a file path pattern
@@ -82,11 +82,11 @@ def collection_row_callback(row):
     netcdf_variable = row[1].strip()
     netcdf_file_pattern = row[2].strip()
 
-    granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}.lst')
+    granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}-granules.lst')
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path)
 
-    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}.yaml')
+    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yaml')
     create_dataset_config(dataset_id,
                           netcdf_variable,
                           dataset_configuration_file_path)
@@ -106,12 +106,13 @@ def collection_row_callback(row):
                       ]
     logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
-    with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
-        process = subprocess.Popen(pod_launch_cmd,
-                         cwd=RUN_JOB_PATH,
-                         stdout=logfile,
-                         stderr=logfile)
-        process.wait()
+    if kubenetes_available:
+        with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
+            process = subprocess.Popen(pod_launch_cmd,
+                             cwd=RUN_JOB_PATH,
+                             stdout=logfile,
+                             stderr=logfile)
+            process.wait()
 
 
 def read_google_spreadsheet(tab, row_callback):

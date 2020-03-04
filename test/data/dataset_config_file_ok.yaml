@@ -36,7 +36,7 @@ ningester:
     salt: analysed_sst
   addDatasetName:
     enabled:
-    datasetName: AVHRR-OI.analysed-sst
+    datasetName: avhrr-oi-analysed-sst
 ---
 # Tile writer configuration
 ningester:

@@ -2,9 +2,15 @@
 
 ## Prerequisites
 
+### python 3
 Install anaconda for python 3. From the graphic install for example for macos:
 
 https://www.anaconda.com/distribution/#macos
+
+### git lfs
+Git lfs for the deployment from git
+
+If not available you have to get netcdf file for test, if you do need the tests.
 
 
 ## Install
