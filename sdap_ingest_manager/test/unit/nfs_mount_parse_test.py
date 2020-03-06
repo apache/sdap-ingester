@@ -8,7 +8,7 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_get_nfs_mount_points(self):
         mount = nfs_mount_parse.get_nfs_mount_points()
-        self.assertGreaterEqual(0, len(mount))  # not much to verify as it depends on the host
+        self.assertGreaterEqual(len(mount), 0)  # not much to verify as it depends on the host
 
     def test_replace_mount_point_with_service_path(self):
 
