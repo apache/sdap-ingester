@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/apache/incubator-sdap-nexus",
     packages=setuptools.find_packages(),
-    scripts=['bin/run/run_collections'],
+    scripts=['bin/run_collections'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
