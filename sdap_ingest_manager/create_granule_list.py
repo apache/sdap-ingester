@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 import pystache
 import subprocess
+from . import nfs_mount_parse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,9 +37,12 @@ RUN_JOB_PATH = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/"
 
 kubenetes_available = False
 
-def create_granule_list(file_path_pattern, granule_list_file_path):
+
+def create_granule_list(file_path_pattern, granule_list_file_path, deconstruct_nfs=False):
     """ Creates a granule list file from a file path pattern
-        matching the granules
+        matching the granules.
+        When deconstruct_nfs is True, the paths will shown as viewed on the nfs server
+        and not as they are mounted on the nfs client where the script runs (default behaviour).
     """
     logger.info("Create granule list file %s", granule_list_file_path)
 
@@ -53,9 +57,16 @@ def create_granule_list(file_path_pattern, granule_list_file_path):
     logger.info("Granule list file created in directory %s", dir_path);
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
+    if deconstruct_nfs:
+        mount_points = nfs_mount_parse.get_nfs_mount_points()
+
     with open(granule_list_file_path, 'w') as file_handle:
         for list_item in file_list:
             file_path = os.path.join(cwd, list_item)
+
+            if deconstruct_nfs:
+                file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
+
             file_handle.write(f'{file_path}\n')
 
 
@@ -74,7 +85,11 @@ def create_dataset_config(dataset_id, variable_name, target_config_file_path):
         f.write(config_content)
 
 
-def collection_row_callback(row):
+
+def collection_row_callback_parse_nfs(row):
+    collection_row_callback(row, deconstruct_nfs=True)
+
+def collection_row_callback(row, deconstruct_nfs=False):
     """ Create the configuration launch the ingestion
         for the given collection row
     """
@@ -84,7 +99,8 @@ def collection_row_callback(row):
 
     granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}-granules.lst')
     create_granule_list(netcdf_file_pattern,
-                        granule_list_file_path)
+                        granule_list_file_path,
+                        deconstruct_nfs = deconstruct_nfs)
 
     dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yml')
     create_dataset_config(dataset_id,
@@ -100,7 +116,7 @@ def collection_row_callback(row):
                       '-p', CONNECTION_PROFILE,
                       'solr', 'cassandra',
                       '-mj', '8',
-                      '-nv',  '1.0.0-rc1',
+                      '-nv',  '1.1.0',
                       '-ns', NAMESPACE,
                       '-ds'
                       ]

@@ -1,6 +1,5 @@
 import unittest
 from sdap_ingest_manager import create_granule_list
-import os
 import logging
 import filecmp
 
@@ -18,10 +17,18 @@ class TestValidationMgr(unittest.TestCase):
         self.dataset_config_file_result = "tmp/dataset_config/avhrr-oi-analysed-sst-config.yml"
         self.test_tab = "VALIDATION_TAB_DO_NOT_TOUCH"
 
-    def test_validation(self):
-        logger.info("validation test")
+    def test_validation_no_parse_nfs(self):
+        logger.info("validation test without nfs parsing")
+        self.validation_with_callback(create_granule_list.collection_row_callback)
+
+    def test_validation_parse_nfs(self):
+        logger.info("validation test with nfs parsing")
+        self.validation_with_callback(create_granule_list.collection_row_callback_parse_nfs)
+
+    def validation_with_callback(self, call_back):
         create_granule_list.read_google_spreadsheet(self.test_tab,
-                                                    create_granule_list.collection_row_callback)
+                                                    call_back
+                                                    )
         # test the granule list file
         line_number = 0
         with open(self.granule_list_file_result, 'r') as f:
