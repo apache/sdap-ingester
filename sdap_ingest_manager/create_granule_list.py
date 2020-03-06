@@ -174,12 +174,12 @@ def read_google_spreadsheet(tab, row_callback):
             row_callback(row)
 
 
-def main():
+def run_collections():
     """For each collection in the list, creates a granule list file
        Get credential for the google spreadheet api as documented:
        https://console.developers.google.com/apis/credentials
     """
-    read_google_spreadsheet('DEV', collection_row_callback)
+    read_google_spreadsheet(SHEET_NAME, collection_row_callback)
 
 
 if __name__ == '__main__':
