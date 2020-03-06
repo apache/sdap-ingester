@@ -18,7 +18,7 @@ def get_nfs_mount_points():
         logger.info(mount_array)
         # depending on the system it is run on the mount command does not return the same format
         if len(mount_array) >= 4 and mount_array[4] == "nfs":
-            mount_points[mount_array[2]] = mount_array[2]
+            mount_points[mount_array[2]] = mount_array[0]
 
     return mount_points
 

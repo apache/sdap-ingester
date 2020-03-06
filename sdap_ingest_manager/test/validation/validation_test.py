@@ -2,6 +2,7 @@ import unittest
 from sdap_ingest_manager import create_granule_list
 import logging
 import filecmp
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,8 +47,8 @@ class TestValidationMgr(unittest.TestCase):
 
     def tearDown(self):
         logger.info("tear down test results")
-        #os.remove(self.granule_list_file_result)
-        #os.remove(self.dataset_config_file_result)
+        os.remove(self.granule_list_file_result)
+        os.remove(self.dataset_config_file_result)
 
 
 if __name__ == '__main__':
