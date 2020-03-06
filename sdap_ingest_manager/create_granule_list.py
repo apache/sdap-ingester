@@ -85,11 +85,7 @@ def create_dataset_config(dataset_id, variable_name, target_config_file_path):
         f.write(config_content)
 
 
-
-def collection_row_callback_parse_nfs(row):
-    collection_row_callback(row, deconstruct_nfs=True)
-
-def collection_row_callback(row, deconstruct_nfs=False):
+def collection_row_callback(row, deconstruct_nfs=False, dry_run=True):
     """ Create the configuration launch the ingestion
         for the given collection row
     """
@@ -100,7 +96,7 @@ def collection_row_callback(row, deconstruct_nfs=False):
     granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}-granules.lst')
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path,
-                        deconstruct_nfs = deconstruct_nfs)
+                        deconstruct_nfs=deconstruct_nfs)
 
     dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yml')
     create_dataset_config(dataset_id,
@@ -108,26 +104,26 @@ def collection_row_callback(row, deconstruct_nfs=False):
                           dataset_configuration_file_path)
     cwd = os.getcwd()
     pod_launch_cmd = ['python', '-u', 'runjobs.py',
-                      '-flp',  os.path.join(cwd, granule_list_file_path),
-                      '-jc',  os.path.join(cwd, dataset_configuration_file_path),
-                      '-jg',  dataset_id[:19],                 # the name of container must be less than 63 in total
+                      '-flp', os.path.join(cwd, granule_list_file_path),
+                      '-jc', os.path.join(cwd, dataset_configuration_file_path),
+                      '-jg', dataset_id[:19],  # the name of container must be less than 63 in total
                       '-jdt', JOB_DEPLOYMENT_TEMPLATE,
                       '-c', CONNECTION_CONFIG,
                       '-p', CONNECTION_PROFILE,
                       'solr', 'cassandra',
                       '-mj', '8',
-                      '-nv',  '1.1.0',
+                      '-nv', '1.1.0',
                       '-ns', NAMESPACE,
                       '-ds'
                       ]
     logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
     Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
-    if kubenetes_available:
+    if not dry_run:
         with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
             process = subprocess.Popen(pod_launch_cmd,
-                             cwd=RUN_JOB_PATH,
-                             stdout=logfile,
-                             stderr=logfile)
+                                       cwd=RUN_JOB_PATH,
+                                       stdout=logfile,
+                                       stderr=logfile)
             process.wait()
 
 
@@ -174,13 +170,9 @@ def read_google_spreadsheet(tab, row_callback):
             row_callback(row)
 
 
-def run_collections():
+def run_collections(call_back):
     """For each collection in the list, creates a granule list file
        Get credential for the google spreadheet api as documented:
        https://console.developers.google.com/apis/credentials
     """
-    read_google_spreadsheet(SHEET_NAME, collection_row_callback)
-
-
-if __name__ == '__main__':
-    main()
+    read_google_spreadsheet(SHEET_NAME, call_back)

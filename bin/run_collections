@@ -2,7 +2,15 @@
 
 import sdap_ingest_manager
 
+DRY_RUN = True
 
-sdap_ingest_manager.run_collections()
+
+def collection_row_callback(row):
+    sdap_ingest_manager.collection_row_callback(row, decontruct_nfs=False, dry_run=DRY_RUN)
 
 
+def collection_row_callback_parse_nfs(row):
+    collection_row_callback(row, deconstruct_nfs=True, dry_run=DRY_RUN)
+
+
+sdap_ingest_manager.run_collections(collection_row_callback_parse_nfs)

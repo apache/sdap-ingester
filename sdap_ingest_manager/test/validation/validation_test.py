@@ -20,11 +20,19 @@ class TestValidationMgr(unittest.TestCase):
 
     def test_validation_no_parse_nfs(self):
         logger.info("validation test without nfs parsing")
-        self.validation_with_callback(create_granule_list.collection_row_callback)
+
+        def collection_row_callback_no_parse_nfs(row):
+            create_granule_list.collection_row_callback(row, deconstruct_nfs=False, dry_run=True)
+
+        self.validation_with_callback(collection_row_callback_no_parse_nfs)
 
     def test_validation_parse_nfs(self):
         logger.info("validation test with nfs parsing")
-        self.validation_with_callback(create_granule_list.collection_row_callback_parse_nfs)
+
+        def collection_row_callback_parse_nfs(row):
+            create_granule_list.collection_row_callback(row, deconstruct_nfs=True, dry_run=True)
+
+        self.validation_with_callback(collection_row_callback_parse_nfs)
 
     def validation_with_callback(self, call_back):
         create_granule_list.read_google_spreadsheet(self.test_tab,
