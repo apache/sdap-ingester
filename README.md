@@ -24,6 +24,7 @@ If not available you have to get netcdf file for test, if you do need the tests.
     source ./venv/bin/activate
     pip install -r requirements.txt
 
+
 Add a credential file "credentials.json" to access reference spreadsheet for dataset configurations:
 
     
@@ -44,12 +45,15 @@ Get client id and secret from https://console.developers.google.com/apis/credent
 
 To be detailed
 
-### Test
+### Test and deploy
 
     python setup.py test
-
+    python setup.py install
+    pip install .
 
 ## Run
+
+    run_collectrions
 
 
 ## For developers
