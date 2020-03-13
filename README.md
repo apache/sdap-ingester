@@ -51,7 +51,11 @@ Get client id and secret from https://console.developers.google.com/apis/credent
 
 ### change configuration
 
-    See configuration example in 
+See configuration example in sdap_ingest_manager/sdap_ingest_manager.ini.example
+    
+    cp  sdap_ingest_manager/sdap_ingest_manager.ini.example sdap_ingest_manager.ini
+    
+Edit your configuration according to your local setup.
 
 ### Test and deploy
 

@@ -26,9 +26,12 @@ deconstruct_nfs = True
 collection_config_template = resources/dataset_config_template.yml
 
 [INGEST]
+# template used to create the kubernetes pod for the job of one granule
 job_deployment_template = resources/job-deployment-template.yml
+# connexion configuration to the solr and cassandra nodes of the sdap cluster
 connection_config = resources/connection-config.yml
 connection_profile = sdap-dev
+# kubernetes namespace where the sdap cluster is deployed
 kubernetes_namespace = nexus-dev
 
 
