@@ -16,6 +16,7 @@ class TestUnitMgr(unittest.TestCase):
         self.target_granule_list_file = "tmp/target_granule_list_file.lst"
         self.target_dataset_config_file = "tmp/dataset_config_file.yml"
         self.granule_file_pattern = "sdap_ingest_manager/test/data/avhrr_oi/*.nc"
+        self.collection_config_template = "resources/dataset_config_template.yml"
         self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yml"
 
     def test_create_granule_list(self):
@@ -36,6 +37,7 @@ class TestUnitMgr(unittest.TestCase):
         logger.info("test create_dataset_config")
         create_granule_list.create_dataset_config("avhrr-oi-analysed-sst",
                                                   "analysed_sst",
+                                                  self.collection_config_template,
                                                   self.target_dataset_config_file)
 
         self.assertTrue(filecmp.cmp(self.expected_dataset_configuration_file, self.target_dataset_config_file),

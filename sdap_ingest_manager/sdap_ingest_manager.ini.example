@@ -1,0 +1,35 @@
+[COLLECTIONS_GOOGLE_SPREADSHEET]
+# the scope for the authorization token, don't change that.
+scope = https://www.googleapis.com/auth/spreadsheets.readonly
+
+# The ID and range of a sample spreadsheet.
+# https://docs.google.com/spreadsheets/d/1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E/edit?usp=sharing
+spreadsheet_id = 1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E
+
+# the tab name where the collections are described
+sheet_name = VALIDATION_TAB_DO_NOT_TOUCH
+
+# the cell range where the information needed for ingestion are, don't change that
+cell_range = D2:F
+
+[LOCAL_PATHS]
+# path to temporary resources created in the ingestion process, does not need to be changed
+granule_file_list_path = tmp/granule_lists
+collection_config_path = tmp/dataset_config
+log_path = tmp/logs
+
+[OPTIONS]
+# set to False to actually call the ingestion command for each granule
+dry_run = True
+# set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
+deconstruct_nfs = True
+collection_config_template = resources/dataset_config_template.yml
+
+[INGEST]
+job_deployment_template = resources/job-deployment-template.yml
+connection_config = resources/connection-config.yml
+connection_profile = sdap-dev
+kubernetes_namespace = nexus-dev
+
+
+

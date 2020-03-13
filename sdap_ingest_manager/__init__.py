@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .create_granule_list import run_collections
 from .create_granule_list import read_google_spreadsheet
 from .create_granule_list import collection_row_callback
+from .create_granule_list import read_local_configuration
 from .nfs_mount_parse import replace_mount_point_with_service_path
 from .nfs_mount_parse import  get_nfs_mount_points
 

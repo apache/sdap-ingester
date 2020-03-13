@@ -2,15 +2,24 @@
 
 import sdap_ingest_manager
 
-DRY_RUN = True
+config = sdap_ingest_manager.read_local_configuration()
 
 
 def collection_row_callback(row):
-    sdap_ingest_manager.collection_row_callback(row, decontruct_nfs=False, dry_run=DRY_RUN)
+    sdap_ingest_manager.collection_row_callback(row,
+                                                config.get("OPTIONS", "collection_config_template"),
+                                                config.get("LOCAL_PATHS", "granule_file_list_path"),
+                                                config.get("LOCAL_PATHS", "collection_config_path"),
+                                                config.get("LOCAL_PATHS", "log_path"),
+                                                config.get("INGEST", "job_deployment_template"),
+                                                config.get("INGEST", "connection_config"),
+                                                config.get("INGEST", "connection_profile"),
+                                                config.get("INGEST", "kubernetes_namespace"),
+                                                decontruct_nfs=config.get("OPTIONS", "deconstruct_nfs"),
+                                                dry_run=config.get("OPTIONS", "dry_run"))
 
-
-def collection_row_callback_parse_nfs(row):
-    sdap_ingest_manager.collection_row_callback(row, deconstruct_nfs=True, dry_run=DRY_RUN)
-
-
-sdap_ingest_manager.run_collections(collection_row_callback_parse_nfs)
+sdap_ingest_manager.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET','scope'),
+                                            config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
+                                            config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
+                                            config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "cell_range"),
+                                            collection_row_callback)

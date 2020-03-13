@@ -1,0 +1,14 @@
+# Connection settings for the sdap-dev profile
+spring:
+    profiles:
+      - sdap-dev
+    data:
+      cassandra:
+        keyspaceName: nexustiles
+        contactPoints: sdap-cassandra
+      solr:
+        host: http://sdap-solr:8983/solr/
+
+datasource:
+  solrStore:
+    collection: nexustiles

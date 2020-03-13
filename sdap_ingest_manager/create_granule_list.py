@@ -9,36 +9,33 @@ from pathlib import Path
 import logging
 import pystache
 import subprocess
+import configparser
 from . import nfs_mount_parse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-# The ID and range of a sample spreadsheet.
-# https://docs.google.com/spreadsheets/d/1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E/edit?usp=sharing
-SPREADSHEET_ID = '1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E'
-SHEET_NAME = 'DEV'
-RANGE_NAME = 'D2:F'
 
-GRANULE_FILE_ROOT = 'tmp/granule_lists'
+def read_local_configuration():
+    print("====config====")
+    config = configparser.ConfigParser()
+    candidates = ['sdap_ingest_manager.ini',
+                  'sdap_ingest_manager/sdap_ingest_manager.ini',
+                  'sdap_ingest_manager/sdap_ingest_manager.ini.example']
+    config.read(candidates)
+    return config
+
 
 CONFIG_TEMPLATE = 'dataset_config_template.yml'
-CONFIG_FILE_ROOT = 'tmp/dataset_config'
-LOG_FILE_ROOT = 'tmp/logs'
-
 JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/job-deployment-template.yml"
 CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
 CONNECTION_PROFILE = "sdap-dev"
 NAMESPACE = "nexus-dev"
 RUN_JOB_PATH = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/"
 
-kubenetes_available = False
-
-
-def create_granule_list(file_path_pattern, granule_list_file_path, deconstruct_nfs=False):
+def create_granule_list(file_path_pattern,
+                        granule_list_file_path, deconstruct_nfs=False):
     """ Creates a granule list file from a file path pattern
         matching the granules.
         When deconstruct_nfs is True, the paths will shown as viewed on the nfs server
@@ -54,7 +51,7 @@ def create_granule_list(file_path_pattern, granule_list_file_path, deconstruct_n
     logger.info("%i files found", len(file_list))
 
     dir_path = os.path.dirname(granule_list_file_path)
-    logger.info("Granule list file created in directory %s", dir_path);
+    logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
     if deconstruct_nfs:
@@ -70,10 +67,11 @@ def create_granule_list(file_path_pattern, granule_list_file_path, deconstruct_n
             file_handle.write(f'{file_path}\n')
 
 
-def create_dataset_config(dataset_id, variable_name, target_config_file_path):
+def create_dataset_config(dataset_id, variable_name, collection_config_template, target_config_file_path):
     logger.info("Create dataset configuration file %s", target_config_file_path)
     renderer = pystache.Renderer()
-    config_content = renderer.render_path(CONFIG_TEMPLATE, {'dataset_id': dataset_id,
+    collection_config_template_path = os.path.join(Path(__file__).parent.absolute(), collection_config_template)
+    config_content = renderer.render_path(collection_config_template_path, {'dataset_id': dataset_id,
                                                             'variable': variable_name})
     logger.info("templated dataset config \n%s", config_content)
 
@@ -85,41 +83,53 @@ def create_dataset_config(dataset_id, variable_name, target_config_file_path):
         f.write(config_content)
 
 
-def collection_row_callback(row, deconstruct_nfs=False, dry_run=True):
-    """ Create the configuration launch the ingestion
+def collection_row_callback(row,
+                            collection_config_template,
+                            granule_file_list_root_path,
+                            dataset_configuration_root_path,
+                            ingestion_log_root_path,
+                            job_deployment_template,
+                            connection_config,
+                            connection_profile,
+                            kubernetes_namespace,
+                            deconstruct_nfs=False,
+                            dry_run=True,
+                            ):
+    """ Create the configuration and launch the ingestion
         for the given collection row
     """
     dataset_id = row[0].strip()
     netcdf_variable = row[1].strip()
     netcdf_file_pattern = row[2].strip()
 
-    granule_list_file_path = os.path.join(GRANULE_FILE_ROOT, f'{dataset_id}-granules.lst')
+    granule_list_file_path = os.path.join(granule_file_list_root_path, f'{dataset_id}-granules.lst')
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path,
                         deconstruct_nfs=deconstruct_nfs)
 
-    dataset_configuration_file_path = os.path.join(CONFIG_FILE_ROOT, f'{dataset_id}-config.yml')
+    dataset_configuration_file_path = os.path.join(dataset_configuration_root_path, f'{dataset_id}-config.yml')
     create_dataset_config(dataset_id,
                           netcdf_variable,
+                          collection_config_template,
                           dataset_configuration_file_path)
     cwd = os.getcwd()
-    pod_launch_cmd = ['python', '-u', 'runjobs.py',
+    pod_launch_cmd = ['run_granule',
                       '-flp', os.path.join(cwd, granule_list_file_path),
                       '-jc', os.path.join(cwd, dataset_configuration_file_path),
                       '-jg', dataset_id[:19],  # the name of container must be less than 63 in total
-                      '-jdt', JOB_DEPLOYMENT_TEMPLATE,
-                      '-c', CONNECTION_CONFIG,
-                      '-p', CONNECTION_PROFILE,
+                      '-jdt', job_deployment_template,
+                      '-c', connection_config,
+                      '-p', connection_profile,
                       'solr', 'cassandra',
                       '-mj', '8',
                       '-nv', '1.1.0',
-                      '-ns', NAMESPACE,
+                      '-ns', kubernetes_namespace,
                       '-ds'
                       ]
     logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
-    Path(LOG_FILE_ROOT).mkdir(parents=True, exist_ok=True)
+    Path(ingestion_log_root_path).mkdir(parents=True, exist_ok=True)
     if not dry_run:
-        with open(os.path.join(cwd, LOG_FILE_ROOT, f'{dataset_id}.out'), 'w') as logfile:
+        with open(os.path.join(cwd, ingestion_log_root_path, f'{dataset_id}.out'), 'w') as logfile:
             process = subprocess.Popen(pod_launch_cmd,
                                        cwd=RUN_JOB_PATH,
                                        stdout=logfile,
@@ -127,10 +137,15 @@ def collection_row_callback(row, deconstruct_nfs=False, dry_run=True):
             process.wait()
 
 
-def read_google_spreadsheet(tab, row_callback):
+def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback):
     """ Read the given tab in the google spreadsheet
-    and apply to each row the callback function"""
-    logger.info("Read google spreadsheet %s, tab %s containing collection configurations", SPREADSHEET_ID, tab)
+    and apply to each row the callback function.
+    Get credential for the google spreadheet api as documented:
+    https://console.developers.google.com/apis/credentials
+    """
+    logger.info("Read google spreadsheet %s, tab %s containing collection configurations",
+                spreadsheet_id,
+                tab)
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -143,8 +158,10 @@ def read_google_spreadsheet(tab, row_callback):
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            scopes = [scope]
+            logger.info("scopes %s", scopes)
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                'credentials.json', scopes)
             creds = flow.run_console()
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
@@ -154,10 +171,10 @@ def read_google_spreadsheet(tab, row_callback):
 
     # Call the Sheets API
     sheet = service.spreadsheets()
-    cell_range = f'{tab}!{RANGE_NAME}'
-    logger.info("read range %s", cell_range);
-    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                range=cell_range).execute()
+    tab_cell_range = f'{tab}!{cell_range}'
+    logger.info("read range %s", tab_cell_range)
+    result = sheet.values().get(spreadsheetId=spreadsheet_id,
+                                range=tab_cell_range).execute()
     values = result.get('values', [])
 
     if not values:
@@ -170,9 +187,3 @@ def read_google_spreadsheet(tab, row_callback):
             row_callback(row)
 
 
-def run_collections(call_back):
-    """For each collection in the list, creates a granule list file
-       Get credential for the google spreadheet api as documented:
-       https://console.developers.google.com/apis/credentials
-    """
-    read_google_spreadsheet(SHEET_NAME, call_back)
