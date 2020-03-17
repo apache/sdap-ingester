@@ -13,7 +13,7 @@ def post_install_message():
     finally:
         from tabulate import tabulate
 
-    path_to_configuration_files = os.path.expanduser(f"~/.{PACKAGE_NAME}")
+    path_to_configuration_files = os.join(sys.prefix, f".{PACKAGE_NAME}")
     message = f"Now, create configuration files in \n" \
               f"***{path_to_configuration_files}*** \n" \
               f" Use templates and examples provided there"
