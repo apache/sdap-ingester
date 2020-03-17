@@ -13,7 +13,7 @@ def post_install_message():
     finally:
         from tabulate import tabulate
 
-    path_to_configuration_files = os.path.join(site.USER_BASE, f".{PACKAGE_NAME}")
+    path_to_configuration_files = os.path.expanduser(f"~/.{PACKAGE_NAME}")
     message = f"Now, create configuration files in \n" \
               f"***{path_to_configuration_files}*** \n" \
               f" Use templates and examples provided there"
@@ -44,7 +44,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    data_files=[('.sdap_ingest_manager',
+    data_files=[(os.path.expanduser('~/.sdap_ingest_manager'),
                  ['sdap_ingest_manager/sdap_ingest_manager/resources/config/credentials.json.template',
                   'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example']
                  )],

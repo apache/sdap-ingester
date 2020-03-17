@@ -21,8 +21,8 @@ Install
 
     Stay logged in a user
 
-    $ pip install -v --user https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager/releases/download/untagged-dd3562359aea7076df08/sdap_ingest_manager-0.0.1.tar.gz
-
+    $ pip install -v --user https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager/releases/download/0.0.1/sdap_ingest_manager-0.0.1.tar.gz
+                            
 Catch the message at the end of the installation output
 
     --------------------------------------------------------------
@@ -62,9 +62,11 @@ Update the code and the test with your favorite IDE (e.g. pyCharm).
 ### Test and create the package
 
     $ python setup.py test
+    $ git tag <version>
+    $ git push origin <version>
     $ python setup.py sdist bdist_wheel
 
-Publish the package as a gitHub release.
+Create a tag and publish the package as a gitHub release.
 
 
 

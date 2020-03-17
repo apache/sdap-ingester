@@ -26,7 +26,7 @@ CONFIG_TEMPLATE = 'dataset_config_template.yml'
 def read_local_configuration():
     print("====config====")
     config = configparser.ConfigParser()
-    candidates = [os.path.join(site.USER_BASE, '.sdap_ingest_manager/sdap_ingest_manager.ini'),
+    candidates = [os.path.expanduser('~/.sdap_ingest_manager/sdap_ingest_manager.ini'),
                   'sdap_ingest_manager.ini',
                   'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini',
                   'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example']
@@ -167,7 +167,7 @@ def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback
             scopes = [scope]
             logger.info("scopes %s", scopes)
             flow = InstalledAppFlow.from_client_secrets_file(
-                os.path.join(site.USER_BASE, '.sdap_ingest_manager/credentials.json'),
+                os.path.expanduser('~/.sdap_ingest_manager/credentials.json'),
                 scopes)
             creds = flow.run_console()
         # Save the credentials for the next run
