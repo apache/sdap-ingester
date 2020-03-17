@@ -1,8 +1,9 @@
 import unittest
-from sdap_ingest_manager import create_granule_list
+from sdap_ingest_manager.sdap_ingest_manager import create_granule_list
 import logging
 import filecmp
 import os
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,7 +16,8 @@ class TestValidationMgr(unittest.TestCase):
         logger.info("\n===== VALIDATION TESTS =====")
         super().setUp()
 
-        self.expected_dataset_configuration_file = "test/data/dataset_config_file_ok.yml"
+        self.expected_dataset_configuration_file = os.path.join(Path(__file__).parent.absolute(),
+                "../data/dataset_config_file_ok.yml")
         self.granule_list_file_result = "tmp/granule_lists/avhrr-oi-analysed-sst-granules.lst"
         self.dataset_config_file_result = "tmp/dataset_config/avhrr-oi-analysed-sst-config.yml"
 
@@ -32,6 +34,7 @@ class TestValidationMgr(unittest.TestCase):
                                                         self._config.get("INGEST", "connection_config"),
                                                         self._config.get("INGEST", "connection_profile"),
                                                         self._config.get("INGEST", "kubernetes_namespace"),
+                                                        self._config.get("OPTIONS", "parallel_pods"),
                                                         deconstruct_nfs=False,
                                                         dry_run=True)
 
@@ -50,6 +53,7 @@ class TestValidationMgr(unittest.TestCase):
                                                         self._config.get("INGEST", "connection_config"),
                                                         self._config.get("INGEST", "connection_profile"),
                                                         self._config.get("INGEST", "kubernetes_namespace"),
+                                                        self._config.get("OPTIONS", "parallel_pods"),
                                                         deconstruct_nfs=True, dry_run=True)
 
         self.validation_with_callback(collection_row_callback_parse_nfs)

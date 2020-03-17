@@ -1,11 +1,14 @@
 from __future__ import print_function
 import pickle
+import site
 import os.path
+from pathlib import Path
+import re
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import glob
-from pathlib import Path
+
 import logging
 import pystache
 import subprocess
@@ -15,24 +18,21 @@ from . import nfs_mount_parse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
+GROUP_DEFAULT_NAME = "group default name"
+CONFIG_TEMPLATE = 'dataset_config_template.yml'
 
 
 def read_local_configuration():
     print("====config====")
     config = configparser.ConfigParser()
-    candidates = ['sdap_ingest_manager.ini',
-                  'sdap_ingest_manager/sdap_ingest_manager.ini',
-                  'sdap_ingest_manager/sdap_ingest_manager.ini.example']
+    candidates = [os.path.join(site.USER_BASE, '.sdap_ingest_manager/sdap_ingest_manager.ini'),
+                  'sdap_ingest_manager.ini',
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini',
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example']
     config.read(candidates)
     return config
 
-
-CONFIG_TEMPLATE = 'dataset_config_template.yml'
-JOB_DEPLOYMENT_TEMPLATE = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/job-deployment-template.yml"
-CONNECTION_CONFIG = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/connection-config.yml"
-CONNECTION_PROFILE = "sdap-dev"
-NAMESPACE = "nexus-dev"
-RUN_JOB_PATH = "/home/loubrieu/deployment-configs/kubernetes/ingest-jobs/"
 
 def create_granule_list(file_path_pattern,
                         granule_list_file_path, deconstruct_nfs=False):
@@ -76,7 +76,7 @@ def create_dataset_config(dataset_id, variable_name, collection_config_template,
     logger.info("templated dataset config \n%s", config_content)
 
     dir_path = os.path.dirname(target_config_file_path)
-    logger.info("Dataset configuration file created in directory %s", dir_path);
+    logger.info("Dataset configuration file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
     with open(target_config_file_path, "w") as f:
@@ -92,6 +92,7 @@ def collection_row_callback(row,
                             connection_config,
                             connection_profile,
                             kubernetes_namespace,
+                            parallel_pods,
                             deconstruct_nfs=False,
                             dry_run=True,
                             ):
@@ -113,6 +114,12 @@ def collection_row_callback(row,
                           collection_config_template,
                           dataset_configuration_file_path)
     cwd = os.getcwd()
+    # group must match the following regex (([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?
+    # and when suffixed with uid must not exceed 64 characters
+    prog = re.compile(GROUP_PATTERN)
+    group = prog.match(dataset_id[:19])
+    if group is None:
+        group = GROUP_DEFAULT_NAME
     pod_launch_cmd = ['run_granule',
                       '-flp', os.path.join(cwd, granule_list_file_path),
                       '-jc', os.path.join(cwd, dataset_configuration_file_path),
@@ -121,7 +128,7 @@ def collection_row_callback(row,
                       '-c', connection_config,
                       '-p', connection_profile,
                       'solr', 'cassandra',
-                      '-mj', '8',
+                      '-mj', parallel_pods,
                       '-nv', '1.1.0',
                       '-ns', kubernetes_namespace,
                       '-ds'
@@ -131,7 +138,6 @@ def collection_row_callback(row,
     if not dry_run:
         with open(os.path.join(cwd, ingestion_log_root_path, f'{dataset_id}.out'), 'w') as logfile:
             process = subprocess.Popen(pod_launch_cmd,
-                                       cwd=RUN_JOB_PATH,
                                        stdout=logfile,
                                        stderr=logfile)
             process.wait()
@@ -161,7 +167,8 @@ def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback
             scopes = [scope]
             logger.info("scopes %s", scopes)
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', scopes)
+                os.path.join(site.USER_BASE, '.sdap_ingest_manager/credentials.json'),
+                scopes)
             creds = flow.run_console()
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:

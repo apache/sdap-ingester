@@ -1,0 +1,4 @@
+include resources/*.yml
+include resources/config/credentials.json.template
+include resources/config/sdap_ingest_manager.ini.example
+

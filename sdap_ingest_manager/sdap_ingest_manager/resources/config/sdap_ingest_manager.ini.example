@@ -24,6 +24,8 @@ dry_run = True
 # set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
 deconstruct_nfs = True
 collection_config_template = resources/dataset_config_template.yml
+# number of parallel ingestion pods on kubernetes (1 per granule)
+parallel_pods = 8
 
 [INGEST]
 # template used to create the kubernetes pod for the job of one granule

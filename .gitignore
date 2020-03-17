@@ -5,3 +5,4 @@ sdap_ingest_manager.egg-info
 venv
 __pycache__/
 dist/
+build/

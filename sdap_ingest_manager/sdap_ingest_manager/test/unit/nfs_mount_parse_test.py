@@ -1,5 +1,5 @@
 import unittest
-from sdap_ingest_manager import nfs_mount_parse
+from sdap_ingest_manager.sdap_ingest_manager import nfs_mount_parse
 
 
 class TestUnitMgr(unittest.TestCase):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sdap_ingest_manager
+from sdap_ingest_manager import sdap_ingest_manager
 
 config = sdap_ingest_manager.read_local_configuration()
 
@@ -15,10 +15,11 @@ def collection_row_callback(row):
                                                 config.get("INGEST", "connection_config"),
                                                 config.get("INGEST", "connection_profile"),
                                                 config.get("INGEST", "kubernetes_namespace"),
-                                                decontruct_nfs=config.get("OPTIONS", "deconstruct_nfs"),
+                                                config.get("OPTIONS", "parallel_pods"),
+                                                deconstruct_nfs=config.get("OPTIONS", "deconstruct_nfs"),
                                                 dry_run=config.get("OPTIONS", "dry_run"))
 
-sdap_ingest_manager.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET','scope'),
+sdap_ingest_manager.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
                                             config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
                                             config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
                                             config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "cell_range"),
