@@ -71,7 +71,7 @@ def create_granule_list(file_path_pattern,
 def create_dataset_config(dataset_id, variable_name, collection_config_template, target_config_file_path):
     logger.info("Create dataset configuration file %s", target_config_file_path)
     renderer = pystache.Renderer()
-    collection_config_template_path = os.path.join(Path(__file__).parent.absolute(), collection_config_template)
+    collection_config_template_path = os.path.join(sys.prefix, collection_config_template)
     config_content = renderer.render_path(collection_config_template_path, {'dataset_id': dataset_id,
                                                             'variable': variable_name})
     logger.info("templated dataset config \n%s", config_content)
@@ -120,13 +120,15 @@ def collection_row_callback(row,
     prog = re.compile(GROUP_PATTERN)
     group = prog.match(dataset_id[:19])
     if group is None:
-        group = GROUP_DEFAULT_NAME
+        group_name = GROUP_DEFAULT_NAME
+    else:
+        group_name = group.group(0)
     pod_launch_cmd = ['run_granule',
                       '-flp', os.path.join(cwd, granule_list_file_path),
                       '-jc', os.path.join(cwd, dataset_configuration_file_path),
-                      '-jg', dataset_id[:19],  # the name of container must be less than 63 in total
-                      '-jdt', job_deployment_template,
-                      '-c', connection_config,
+                      '-jg', group_name,  # the name of container must be less than 63 in total
+                      '-jdt', os.path.join(sys.prefix, job_deployment_template),
+                      '-c', os.path.join(sys.prefix, connection_config),
                       '-p', connection_profile,
                       'solr', 'cassandra',
                       '-mj', parallel_pods,
@@ -157,8 +159,9 @@ def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    token_file_path = os.path.join(sys.prefix, '.sdap_ingest_manager', 'token.pickle')
+    if os.path.exists(token_file_path):
+        with open(token_file_path, 'rb') as token:
             creds = pickle.load(token)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -168,11 +171,11 @@ def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback
             scopes = [scope]
             logger.info("scopes %s", scopes)
             flow = InstalledAppFlow.from_client_secrets_file(
-                os.path.join(sys.prefix, '.sdap_ingest_manager/credentials.json'),
+                os.path.join(sys.prefix, '.sdap_ingest_manager', 'credentials.json'),
                 scopes)
             creds = flow.run_console()
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
+        with open(token_file_path, 'wb') as token:
             pickle.dump(creds, token)
 
     service = build('sheets', 'v4', credentials=creds)

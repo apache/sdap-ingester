@@ -1,6 +1,7 @@
 import unittest
 from sdap_ingest_manager.sdap_ingest_manager import create_granule_list
 import os
+import sys
 from pathlib import Path
 import logging
 import filecmp
@@ -18,7 +19,8 @@ class TestUnitMgr(unittest.TestCase):
         self.target_dataset_config_file = "tmp/dataset_config_file.yml"
         self.granule_file_pattern = os.path.join(Path(__file__).parent.absolute(),
                                                  "../data/avhrr_oi/*.nc")
-        self.collection_config_template = "resources/dataset_config_template.yml"
+        self.collection_config_template = os.path.join(sys.prefix,
+                                                       ".sdap_ingest_manager/resources/dataset_config_template.yml")
         self.expected_dataset_configuration_file = os.path.join(Path(__file__).parent.absolute(),
                                                                 "../data/dataset_config_file_ok.yml")
 

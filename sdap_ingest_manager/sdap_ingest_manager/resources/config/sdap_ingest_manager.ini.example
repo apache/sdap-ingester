@@ -23,15 +23,15 @@ log_path = tmp/logs
 dry_run = True
 # set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
 deconstruct_nfs = True
-collection_config_template = resources/dataset_config_template.yml
+collection_config_template = .sdap_ingest_manager/resources/dataset_config_template.yml
 # number of parallel ingestion pods on kubernetes (1 per granule)
 parallel_pods = 8
 
 [INGEST]
 # template used to create the kubernetes pod for the job of one granule
-job_deployment_template = resources/job-deployment-template.yml
+job_deployment_template = .sdap_ingest_manager/resources/job-deployment-template.yml
 # connexion configuration to the solr and cassandra nodes of the sdap cluster
-connection_config = resources/connection-config.yml
+connection_config = .sdap_ingest_manager/resources/connection-config.yml
 connection_profile = sdap-dev
 # kubernetes namespace where the sdap cluster is deployed
 kubernetes_namespace = nexus-dev

@@ -21,7 +21,7 @@ Install
 
     Stay logged in a user
 
-    $ pip install -v --user https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager/releases/download/0.0.1/sdap_ingest_manager-0.0.1.tar.gz
+    $ pip install -v https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager/releases/download/0.0.1/sdap_ingest_manager-0.0.1.tar.gz
                             
 Catch the message at the end of the installation output
 
@@ -53,7 +53,7 @@ Run the ingestion on your list of collections:
     $ cd sdap_ingest_manager
     $ python -m venv venv
     $ source ./venv/bin/activate
-    $ pip install -e .
+    $ pip install .
 
 ## Update the project
 

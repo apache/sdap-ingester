@@ -17,7 +17,7 @@ def collection_row_callback(row):
                                                 config.get("INGEST", "kubernetes_namespace"),
                                                 config.get("OPTIONS", "parallel_pods"),
                                                 deconstruct_nfs=config.get("OPTIONS", "deconstruct_nfs"),
-                                                dry_run=config.get("OPTIONS", "dry_run"))
+                                                dry_run=config.getboolean("OPTIONS", "dry_run"))
 
 sdap_ingest_manager.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
                                             config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
