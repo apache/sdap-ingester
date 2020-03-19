@@ -15,6 +15,7 @@ import pystache
 import subprocess
 import configparser
 from . import nfs_mount_parse
+import sdap_ingest_manager.kubernetes_ingester
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,8 +30,7 @@ def read_local_configuration():
     config = configparser.ConfigParser()
     candidates = [os.path.join(sys.prefix, '.sdap_ingest_manager/sdap_ingest_manager.ini'),
                   'sdap_ingest_manager.ini',
-                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini',
-                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example']
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini']
     config.read(candidates)
     return config
 
@@ -45,9 +45,8 @@ def create_granule_list(file_path_pattern,
     logger.info("Create granule list file %s", granule_list_file_path)
 
     logger.info("using file pattern %s", file_path_pattern)
-    cwd = os.getcwd()
-    logger.info("from current work directory %s", cwd)
-    file_list = glob.glob(file_path_pattern)
+    logger.info("from sys.prefix directory for relative path %s", os.path.join(sys.prefix, '.sdap_ingest_manager'))
+    file_list = glob.glob(os.path.join(sys.prefix, '.sdap_ingest_manager', file_path_pattern))
 
     logger.info("%i files found", len(file_list))
 
@@ -60,8 +59,7 @@ def create_granule_list(file_path_pattern,
 
     with open(granule_list_file_path, 'w') as file_handle:
         for list_item in file_list:
-            file_path = os.path.join(cwd, list_item)
-
+            file_path = list_item
             if deconstruct_nfs:
                 file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
 
@@ -88,14 +86,9 @@ def collection_row_callback(row,
                             collection_config_template,
                             granule_file_list_root_path,
                             dataset_configuration_root_path,
-                            ingestion_log_root_path,
-                            job_deployment_template,
-                            connection_config,
-                            connection_profile,
-                            kubernetes_namespace,
-                            parallel_pods,
+                            history_root_path,
                             deconstruct_nfs=False,
-                            dry_run=True,
+                            **pods_run_kwargs
                             ):
     """ Create the configuration and launch the ingestion
         for the given collection row
@@ -104,12 +97,19 @@ def collection_row_callback(row,
     netcdf_variable = row[1].strip()
     netcdf_file_pattern = row[2].strip()
 
-    granule_list_file_path = os.path.join(granule_file_list_root_path, f'{dataset_id}-granules.lst')
+    sdap_ingest_manager_home = os.path.join(sys.prefix,
+                                          '.sdap_ingest_manager')
+    granule_list_file_path = os.path.join(sdap_ingest_manager_home,
+                                          granule_file_list_root_path,
+                                          f'{dataset_id}-granules.lst')
     create_granule_list(netcdf_file_pattern,
                         granule_list_file_path,
                         deconstruct_nfs=deconstruct_nfs)
 
-    dataset_configuration_file_path = os.path.join(dataset_configuration_root_path, f'{dataset_id}-config.yml')
+    dataset_configuration_file_path = os.path.join(sdap_ingest_manager_home,
+                                                   dataset_configuration_root_path,
+                                                   f'{dataset_id}-config.yml')
+
     create_dataset_config(dataset_id,
                           netcdf_variable,
                           collection_config_template,
@@ -123,28 +123,28 @@ def collection_row_callback(row,
         group_name = GROUP_DEFAULT_NAME
     else:
         group_name = group.group(0)
-    pod_launch_cmd = ['run_granule',
-                      '-flp', os.path.join(cwd, granule_list_file_path),
-                      '-jc', os.path.join(cwd, dataset_configuration_file_path),
-                      '-jg', group_name,  # the name of container must be less than 63 in total
-                      '-jdt', os.path.join(sys.prefix, job_deployment_template),
-                      '-c', os.path.join(sys.prefix, connection_config),
-                      '-p', connection_profile,
-                      'solr', 'cassandra',
-                      '-mj', parallel_pods,
-                      '-nv', '1.1.0',
-                      '-ns', kubernetes_namespace,
-                      '-ds'
-                      ]
-    logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
-    Path(ingestion_log_root_path).mkdir(parents=True, exist_ok=True)
-    if not dry_run:
-        with open(os.path.join(cwd, ingestion_log_root_path, f'{dataset_id}.out'), 'w') as logfile:
-            process = subprocess.Popen(pod_launch_cmd,
-                                       stdout=logfile,
-                                       stderr=logfile)
-            process.wait()
+    pods_run_kwargs['file_list_path'] = granule_list_file_path
+    pods_run_kwargs['job_config'] = dataset_configuration_file_path
+    pods_run_kwargs['job_group'] = group_name
+    pods_run_kwargs['ningester_version'] = '1.1.0'
+    pods_run_kwargs['delete_successful'] = True
+    pods_run_kwargs['history_file'] = os.path.join(history_root_path, f'{dataset_id}.csv')
 
+    def param_to_str_arg(k, v):
+        str_k = f'--{k}'
+        if type(v) == bool:
+            if v:
+                return [str_k]
+            else:
+                return []
+        else:
+            return [str_k, str(v)]
+
+    pod_launch_options = [param_to_str_arg(k, v) for (k,v) in pods_run_kwargs.items()]
+    flat_pod_launch_options = [item for option in pod_launch_options for item in option]
+    pod_launch_cmd = ['run_granule'] + flat_pod_launch_options
+    logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
+    sdap_ingest_manager.kubernetes_ingester.create_and_run_jobs(**pods_run_kwargs)
 
 def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback):
     """ Read the given tab in the google spreadsheet

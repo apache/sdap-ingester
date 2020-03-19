@@ -14,25 +14,32 @@ cell_range = D2:F
 
 [LOCAL_PATHS]
 # path to temporary resources created in the ingestion process, does not need to be changed
+# relative path starts at {sys.prefix}/.sdap_ingest_manager
+# path to the list of the granules to be processed, generated
 granule_file_list_path = tmp/granule_lists
+# path to the job configuration, one per dataset, generated
 collection_config_path = tmp/dataset_config
-log_path = tmp/logs
+# path to the history of files successfully ingested, generated
+history_path=tmp/history
+
 
 [OPTIONS]
 # set to False to actually call the ingestion command for each granule
+# relative path starts at {sys.prefix}/.sdap_ingest_manager
 dry_run = True
 # set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
 deconstruct_nfs = True
-collection_config_template = .sdap_ingest_manager/resources/dataset_config_template.yml
+collection_config_template = resources/dataset_config_template.yml
 # number of parallel ingestion pods on kubernetes (1 per granule)
 parallel_pods = 8
 
 [INGEST]
 # template used to create the kubernetes pod for the job of one granule
-job_deployment_template = .sdap_ingest_manager/resources/job-deployment-template.yml
+# relative path starts at {sys.prefix}/.sdap_ingest_manager
+job_deployment_template = resources/job-deployment-template.yml
 # connexion configuration to the solr and cassandra nodes of the sdap cluster
-connection_config = .sdap_ingest_manager/resources/connection-config.yml
-connection_profile = sdap-dev
+connection_config = resources/connection-config.yml
+connection_profile = sdap-dev,solr,cassandra
 # kubernetes namespace where the sdap cluster is deployed
 kubernetes_namespace = nexus-dev
 

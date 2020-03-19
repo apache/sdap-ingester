@@ -203,12 +203,27 @@ def create_temp_job_json(temp_dir, job_names, namespace='default', dry_run=False
 
     return job_json_file_paths
 
-
-def create_and_run_jobs(args):
+def create_and_run_jobs(filepath_pattern=None,
+                        file_list_path=None,
+                        namespace="default",
+                        temp_dir = "./temp",
+                        job_group = "default",
+                        dry_run=True,
+                        failed_jobs=False,
+                        process_templates=False,
+                        template_path=None,
+                        job_config=None,
+                        connection_settings=None,
+                        profiles=None,
+                        job_deployment_template=None,
+                        ningester_version="1.1.0",
+                        max_concurrent_jobs=1,
+                        delete_successful=True,
+                        history_file=None,
+                        kubectl_command_timeout=30,
+                        verbose=False):
     # Wipe out previously created job templates.
-    temp_dir = os.path.join(args.temp_dir, args.job_group)
-    namespace = args.namespace
-    dry_run = args.dry_run
+    temp_dir = os.path.join(temp_dir, job_group)
 
     if dry_run:
         LOGGER.info("mkdir -p {}".format(temp_dir))
@@ -217,30 +232,31 @@ def create_and_run_jobs(args):
 
     job_files = []
     files = []
-    if args.filepath_pattern:
+    history_buffer = {}
+    if filepath_pattern:
         # Glob the files to be ingested
-        files = glob.iglob(args.filepath_pattern, recursive=True)
-    elif args.file_list_path:
+        files = glob.iglob(filepath_pattern, recursive=True)
+    elif file_list_path:
         # Parse filepaths from input
-        with open(args.file_list_path, 'r') as granule_list:
+        with open(file_list_path, 'r') as granule_list:
             files = granule_list.readlines()
-    elif args.failed_jobs:
+    elif failed_jobs:
         # Resubmit failed jobs
         completed_job_names, failed_job_names, running_job_names, unknown_job_names = get_completed_failed_and_running_jobs_names(
             namespace=namespace,
-            job_group=args.job_group)
+            job_group=job_group)
         if not failed_job_names:
-            LOGGER.warning("No failed jobs found with job group {}. Nothing to do!".format(args.job_group))
+            LOGGER.warning("No failed jobs found with job group {}. Nothing to do!".format(job_group))
             return
         job_files = create_temp_job_json(temp_dir, failed_job_names, namespace=namespace,
                                          dry_run=dry_run)
-        delete_jobs(failed_job_names, namespace=namespace, dry_run=(dry_run or args.process_templates))
-    elif args.template_path:
+        delete_jobs(failed_job_names, namespace=namespace, dry_run=(dry_run or process_templates))
+    elif template_path:
         # Submit resolved job templates directly
-        job_files = [os.path.join(args.template_path, filename) for filename in os.listdir(args.template_path)]
+        job_files = [os.path.join(template_path, filename) for filename in os.listdir(template_path)]
         job_names = [os.path.splitext(os.path.basename(the_file))[0] for the_file in job_files]
         try:
-            delete_jobs(job_names, namespace=namespace, dry_run=(dry_run or args.process_templates))
+            delete_jobs(job_names, namespace=namespace, dry_run=(dry_run or process_templates))
         except CommandFailedException:
             LOGGER.warning("Failed to delete jobs, assuming they do not exist. Continuing execution.")
 
@@ -248,60 +264,61 @@ def create_and_run_jobs(args):
         raise Exception("Unknown input")
 
     # Config map names are just the filename minus extension
-    job_config_map_name = os.path.splitext(os.path.basename(args.job_config))[0]
-    connection_config_map_name = os.path.splitext(os.path.basename(args.connection_settings))[0]
+    job_config_map_name = os.path.splitext(os.path.basename(job_config))[0]
+    connection_config_map_name = os.path.splitext(os.path.basename(connection_settings))[0]
 
     # For every file to be ingested, create a deployment by replacing the placeholders in the template with actual values
     for the_file in files:
         filename = os.path.basename(the_file)
         filepath = os.path.dirname(the_file)
         md5sum = hashlib.md5(filename.encode()).hexdigest()
-        granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(args.job_group, md5sum))
+        granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
         job_files += [granule_job_filepath]
+        history_buffer[md5sum] = filename.rstrip()  # use this map to retrieve the filename from the md5sum used in the job name
 
         if dry_run:
-            LOGGER.info("cp {} {}".format(args.job_deployment_template, granule_job_filepath))
+            LOGGER.info("cp {} {}".format(job_deployment_template, granule_job_filepath))
             LOGGER.info("$JOBNAME={}".format(md5sum))
-            LOGGER.info("$JOBGROUP={}".format(args.job_group))
+            LOGGER.info("$JOBGROUP={}".format(job_group))
             LOGGER.info("$GRANULEHOSTPATH={}".format(filepath))
             LOGGER.info("$GRANULE={}".format(filename))
             LOGGER.info("$JOBCONFIGMAPNAME={}".format(job_config_map_name))
             LOGGER.info("$CONNECTIONCONFIGMAPNAME={}".format(connection_config_map_name))
-            LOGGER.info("$NINGESTERTAG={}".format(args.ningester_version))
-            LOGGER.info("$PROFILES={}".format(','.join(args.profiles)))
+            LOGGER.info("$NINGESTERTAG={}".format(ningester_version))
+            LOGGER.info("$PROFILES={}".format(','.join(profiles)))
         else:
-            shutil.copy(args.job_deployment_template, granule_job_filepath)
+            shutil.copy(job_deployment_template, granule_job_filepath)
             for line in fileinput.input(granule_job_filepath, inplace=True):
                 line = line.replace('$JOBNAME', md5sum)
-                line = line.replace('$JOBGROUP', args.job_group)
+                line = line.replace('$JOBGROUP', job_group)
                 line = line.replace('$GRANULEHOSTPATH', filepath)
                 line = line.replace('$GRANULE', filename)
                 line = line.replace('$JOBCONFIGMAPNAME', job_config_map_name)
                 line = line.replace('$CONNECTIONCONFIGMAPNAME', connection_config_map_name)
-                line = line.replace('$NINGESTERTAG', args.ningester_version)
-                line = line.replace('$PROFILES', ','.join(args.profiles))
+                line = line.replace('$NINGESTERTAG', ningester_version)
+                line = line.replace('$PROFILES', ','.join(profiles))
 
                 print(line, end='')
 
     # Generate a configmap from the connection settings and apply it
-    connection_settings = os.path.join(os.path.join(Path(__file__).parent.absolute(), args.connection_settings))
+    connection_settings = os.path.join(os.path.join(Path(__file__).parent.absolute(), connection_settings))
     generate_connection_config_map = ['kubectl', 'create', 'configmap', connection_config_map_name, '--from-file',
                                       connection_settings, '--dry-run', '-o', 'json']
     kubectl_apply_from_stdin = ['kubectl', 'apply', '-n', namespace, '-f', '-']
     run_piped_commands(generate_connection_config_map, kubectl_apply_from_stdin,
-                       dry_run=(dry_run or args.process_templates))
+                       dry_run=(dry_run or process_templates))
 
     # Generate a configmap from the job configruation and apply it only if we're not rerunning failed jobs
-    if not (args.failed_jobs or args.template_path):
-        job_config = os.path.join(os.path.join(Path(__file__).parent.absolute(), args.job_config))
+    if not (failed_jobs or template_path):
+        job_config = os.path.join(os.path.join(Path(__file__).parent.absolute(), job_config))
         generate_job_config_map = ['kubectl', 'create', 'configmap', job_config_map_name, '--from-file',
                                    job_config, '--dry-run', '-o', 'json']
         run_piped_commands(generate_job_config_map, kubectl_apply_from_stdin,
-                           dry_run=(dry_run or args.process_templates))
+                           dry_run=(dry_run or process_templates))
 
     # Submit all the jobs to the kubernetes cluster but only submit `args.max_concurrent_jobs` at any given time.
     # Wait for all jobs to complete before submitting the next `args.max_concurrent_jobs` jobs
-    max_concurrent_jobs = int(args.max_concurrent_jobs)
+    max_concurrent_jobs = int(max_concurrent_jobs)
     total_jobs = len(job_files)
     total_success = 0
     total_fail = 0
@@ -314,9 +331,9 @@ def create_and_run_jobs(args):
         apply_job_deployments = ['kubectl', 'apply', '-n', namespace, *chunk]
 
         LOGGER.info("Launching {} more job(s)".format(len(chunk) // 2))
-        run_single_command_and_wait(apply_job_deployments, dry_run=(dry_run or args.process_templates))
+        run_single_command_and_wait(apply_job_deployments, dry_run=(dry_run or process_templates))
 
-        if not (dry_run or args.process_templates):
+        if not (dry_run or process_templates):
             completed_job_names, failed_job_names, running_job_names, unknown_job_names = get_completed_failed_and_running_jobs_names(
                 namespace=namespace,
                 job_names=job_names_in_chunk)
@@ -332,9 +349,12 @@ def create_and_run_jobs(args):
                             completed_job_names) + total_fail + len(
                             failed_job_names), total_jobs))
                 time.sleep(15)
-                completed_job_names, failed_job_names, running_job_names, unknown_job_names = get_completed_failed_and_running_jobs_names(
-                    namespace=namespace,
-                    job_names=job_names_in_chunk)
+                (completed_job_names,
+                 failed_job_names,
+                 running_job_names,
+                 unknown_job_names) = get_completed_failed_and_running_jobs_names(
+                        namespace=namespace,
+                        job_names=job_names_in_chunk)
 
             total_success += len(completed_job_names)
             total_fail += len(failed_job_names)
@@ -346,15 +366,26 @@ def create_and_run_jobs(args):
                 total_success + total_fail,
                 total_jobs))
 
-            if args.delete_successful:
+            if delete_successful:
                 LOGGER.info("Deleting successful jobs")
                 # Get jobs in group as JSON output
-                completed_job_names, failed_job_names, running_job_names, unknown_job_names = get_completed_failed_and_running_jobs_names(
+                (completed_job_names,
+                 failed_job_names,
+                 running_job_names,
+                 unknown_job_names) = get_completed_failed_and_running_jobs_names(
                     namespace=namespace,
                     job_names=job_names_in_chunk)
 
                 # If some jobs are complete, delete them
                 if completed_job_names:
+                    LOGGER.info("where we delete successful jobs")
+                    LOGGER.info(completed_job_names)
+                    if history_file:
+                        Path(os.path.dirname(history_file)).mkdir(parents=True, exist_ok=True)
+                        with open(history_file, 'a') as hf:
+                            for completed_job_name in completed_job_names:
+                                completed_md5sum = completed_job_name.split('-')[-1]
+                                hf.write(f'{history_buffer[completed_md5sum]},{completed_md5sum}\n')
                     delete_jobs(completed_job_names, namespace=namespace, dry_run=dry_run)
                     # Also remove the resolved template
                     job_files_in_chunk = [the_file for the_file in chunk[1::2]]
@@ -364,8 +395,9 @@ def create_and_run_jobs(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Ingest one or more data granules using ningester on kubernetes.',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description='Ingest one or more data granules using ningester on kubernetes.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Group arguments for how the program should look for granules to ingest
     input_group = parser.add_argument_group('Input Specification',
@@ -526,7 +558,9 @@ def run_granule_as_kubernetes_pod():
 
     exit_code = 0
     try:
-        create_and_run_jobs(the_args)
+        params = {k: v for k, v in the_args._get_kwargs()}
+        create_and_run_jobs(**params)
+
     except Exception:
         LOGGER.exception("Encountered an unexpected error.")
         exit_code = 1

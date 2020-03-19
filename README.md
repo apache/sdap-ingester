@@ -54,6 +54,8 @@ Run the ingestion on your list of collections:
     $ python -m venv venv
     $ source ./venv/bin/activate
     $ pip install .
+    
+Note the command pip install -e . does not work as it does not deploy the configuration files.
 
 ## Update the project
 

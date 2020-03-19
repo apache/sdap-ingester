@@ -53,7 +53,10 @@ setuptools.setup(
                  ['sdap_ingest_manager/sdap_ingest_manager/resources/dataset_config_template.yml',
                   'sdap_ingest_manager/kubernetes_ingester/resources/connection-config.yml',
                   'sdap_ingest_manager/kubernetes_ingester/resources/job-deployment-template.yml']
-                 )
+                 ),
+                ('.sdap_ingest_manager/resources/test/data/avhrr_oi/',
+                 ['sdap_ingest_manager/sdap_ingest_manager/test/data/avhrr_oi/20151101120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc',
+                  'sdap_ingest_manager/sdap_ingest_manager/test/data/avhrr_oi/20151102120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc'])
             ],
     install_requires=[
         "google-api-python-client>=1.7",
