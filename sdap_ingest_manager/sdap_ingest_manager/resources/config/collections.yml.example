@@ -1,0 +1,3 @@
+avhrr-oi-analysed-sst:
+  path: resources/test/data/avhrr_oi/*.nc
+  variable: analysed_sst

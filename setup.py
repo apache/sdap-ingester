@@ -47,7 +47,8 @@ setuptools.setup(
     include_package_data=True,
     data_files=[('.sdap_ingest_manager',
                  ['sdap_ingest_manager/sdap_ingest_manager/resources/config/credentials.json.template',
-                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example']
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example',
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/collections.yml.example']
                  ),
                 ('.sdap_ingest_manager/resources/',
                  ['sdap_ingest_manager/sdap_ingest_manager/resources/dataset_config_template.yml',
@@ -61,7 +62,8 @@ setuptools.setup(
     install_requires=[
         "google-api-python-client>=1.7",
         "google-auth-oauthlib>=0.4",
-        "pystache>=0.5"
+        "pystache>=0.5",
+        "pyyaml"
     ]
 )
 

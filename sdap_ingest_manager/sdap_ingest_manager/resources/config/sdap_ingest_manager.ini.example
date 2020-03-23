@@ -1,3 +1,6 @@
+[COLLECTIONS_YAML_CONFIG]
+yaml_file = collections.yml.example
+
 [COLLECTIONS_GOOGLE_SPREADSHEET]
 # the scope for the authorization token, don't change that.
 scope = https://www.googleapis.com/auth/spreadsheets.readonly

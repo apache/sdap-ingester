@@ -1,5 +1,5 @@
 import unittest
-from sdap_ingest_manager.sdap_ingest_manager import create_granule_list
+from sdap_ingest_manager.sdap_ingest_manager import collection_ingestion
 import os
 import sys
 from pathlib import Path
@@ -26,9 +26,9 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_create_granule_list(self):
         logger.info("test create_granule_list")
-        create_granule_list.create_granule_list(self.granule_file_pattern,
-                                                self.target_granule_list_file
-                                                )
+        collection_ingestion.create_granule_list(self.granule_file_pattern,
+                                                 self.target_granule_list_file
+                                                 )
         line_number = 0
         with open(self.target_granule_list_file, 'r') as f:
             for _ in f:
@@ -40,10 +40,10 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_create_dataset_config(self):
         logger.info("test create_dataset_config")
-        create_granule_list.create_dataset_config("avhrr-oi-analysed-sst",
+        collection_ingestion.create_dataset_config("avhrr-oi-analysed-sst",
                                                   "analysed_sst",
-                                                  self.collection_config_template,
-                                                  self.target_dataset_config_file)
+                                                   self.collection_config_template,
+                                                   self.target_dataset_config_file)
 
         self.assertTrue(filecmp.cmp(self.expected_dataset_configuration_file, self.target_dataset_config_file),
                         "the dataset configuration file created does not match the expected results")

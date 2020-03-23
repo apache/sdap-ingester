@@ -14,6 +14,12 @@ Git lfs for the deployment from git, see https://git-lfs.github.com/
 
 If not available you have to get netcdf files for test, if you do need the tests.
 
+### Deployed nexus on kubernetes cluster
+
+See project https://github.com/apache/incubator-sdap-nexus
+
+    $ helm install nexus .  --namespace=sdap --dependency-update -f ~/overridden-nexus-values.yml 
+
 
 ## Install, Configure and run
 
