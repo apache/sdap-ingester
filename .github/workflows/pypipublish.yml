@@ -47,9 +47,8 @@ jobs:
       shell: python
     - name: Test with pytest
       run: |
-
         pip install pytest
-        pytest
+        pytest -s
     - name: Publish the Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
