@@ -16,6 +16,7 @@ import signal
 from enum import Enum
 from pathlib import Path
 from json import JSONDecodeError
+from sdap_ingest_manager import sdap_ingest_manager
 
 KUBECTL_COMMAND_TIMEOUT = None
 LOGGER = logging.getLogger('runjobs')
@@ -35,6 +36,8 @@ def configure_logging():
     level = logging.INFO
     datefmt = '%Y-%m-%d %H:%M:%S'
     logging.basicConfig(format=logformat, level=level, datefmt=datefmt, stream=sys.stdout)
+
+
 
 
 def enable_verbose_logging(logger_name=None):
@@ -271,7 +274,7 @@ def create_and_run_jobs(filepath_pattern=None,
     for the_file in files:
         filename = os.path.basename(the_file)
         filepath = os.path.dirname(the_file)
-        md5sum = hashlib.md5(filename.encode()).hexdigest()
+        md5sum = sdap_ingest_manager.md5sum_from_filepath(the_file)
         granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
         job_files += [granule_job_filepath]
         history_buffer[md5sum] = filename.rstrip()  # use this map to retrieve the filename from the md5sum used in the job name

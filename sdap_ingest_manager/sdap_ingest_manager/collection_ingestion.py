@@ -10,8 +10,10 @@ import configparser
 from . import nfs_mount_parse
 import sdap_ingest_manager.kubernetes_ingester
 from .util import full_path
+from .util import md5sum_from_filepath
 
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
@@ -28,7 +30,7 @@ def read_local_configuration():
     return config
 
 
-def create_granule_list(file_path_pattern,
+def create_granule_list(file_path_pattern, history_file,
                         granule_list_file_path, deconstruct_nfs=False):
     """ Creates a granule list file from a file path pattern
         matching the granules.
@@ -51,20 +53,37 @@ def create_granule_list(file_path_pattern,
     if deconstruct_nfs:
         mount_points = nfs_mount_parse.get_nfs_mount_points()
 
+    logger.info(f"loading history file {history_file}")
+    history = {}
+    try:
+        with open(history_file, 'r') as f_history:
+            for line in f_history:
+                filename, md5sum = line.strip().split(',')
+                history[filename] = md5sum
+    except FileNotFoundError:
+        logger.info("no history file created yet")
+
     with open(granule_list_file_path, 'w') as file_handle:
-        for list_item in file_list:
-            file_path = list_item
-            if deconstruct_nfs:
-                file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
+        for file_path in file_list:
+            filename = os.path.basename(file_path)
+            md5sum = md5sum_from_filepath(file_path)
+            if filename not in history.keys() \
+                    or (filename in history.keys() and history[filename] != md5sum):
+                logger.debug(f"file {filename} not ingested yet, added to the list")
+                if deconstruct_nfs:
+                    file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
+                file_handle.write(f'{file_path}\n')
+            else:
+                logger.debug(f"file {filename} already ingested with same md5sum")
 
-            file_handle.write(f'{file_path}\n')
+    del history
 
 
-def create_dataset_config(dataset_id, variable_name, collection_config_template, target_config_file_path):
+def create_dataset_config(collection_id, variable_name, collection_config_template, target_config_file_path):
     logger.info("Create dataset configuration file %s", target_config_file_path)
     renderer = pystache.Renderer()
     collection_config_template_path = os.path.join(sys.prefix, collection_config_template)
-    config_content = renderer.render_path(collection_config_template_path, {'dataset_id': dataset_id,
+    config_content = renderer.render_path(collection_config_template_path, {'dataset_id': collection_id,
                                                             'variable': variable_name})
     logger.info("templated dataset config \n%s", config_content)
 
@@ -91,17 +110,16 @@ def collection_row_callback(row,
     netcdf_variable = row[1].strip()
     netcdf_file_pattern = row[2].strip()
 
-    sdap_ingest_manager_home = os.path.join(sys.prefix,
-                                          '.sdap_ingest_manager')
-    granule_list_file_path = os.path.join(sdap_ingest_manager_home,
-                                          granule_file_list_root_path,
+    granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
+    history_file_path = os.path.join(history_root_path,
+                                     f'{dataset_id}.csv')
     create_granule_list(netcdf_file_pattern,
+                        history_file_path,
                         granule_list_file_path,
                         deconstruct_nfs=deconstruct_nfs)
 
-    dataset_configuration_file_path = os.path.join(sdap_ingest_manager_home,
-                                                   dataset_configuration_root_path,
+    dataset_configuration_file_path = os.path.join(dataset_configuration_root_path,
                                                    f'{dataset_id}-config.yml')
 
     create_dataset_config(dataset_id,

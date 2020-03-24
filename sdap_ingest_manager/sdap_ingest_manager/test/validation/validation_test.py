@@ -1,8 +1,6 @@
 import unittest
 
 from sdap_ingest_manager import sdap_ingest_manager
-#import sdap_ingest_manager.sdap_ingest_manager.google_spreadsheet_collection_config
-#from sdap_ingest_manager.sdap_ingest_manager import collection_ingestion
 import logging
 import filecmp
 import os
@@ -132,7 +130,7 @@ class TestValidationMgr(unittest.TestCase):
 
     def tearDown(self):
         logger.info("tear down test results")
-        os.remove(self.granule_list_file_result)
+        #os.remove(self.granule_list_file_result)
         os.remove(self.dataset_config_file_result)
 
 
