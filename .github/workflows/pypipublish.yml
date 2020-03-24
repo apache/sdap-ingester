@@ -30,9 +30,25 @@ jobs:
         flake8 sdap_ingest_manager --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         #flake8 sdap_ingest_manager --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
+    - name: Deploy locally
       run: |
         pip install .
+    - name: Update default configuration
+      run: |
+        import sys
+        import os
+        import pystache
+        renderer = pystache.Renderer()
+        credentials_template_path = os.path.join(sys.prefix, ".sdap_ingest_manager/credentials.json.template")
+        credentials_content = renderer.render_path(credentials_template_path, {'client_id': ${{secrets.google_api_client_id}},
+                                                                               'client_secret': ${{secrets.google_api_client_secret}})
+        credentials_target_path = os.path.join(sys.prefix, ".sdap_ingest_manager/credentials.json")
+        with open(credentials_target_path, "w") as f:
+            f.write(credentials_content)
+      shell: python
+    - name: Test with pytest
+      run: |
+
         pip install pytest
         pytest
     - name: Publish the Python distribution to PyPI
