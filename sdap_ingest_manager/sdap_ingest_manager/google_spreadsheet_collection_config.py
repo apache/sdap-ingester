@@ -56,8 +56,14 @@ def read_google_spreadsheet(scope, spreadsheet_id, tab, cell_range, row_callback
     if not values:
         logger.info('No data found.')
     else:
-        logger.info('Name, Major:')
+        logger.info('Read collection configuration:')
+        collections = []
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            logger.info('dataset: %s, variable: %s, file path pattern:  %s' % (row[0], row[1], row[2]))
-            row_callback(row)
+            logger.info('dataset: %s, variable: %s, file path pattern:  %s, priority: %s' % (row[0], row[1], row[2], row[3]))
+            collections.append({'id': row[0].strip(),
+                                'variable': row[1].strip(),
+                                'path': row[2].strip(),
+                                'priority': int(row[3])})
+        sorted_collections = sorted(collections, key=lambda c: c['priority'])
+        for collection in sorted_collections:
+            row_callback(collection)

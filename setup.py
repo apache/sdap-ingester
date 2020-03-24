@@ -47,7 +47,7 @@ setuptools.setup(
     include_package_data=True,
     data_files=[('.sdap_ingest_manager',
                  ['sdap_ingest_manager/sdap_ingest_manager/resources/config/credentials.json.template',
-                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.example',
+                  'sdap_ingest_manager/sdap_ingest_manager/resources/config/sdap_ingest_manager.ini.default',
                   'sdap_ingest_manager/sdap_ingest_manager/resources/config/collections.yml.example']
                  ),
                 ('.sdap_ingest_manager/resources/',

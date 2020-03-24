@@ -6,10 +6,8 @@ import re
 import glob
 import logging
 import pystache
-import configparser
 from . import nfs_mount_parse
 import sdap_ingest_manager.kubernetes_ingester
-from .util import full_path
 from .util import md5sum_from_filepath
 
 
@@ -18,16 +16,6 @@ logger = logging.getLogger(__name__)
 
 GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
 GROUP_DEFAULT_NAME = "group default name"
-CONFIG_TEMPLATE = 'dataset_config_template.yml'
-
-
-def read_local_configuration():
-    print("====config====")
-    config = configparser.ConfigParser()
-    candidates = [full_path('sdap_ingest_manager.ini'),
-                  full_path('sdap_ingest_manager.ini.example')]
-    config.read(candidates)
-    return config
 
 
 def create_granule_list(file_path_pattern, history_file,
@@ -95,7 +83,7 @@ def create_dataset_config(collection_id, variable_name, collection_config_templa
         f.write(config_content)
 
 
-def collection_row_callback(row,
+def collection_row_callback(collection,
                             collection_config_template,
                             granule_file_list_root_path,
                             dataset_configuration_root_path,
@@ -106,9 +94,9 @@ def collection_row_callback(row,
     """ Create the configuration and launch the ingestion
         for the given collection row
     """
-    dataset_id = row[0].strip()
-    netcdf_variable = row[1].strip()
-    netcdf_file_pattern = row[2].strip()
+    dataset_id = collection['id']
+    netcdf_variable = collection['variable']
+    netcdf_file_pattern = collection['path']
 
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')

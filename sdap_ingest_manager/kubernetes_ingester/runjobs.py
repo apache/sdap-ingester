@@ -220,11 +220,8 @@ def create_and_run_jobs(filepath_pattern=None,
                         profiles=None,
                         job_deployment_template=None,
                         ningester_version="1.1.0",
-                        max_concurrent_jobs=1,
                         delete_successful=True,
-                        history_file=None,
-                        kubectl_command_timeout=30,
-                        verbose=False):
+                        history_file=None):
     # Wipe out previously created job templates.
     temp_dir = os.path.join(temp_dir, job_group)
 
@@ -319,9 +316,10 @@ def create_and_run_jobs(filepath_pattern=None,
         run_piped_commands(generate_job_config_map, kubectl_apply_from_stdin,
                            dry_run=(dry_run or process_templates))
 
-    # Submit all the jobs to the kubernetes cluster but only submit `args.max_concurrent_jobs` at any given time.
-    # Wait for all jobs to complete before submitting the next `args.max_concurrent_jobs` jobs
-    max_concurrent_jobs = int(max_concurrent_jobs)
+    # Submit all the jobs to the kubernetes cluster but only submit `OPTIONS.parallel_pods` at any given time.
+    # Wait for all jobs to complete before submitting the next `OPTIONS.parallel_pods` jobs
+    config = sdap_ingest_manager.read_local_configuration()
+    max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
     total_jobs = len(job_files)
     total_success = 0
     total_fail = 0

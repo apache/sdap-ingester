@@ -1,5 +1,6 @@
 import unittest
 
+import sdap_ingest_manager.sdap_ingest_manager.util
 from sdap_ingest_manager import sdap_ingest_manager
 import logging
 import filecmp
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 full_path = sdap_ingest_manager.full_path
 
 class TestValidationMgr(unittest.TestCase):
-    _config = sdap_ingest_manager.collection_ingestion.read_local_configuration()
+    _config = sdap_ingest_manager.read_local_configuration()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
@@ -43,8 +44,6 @@ class TestValidationMgr(unittest.TestCase):
                                          profiles=self._config.get("INGEST", "connection_profile").split(
                                              ','),
                                          namespace=self._config.get("INGEST", "kubernetes_namespace"),
-                                         max_concurrent_jobs=self._config.get("OPTIONS",
-                                                                              "parallel_pods"),
                                          dry_run=True
                                          )
 
@@ -67,8 +66,6 @@ class TestValidationMgr(unittest.TestCase):
                                          profiles=self._config.get("INGEST", "connection_profile").split(
                                              ','),
                                          namespace=self._config.get("INGEST", "kubernetes_namespace"),
-                                         max_concurrent_jobs=self._config.get("OPTIONS",
-                                                                              "parallel_pods"),
                                          dry_run=True
                                          )
 
@@ -89,8 +86,6 @@ class TestValidationMgr(unittest.TestCase):
                                          connection_settings=self.connection_settings_file_path,
                                          profiles=self._config.get("INGEST", "connection_profile").split(','),
                                          namespace=self._config.get("INGEST", "kubernetes_namespace"),
-                                         max_concurrent_jobs=self._config.get("OPTIONS",
-                                                                              "parallel_pods"),
                                          dry_run=True)
 
         self.validation_with_google_spreadsheet_and_callback(collection_row_callback_parse_nfs)
@@ -130,7 +125,7 @@ class TestValidationMgr(unittest.TestCase):
 
     def tearDown(self):
         logger.info("tear down test results")
-        #os.remove(self.granule_list_file_result)
+        os.remove(self.granule_list_file_result)
         os.remove(self.dataset_config_file_result)
 
 

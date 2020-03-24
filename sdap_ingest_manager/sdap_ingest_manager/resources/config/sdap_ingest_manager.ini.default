@@ -13,7 +13,7 @@ spreadsheet_id = 1CjezKOwkJjk2eyfNTTv_WtkHESe2hzm9c6Ggps6c75E
 sheet_name = VALIDATION_TAB_DO_NOT_TOUCH
 
 # the cell range where the information needed for ingestion are, don't change that
-cell_range = D2:F
+cell_range = D2:G
 
 [LOCAL_PATHS]
 # path to temporary resources created in the ingestion process, does not need to be changed
