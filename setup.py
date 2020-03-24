@@ -28,7 +28,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name=PACKAGE_NAME, # Replace with your own username
-    version="0.1.0",
+    version="0.2.0rc1",
     author="Apache - SDAP",
     author_email="dev@sdap.apache.org",
     description="a helper to ingest data in sdap",

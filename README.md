@@ -23,11 +23,14 @@ See project https://github.com/apache/incubator-sdap-nexus
 
 ## Install, Configure and run
 
-Install
+### Install
 
-    Stay logged in a user
+Stay logged in a user
 
-    $ pip install -v https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager/releases/download/0.0.1/sdap_ingest_manager-0.0.1.tar.gz
+    $ pip install sdap_ingest_manager
+
+
+### Configure the ingestion system
                             
 Catch the message at the end of the installation output
 
@@ -40,16 +43,31 @@ Catch the message at the end of the installation output
 Use the path shown in the message and create your own configuration files:
 
     $ cd /<some path>>/.sdap_ingest_manager
-    $ cp credentials.json.template credentials.json
-    $ cp sdap_ingest_manager.ini.example sdap_ingest_manager.ini
+    $ cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
     
 Edit and update the newly created files by following instructions in the comments.
 
-Run the ingestion on your list of collections:
+### Configure the collections
+
+You can either configure it in a local yaml file referenced in the `sdap_ingest_manager.ini` file.
+
+It can also be in a google spreadsheet.
+
+If both a configured, the local yaml file will be used.
+
+
+
+### Run the ingestion 
+
+On the list of the configured collections:
 
     $ run_collections
 
+The number of parallel jobs can be updated during the process in the `sdap_ingest_manager.ini` file.
 
+If interrupted (killed) the process will restart where it was.
+
+ 
 ## For developers
 
 ### deploy project
@@ -69,10 +87,13 @@ Update the code and the test with your favorite IDE (e.g. pyCharm).
 
 ### Test and create the package
 
+Change version in file setup.py 
+
     $ python setup.py test
     $ git tag <version>
     $ git push origin <version>
-    $ python setup.py sdist bdist_wheel
+    
+The release will be automatically pushed to pypi though github action.
 
 Create a tag and publish the package as a gitHub release.
 
