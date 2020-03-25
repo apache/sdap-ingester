@@ -52,7 +52,9 @@ jobs:
         pip install pytest
         pytest -s
     - name: Create the package
-      run: python setup.py sdist
+      run: |
+        pip install setuptools wheel
+        python setup.py bdist_wheel
     - name: Publish the Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
