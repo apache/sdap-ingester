@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
     - name: Create the package
       run: |
         pip install setuptools wheel
-        python setup.py bdist_wheel
+        python setup.py sdist dist_wheel
     - name: Publish the Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
