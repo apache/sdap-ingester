@@ -318,14 +318,18 @@ def create_and_run_jobs(filepath_pattern=None,
 
     # Submit all the jobs to the kubernetes cluster but only submit `OPTIONS.parallel_pods` at any given time.
     # Wait for all jobs to complete before submitting the next `OPTIONS.parallel_pods` jobs
-    config = sdap_ingest_manager.read_local_configuration()
-    max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
     total_jobs = len(job_files)
     total_success = 0
     total_fail = 0
-    for i in range(0, total_jobs, max_concurrent_jobs):
-        chunk = job_files[i:i + max_concurrent_jobs]
+    i = 0
 
+    while i < total_jobs:
+        config = sdap_ingest_manager.read_local_configuration()
+        max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
+        LOGGER.info(f"number of parallel jobs is {max_concurrent_jobs}")
+
+        chunk = job_files[i:i + max_concurrent_jobs]
+        i += max_concurrent_jobs
         chunk = [e for l in zip(['-f'] * len(chunk), chunk) for e in l]
         job_names_in_chunk = tuple([os.path.splitext(os.path.basename(the_file))[0] for the_file in chunk[1::2]])
 
@@ -461,6 +465,12 @@ def parse_args():
                                     default='./resources/connection-config.yml',
                                     metavar='./resources/connection-config.yml')
 
+    config_files_group.add_argument('-hi', '--history-file',
+                                    help='The file where the ingested granules are logged',
+                                    required=False,
+                                    default='',
+                                    metavar='tmp/history/datasetXXX.csv')
+
     config_files_group.add_argument('-td', '--temp-dir',
                                     help='The temporary directory used to write out the resolved job deployment files.',
                                     required=False,
@@ -498,12 +508,6 @@ def parse_args():
                                         default='default',
                                         metavar='default')
 
-    runtime_behavior_group.add_argument('-mj', '--max-concurrent-jobs',
-                                        help='The maximum number of jobs to launch at the same time.',
-                                        required=False,
-                                        default=10,
-                                        metavar='10')
-
     runtime_behavior_group.add_argument('-ds', '--delete-successful',
                                         help='Use this flag to delete successful jobs before submitting new ones.',
                                         required=False,
@@ -520,16 +524,6 @@ def parse_args():
                                         required=False,
                                         action='store_true')
 
-    runtime_behavior_group.add_argument('-kt', '--kubectl-command-timeout',
-                                        help='The maximum time to wait for kubectl commands to complete.',
-                                        required=False,
-                                        default=60,
-                                        metavar='60')
-
-    runtime_behavior_group.add_argument('-vb', '--verbose',
-                                        help='Enable debug logging.',
-                                        required=False,
-                                        action='store_true')
     # End Group
 
     return parser.parse_args()
@@ -552,10 +546,6 @@ def run_granule_as_kubernetes_pod():
     LOGGER.info("Starting {}".format(datetime.datetime.now()))
     the_args = parse_args()
     LOGGER.info("Ran with arguments {}".format(the_args))
-    KUBECTL_COMMAND_TIMEOUT = the_args.kubectl_command_timeout
-
-    if the_args.verbose:
-        enable_verbose_logging(LOGGER.name)
 
     exit_code = 0
     try:

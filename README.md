@@ -40,12 +40,41 @@ Catch the message at the end of the installation output
      Use templates and examples provided there
     --------------------------------------------------------------
 
+If the path does not show in the installation stdout, you can find it with the command:
+
+    python -c "import sys; print(f'{sys.prefix}/.sdap_ingest_manager')"
+
+
 Use the path shown in the message and create your own configuration files:
 
     $ cd /<some path>>/.sdap_ingest_manager
     $ cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
     
 Edit and update the newly created files by following instructions in the comments.
+
+Note that the `.ini.default` file will be used if no value is configured in the `.ini` file. So you can have a simplified `.ini` file with only your specific configuration.
+Don't put your specific configuration in the `.ini.default` file, it will be replaced when you upgrade the package.
+
+Example of a simplified `.ini` file:
+
+```yaml
+[COLLECTIONS_YAML_CONFIG]
+yaml_file = collections.yml
+
+[OPTIONS]
+# set to False to actually call the ingestion command for each granule
+dry_run = False
+# set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
+deconstruct_nfs = True
+# number of parallel ingestion pods on kubernetes (1 per granule)
+parallel_pods = 2
+
+[INGEST]
+# kubernetes namespace where the sdap cluster is deployed
+kubernetes_namespace = nexus-dev
+
+```
+
 
 ### Configure the collections
 

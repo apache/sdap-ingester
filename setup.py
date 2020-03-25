@@ -28,7 +28,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name=PACKAGE_NAME, # Replace with your own username
-    version="0.2.0rc1",
+    version="0.2.0rc2",
     author="Apache - SDAP",
     author_email="dev@sdap.apache.org",
     description="a helper to ingest data in sdap",
@@ -37,7 +37,7 @@ setuptools.setup(
     url="https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager",
     packages=setuptools.find_packages(),
     scripts=['bin/run_collections',
-             'bin/run_granule'],
+             'bin/run_granules'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

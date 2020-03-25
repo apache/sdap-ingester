@@ -132,18 +132,21 @@ def collection_row_callback(collection,
     pods_run_kwargs['history_file'] = os.path.join(history_root_path, f'{dataset_id}.csv')
 
     def param_to_str_arg(k, v):
-        str_k = f'--{k}'
+        k_with_dash = k.replace('_', '-')
+        str_k = f'--{k_with_dash}'
         if type(v) == bool:
             if v:
                 return [str_k]
             else:
                 return []
+        elif isinstance(v, list):
+            return [str_k, ','.join(v)]
         else:
             return [str_k, str(v)]
 
     pod_launch_options = [param_to_str_arg(k, v) for (k,v) in pods_run_kwargs.items()]
     flat_pod_launch_options = [item for option in pod_launch_options for item in option]
-    pod_launch_cmd = ['run_granule'] + flat_pod_launch_options
+    pod_launch_cmd = ['run_granules'] + flat_pod_launch_options
     logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
     sdap_ingest_manager.kubernetes_ingester.create_and_run_jobs(**pods_run_kwargs)
 
