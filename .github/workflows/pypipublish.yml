@@ -51,6 +51,9 @@ jobs:
       run: |
         pip install pytest
         pytest -s
+    - name: Create the package
+          run: |
+            python setup.py sdist
     - name: Publish the Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
