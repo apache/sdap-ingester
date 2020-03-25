@@ -41,7 +41,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
-        'Development Status :: 1 - Pre-Alpha',
+        "Development Status :: 4 - Beta",
     ],
     python_requires='>=3.6',
     include_package_data=True,
