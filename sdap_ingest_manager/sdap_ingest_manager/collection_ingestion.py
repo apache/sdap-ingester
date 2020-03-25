@@ -47,6 +47,7 @@ def create_granule_list(file_path_pattern, history_file,
         with open(history_file, 'r') as f_history:
             for line in f_history:
                 filename, md5sum = line.strip().split(',')
+                logger.info(f"add to history file {filename} with md5sum {md5sum}")
                 history[filename] = md5sum
     except FileNotFoundError:
         logger.info("no history file created yet")
@@ -57,7 +58,7 @@ def create_granule_list(file_path_pattern, history_file,
             md5sum = md5sum_from_filepath(file_path)
             if filename not in history.keys() \
                     or (filename in history.keys() and history[filename] != md5sum):
-                logger.debug(f"file {filename} not ingested yet, added to the list")
+                logger.info(f"file {filename} not ingested yet, added to the list")
                 if deconstruct_nfs:
                     file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
                 file_handle.write(f'{file_path}\n')
