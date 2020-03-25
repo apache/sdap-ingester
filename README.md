@@ -25,9 +25,9 @@ See project https://github.com/apache/incubator-sdap-nexus
 
 ### Install
 
-Stay logged in a user
+Stay logged in as user
 
-    $ pip install sdap_ingest_manager
+    $ pip install sdap-ingest-manager
 
 
 ### Configure the ingestion system
@@ -49,11 +49,11 @@ Edit and update the newly created files by following instructions in the comment
 
 ### Configure the collections
 
-You can either configure it in a local yaml file referenced in the `sdap_ingest_manager.ini` file.
+You can configure it in a local yaml file referenced in the `sdap_ingest_manager.ini` file.
 
 It can also be in a google spreadsheet.
 
-If both a configured, the local yaml file will be used.
+If both are configured, the local yaml file will be used.
 
 
 
@@ -94,10 +94,6 @@ Change version in file setup.py
     $ git push origin <version>
     
 The release will be automatically pushed to pypi though github action.
-
-Create a tag and publish the package as a gitHub release.
-
-
 
 
 
