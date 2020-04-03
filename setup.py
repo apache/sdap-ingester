@@ -68,5 +68,4 @@ setuptools.setup(
     ]
 )
 
-#if len(sys.argv) >= 2 and sys.argv[1] == "install":
 post_install_message()
