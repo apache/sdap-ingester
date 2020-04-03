@@ -116,6 +116,9 @@ Update the code and the test with your favorite IDE (e.g. pyCharm).
 
 ### Test and create the package
 
+A package based on the dev branch is automatically published at github release when a push is made. 
+
+
 Change version in file setup.py 
 
     $ python setup.py test
