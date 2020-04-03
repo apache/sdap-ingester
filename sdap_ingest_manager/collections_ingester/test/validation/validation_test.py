@@ -1,7 +1,7 @@
 import unittest
 
-import sdap_ingest_manager.sdap_ingest_manager.util
-from sdap_ingest_manager import sdap_ingest_manager
+import sdap_ingest_manager.collections_ingester.util
+from sdap_ingest_manager import collections_ingester
 import logging
 import filecmp
 import os
@@ -12,10 +12,11 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-full_path = sdap_ingest_manager.full_path
+full_path = collections_ingester.full_path
+
 
 class TestValidationMgr(unittest.TestCase):
-    _config = sdap_ingest_manager.read_local_configuration()
+    _config = collections_ingester.read_local_configuration()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
@@ -32,7 +33,7 @@ class TestValidationMgr(unittest.TestCase):
         logger.info("validation with local validation configuration file")
 
         def collection_row_callback(row):
-            sdap_ingest_manager \
+            collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -47,14 +48,14 @@ class TestValidationMgr(unittest.TestCase):
                                          dry_run=True
                                          )
 
-        sdap_ingest_manager.read_yaml_collection_config(full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
+        collections_ingester.read_yaml_collection_config(full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
                                                         collection_row_callback)
     # not tested on github actions
     def best_validation_no_parse_nfs(self):
         logger.info("validation test without nfs parsing")
 
         def collection_row_callback_no_parse_nfs(row):
-            sdap_ingest_manager \
+            collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -76,7 +77,7 @@ class TestValidationMgr(unittest.TestCase):
         logger.info("validation test with nfs parsing")
 
         def collection_row_callback_parse_nfs(row):
-            sdap_ingest_manager \
+            collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -92,7 +93,7 @@ class TestValidationMgr(unittest.TestCase):
         self.validation_with_google_spreadsheet_and_callback(collection_row_callback_parse_nfs)
 
     def validation_with_google_spreadsheet_and_callback(self, call_back):
-        sdap_ingest_manager.read_google_spreadsheet(
+        collections_ingester.read_google_spreadsheet(
             self._config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
             self._config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
             self._config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
@@ -102,7 +103,7 @@ class TestValidationMgr(unittest.TestCase):
         self.result_validation()
 
     def validation_with_local_yaml_file_and_callback(self, call_back):
-        sdap_ingest_manager.read_yaml_collection_config(
+        collections_ingester.read_yaml_collection_config(
             self._config.get("COLLECTIONS_YAML_CONFIG", "yaml_file"),
             call_back
         )

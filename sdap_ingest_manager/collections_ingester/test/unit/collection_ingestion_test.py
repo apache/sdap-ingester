@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 import logging
 import filecmp
-from sdap_ingest_manager.sdap_ingest_manager import collection_ingestion
-from sdap_ingest_manager.sdap_ingest_manager import util
+from sdap_ingest_manager.collections_ingester import collection_ingestion
+from sdap_ingest_manager.collections_ingester import util
 
 
 logging.basicConfig(level=logging.INFO)

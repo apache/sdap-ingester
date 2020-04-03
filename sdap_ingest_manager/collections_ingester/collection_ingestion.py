@@ -7,7 +7,7 @@ import glob
 import logging
 import pystache
 from . import nfs_mount_parse
-import sdap_ingest_manager.kubernetes_ingester
+import sdap_ingest_manager.granule_ingester
 from .util import md5sum_from_filepath
 
 
@@ -148,6 +148,6 @@ def collection_row_callback(collection,
     flat_pod_launch_options = [item for option in pod_launch_options for item in option]
     pod_launch_cmd = ['run_granules'] + flat_pod_launch_options
     logger.info("launch pod with command:\n%s", " ".join(pod_launch_cmd))
-    sdap_ingest_manager.kubernetes_ingester.create_and_run_jobs(**pods_run_kwargs)
+    sdap_ingest_manager.granule_ingester.create_and_run_jobs(**pods_run_kwargs)
 
 

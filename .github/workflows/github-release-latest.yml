@@ -1,0 +1,65 @@
+name: PyPi publication
+
+on:
+  push:
+      branches:
+        - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 sdap_ingest_manager --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 sdap_ingest_manager --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Deploy locally
+      run: |
+        pip install .
+    - name: Update default configuration
+      run: |
+        # google spreadsheet client does not work in the test environment
+        # it requires a manual copy/paste of the security code
+        import sys
+        import os
+        import pystache
+        renderer = pystache.Renderer()
+        credentials_template_path = os.path.join(sys.prefix, ".sdap_ingest_manager/credentials.json.template")
+        credentials_content = renderer.render_path(credentials_template_path, {'client_id': '${{secrets.google_api_client_id}}', 'client_secret': '${{secrets.google_api_client_secret}}'})
+        credentials_target_path = os.path.join(sys.prefix, ".sdap_ingest_manager/credentials.json")
+        with open(credentials_target_path, "w") as f:
+            f.write(credentials_content)
+      shell: python
+    - name: Test with pytest
+      run: |
+        pip install pytest
+        pytest -s
+    - name: Create the package
+      run: |
+        pip install setuptools wheel
+        rm -f dist/*
+        python setup.py sdist bdist_wheel
+    - name: Publish new snapshot release
+      run: |
+        pip install pds-github-util
+        snapshot-release --token ${{ secrets.GITHUB_TOKEN }}
+  -

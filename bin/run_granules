@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 
-from sdap_ingest_manager import kubernetes_ingester
+from sdap_ingest_manager import granule_ingester
 
-kubernetes_ingester.run_granule_as_kubernetes_pod()
+granule_ingester.run_granule_as_kubernetes_pod()

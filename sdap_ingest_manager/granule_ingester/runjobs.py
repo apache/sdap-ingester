@@ -16,7 +16,7 @@ import signal
 from enum import Enum
 from pathlib import Path
 from json import JSONDecodeError
-from sdap_ingest_manager import sdap_ingest_manager
+from sdap_ingest_manager import collections_ingester
 
 KUBECTL_COMMAND_TIMEOUT = None
 LOGGER = logging.getLogger('runjobs')
@@ -271,7 +271,7 @@ def create_and_run_jobs(filepath_pattern=None,
     for the_file in files:
         filename = os.path.basename(the_file)
         filepath = os.path.dirname(the_file)
-        md5sum = sdap_ingest_manager.md5sum_from_filepath(the_file)
+        md5sum = collections_ingester.md5sum_from_filepath(the_file)
         granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
         job_files += [granule_job_filepath]
         history_buffer[md5sum] = filename.rstrip()  # use this map to retrieve the filename from the md5sum used in the job name
@@ -324,7 +324,7 @@ def create_and_run_jobs(filepath_pattern=None,
     i = 0
 
     while i < total_jobs:
-        config = sdap_ingest_manager.read_local_configuration()
+        config = collections_ingester.read_local_configuration()
         max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
         LOGGER.info(f"number of parallel jobs is {max_concurrent_jobs}")
 

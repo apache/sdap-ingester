@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 import logging
 
-import sdap_ingest_manager.sdap_ingest_manager.util
-from sdap_ingest_manager.sdap_ingest_manager.util import full_path
-from sdap_ingest_manager import sdap_ingest_manager
+import sdap_ingest_manager.collections_ingester.util
+from sdap_ingest_manager.collections_ingester.util import full_path
+from sdap_ingest_manager import collections_ingester
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-config = sdap_ingest_manager.read_local_configuration()
+config = collections_ingester.read_local_configuration()
 
 
 def collection_row_callback(row):
 
-    sdap_ingest_manager.collection_row_callback(row,
+    collections_ingester.collection_row_callback(row,
                                                 full_path(config.get("OPTIONS", "collection_config_template")),
                                                 full_path(config.get("LOCAL_PATHS", "granule_file_list_path")),
                                                 full_path(config.get("LOCAL_PATHS", "collection_config_path")),
@@ -30,13 +30,13 @@ def collection_row_callback(row):
 
 
 if config.has_option("COLLECTIONS_YAML_CONFIG", "yaml_file"):
-    sdap_ingest_manager.read_yaml_collection_config(full_path(config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
-                                                    collection_row_callback)
+    collections_ingester.read_yaml_collection_config(full_path(config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
+                                                     collection_row_callback)
 elif config.has_option("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"):
-    sdap_ingest_manager.google_spreadsheet_collection_config.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
-                                                                                     config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
-                                                                                     config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
-                                                                                     config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "cell_range"),
-                                                                                     collection_row_callback)
+    collections_ingester.google_spreadsheet_collection_config.read_google_spreadsheet(config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
+                                                                                      config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
+                                                                                      config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
+                                                                                      config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "cell_range"),
+                                                                                      collection_row_callback)
 else:
     logger.error("no collection configuration found, nothing done")
