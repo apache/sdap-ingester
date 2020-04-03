@@ -2,6 +2,7 @@ import pysolr
 import requests
 import logging
 import ctypes
+from unittest.mock import MagicMock
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -22,6 +23,8 @@ class SolrIngestionHistory:
             self._solr_url = solr_url
             self.create_collection_if_needed()
             self._solr = pysolr.Solr(f'{solr_url}/{self._collection_name}')
+
+
 
     def create_collection_if_needed(self):
         if not self._req_session:
