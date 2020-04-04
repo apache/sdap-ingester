@@ -129,3 +129,14 @@ The release will be automatically pushed to pypi though github action.
 
 
 
+# Docker deployment
+
+(development version)
+
+    cd docker
+    docker build --tag nexusjpl/collection-ingester:latest .    
+    docker run -it --name collection_ingester -v sdap_ingest_config:/usr/local/.sdap_ingest_manager nexusjpl/collection-ingester:latest
+    docker volume inspect sdap_ingest_config
+
+
+
