@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import logging
 import filecmp
+import sdap_ingest_manager.granule_ingester
 from sdap_ingest_manager.collections_ingester import collection_ingestion
 from sdap_ingest_manager.collections_ingester import util
 
@@ -22,10 +23,9 @@ class TestUnitMgr(unittest.TestCase):
         self.target_granule_list_file = util.full_path("tmp/granule_list/target_granule_list_file.lst")
         self.target_dataset_config_file = util.full_path("tmp/dataset_config/dataset_config_file.yml")
 
-        self.history_file = os.path.join(Path(__file__).parent.absolute(),
-                                         "../data/avhrr-oi-analysed-sst.csv")
-        self.history_file_not_existing = os.path.join(Path(__file__).parent.absolute(),
-                                         "../data/avhrr-oi-analysed-sst.csv.not_existing")
+        self.history_path = os.path.join(Path(__file__).parent.absolute(),
+                                         "../data/")
+        self.dataset_id = "avhrr-oi-analysed-sst"
         self.granule_file_pattern = os.path.join(Path(__file__).parent.absolute(),
                                                  "../data/avhrr_oi/*.nc")
         self.expected_dataset_configuration_file = os.path.join(Path(__file__).parent.absolute(),
@@ -33,8 +33,10 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_create_granule_list(self):
         logger.info("test create_granule_list")
+        dataset_ingestion_history_manager = sdap_ingest_manager.granule_ingester \
+            .DatasetIngestionHistoryFile(self.history_path, self.dataset_id)
         collection_ingestion.create_granule_list(self.granule_file_pattern,
-                                                 self.history_file,
+                                                 dataset_ingestion_history_manager,
                                                  self.target_granule_list_file
                                                  )
         line_number = 0
@@ -49,7 +51,7 @@ class TestUnitMgr(unittest.TestCase):
     def test_create_granule_list_no_history(self):
         logger.info("test create_granule_list")
         collection_ingestion.create_granule_list(self.granule_file_pattern,
-                                                 self.history_file_not_existing,
+                                                 None,
                                                  self.target_granule_list_file
                                                  )
         line_number = 0

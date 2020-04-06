@@ -137,6 +137,23 @@ The release will be automatically pushed to pypi though github action.
     docker build --tag nexusjpl/collection-ingester:latest .    
     docker run -it --name collection_ingester -v sdap_ingest_config:/usr/local/.sdap_ingest_manager nexusjpl/collection-ingester:latest
     docker volume inspect sdap_ingest_config
+    
+You can see the configuration files in the directory of the named volume (for example /var/lib/docker/volumes/sdap_ingest_config/_data).
+
+Note on macos, to access this directory, you need to go inside the Virtual Machine which runs docker service. To update the configuration on macos:
+
+    docker run --rm -it -v /:/vm-root alpine:edge /bin/ash
+    cd /vm-root/var/lib/docker/volumes/sdap_ingest_config/_data
+    cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
+    vi sdap_ingest_manager.ini
+    
+    
+    
+ 
+    
+    
+
+
 
 
 

@@ -18,7 +18,7 @@ GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
 GROUP_DEFAULT_NAME = "group default name"
 
 
-def create_granule_list(file_path_pattern, history_file,
+def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
                         granule_list_file_path, deconstruct_nfs=False):
     """ Creates a granule list file from a file path pattern
         matching the granules.
@@ -41,31 +41,20 @@ def create_granule_list(file_path_pattern, history_file,
     if deconstruct_nfs:
         mount_points = nfs_mount_parse.get_nfs_mount_points()
 
-    logger.info(f"loading history file {history_file}")
-    history = {}
-    try:
-        with open(history_file, 'r') as f_history:
-            for line in f_history:
-                filename, md5sum = line.strip().split(',')
-                logger.info(f"add to history file {filename} with md5sum {md5sum}")
-                history[filename] = md5sum
-    except FileNotFoundError:
-        logger.info("no history file created yet")
-
     with open(granule_list_file_path, 'w') as file_handle:
         for file_path in file_list:
             filename = os.path.basename(file_path)
             md5sum = md5sum_from_filepath(file_path)
-            if filename not in history.keys() \
-                    or (filename in history.keys() and history[filename] != md5sum):
+            already_ingested_d5sum = None
+            if dataset_ingestion_history_manager:
+                already_ingested_d5sum = dataset_ingestion_history_manager.get_md5sum(filename)
+            if already_ingested_d5sum != md5sum:
                 logger.info(f"file {filename} not ingested yet, added to the list")
                 if deconstruct_nfs:
                     file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
                 file_handle.write(f'{file_path}\n')
             else:
                 logger.debug(f"file {filename} already ingested with same md5sum")
-
-    del history
 
 
 def create_dataset_config(collection_id, variable_name, collection_config_template, target_config_file_path):
@@ -101,10 +90,10 @@ def collection_row_callback(collection,
 
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
-    history_file_path = os.path.join(history_root_path,
-                                     f'{dataset_id}.csv')
+    dataset_ingestion_history_manager = sdap_ingest_manager.granule_ingester\
+        .DatasetIngestionHistoryFile(history_root_path, dataset_id)
     create_granule_list(netcdf_file_pattern,
-                        history_file_path,
+                        dataset_ingestion_history_manager,
                         granule_list_file_path,
                         deconstruct_nfs=deconstruct_nfs)
 
@@ -129,7 +118,7 @@ def collection_row_callback(collection,
     pods_run_kwargs['job_group'] = group_name
     pods_run_kwargs['ningester_version'] = '1.1.0'
     pods_run_kwargs['delete_successful'] = True
-    pods_run_kwargs['history_file'] = os.path.join(history_root_path, f'{dataset_id}.csv')
+    pods_run_kwargs['history_manager'] = dataset_ingestion_history_manager
 
     def param_to_str_arg(k, v):
         k_with_dash = k.replace('_', '-')

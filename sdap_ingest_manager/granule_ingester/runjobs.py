@@ -4,7 +4,6 @@ import argparse
 import datetime
 import fileinput
 import glob
-import hashlib
 import json
 import logging
 import os
@@ -221,7 +220,7 @@ def create_and_run_jobs(filepath_pattern=None,
                         job_deployment_template=None,
                         ningester_version="1.1.0",
                         delete_successful=True,
-                        history_file=None):
+                        history_manager=None):
     # Wipe out previously created job templates.
     temp_dir = os.path.join(temp_dir, job_group)
 
@@ -385,12 +384,10 @@ def create_and_run_jobs(filepath_pattern=None,
                 if completed_job_names:
                     LOGGER.info("where we delete successful jobs")
                     LOGGER.info(completed_job_names)
-                    if history_file:
-                        Path(os.path.dirname(history_file)).mkdir(parents=True, exist_ok=True)
-                        with open(history_file, 'a') as hf:
-                            for completed_job_name in completed_job_names:
-                                completed_md5sum = completed_job_name.split('-')[-1]
-                                hf.write(f'{history_buffer[completed_md5sum]},{completed_md5sum}\n')
+                    if history_manager:
+                        for completed_job_name in completed_job_names:
+                            completed_md5sum = completed_job_name.split('-')[-1]
+                            history_manager.push(history_buffer[completed_md5sum],completed_md5sum)
                     delete_jobs(completed_job_names, namespace=namespace, dry_run=dry_run)
                     # Also remove the resolved template
                     job_files_in_chunk = [the_file for the_file in chunk[1::2]]
@@ -465,11 +462,11 @@ def parse_args():
                                     default='./resources/connection-config.yml',
                                     metavar='./resources/connection-config.yml')
 
-    config_files_group.add_argument('-hi', '--history-file',
-                                    help='The file where the ingested granules are logged',
+    config_files_group.add_argument('-hi', '--history_manager',
+                                    help='The history manager which logs ingested granules',
                                     required=False,
-                                    default='',
-                                    metavar='tmp/history/datasetXXX.csv')
+                                    default=None,
+                                    metavar='')
 
     config_files_group.add_argument('-td', '--temp-dir',
                                     help='The temporary directory used to write out the resolved job deployment files.',
