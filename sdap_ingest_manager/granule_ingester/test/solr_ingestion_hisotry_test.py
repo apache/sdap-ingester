@@ -5,6 +5,7 @@ SOLR_URL = "http://localhost:8984/solr"
 
 
 class SolrIngestionHistoryTestCase(unittest.TestCase):
+    @unittest.skip("requires a solr server to work")
     def test_get(self):
         ingestion_history = SolrIngestionHistory(SOLR_URL)
 
@@ -16,6 +17,7 @@ class SolrIngestionHistoryTestCase(unittest.TestCase):
         self.assertEqual(result.docs[0]['granule_s'], "blue")
         self.assertEqual(result.docs[0]['granule_md5sum_s'], "12weeukrhbwerqu7wier")
 
+    @unittest.skip("requires a solr server to work")
     def test_get_md5sum(self):
         ingestion_history = SolrIngestionHistory(SOLR_URL)
 
