@@ -37,3 +37,5 @@ def replace_mount_point_with_service_path(file_path, mount_points):
             return file_path.replace(mount_point,
                                      mount_points[mount_point].split(":")[1], 1)
     return file_path  # return original value if it does not start with any of the mount point.
+
+

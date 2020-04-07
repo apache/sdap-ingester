@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: collection-ingester
+spec:
+  template:
+    spec:
+      containers:
+      - name: collections-ingester
+        image: tloubrieu/sdap-ingest-manager
+        volumeMounts:
+          - name: sdap-ingest-config
+            mountPath: /usr/local/.sdap_ingest_manager
+        command: ["run_collections"]
+      volumes:
+      - name: sdap-ingest-config
+        hostPath:
+          path: /var/sdap_ingest_manager
+#      nodeAffinity:
+#        required:
+#          nodeSelectorTerms:
+#            - matchExpressions:
+#                - key: kubernetes.iokubernetes.io/node-role
+#                  operator: In
+#                  values:
+#                    - master
+      restartPolicy: Never
+  backoffLimit: 4
