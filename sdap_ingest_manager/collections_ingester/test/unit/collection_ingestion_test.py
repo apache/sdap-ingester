@@ -7,6 +7,7 @@ import filecmp
 import sdap_ingest_manager.granule_ingester
 from sdap_ingest_manager.collections_ingester import collection_ingestion
 from sdap_ingest_manager.collections_ingester import util
+from sdap_ingest_manager.history_manager import md5sum_from_filepath
 
 
 logging.basicConfig(level=logging.INFO)
@@ -33,8 +34,8 @@ class TestUnitMgr(unittest.TestCase):
 
     def test_create_granule_list(self):
         logger.info("test create_granule_list")
-        dataset_ingestion_history_manager = sdap_ingest_manager.granule_ingester \
-            .DatasetIngestionHistoryFile(self.history_path, self.dataset_id)
+        dataset_ingestion_history_manager = sdap_ingest_manager.history_manager \
+            .DatasetIngestionHistoryFile(self.history_path, self.dataset_id, md5sum_from_filepath)
         collection_ingestion.create_granule_list(self.granule_file_pattern,
                                                  dataset_ingestion_history_manager,
                                                  self.target_granule_list_file

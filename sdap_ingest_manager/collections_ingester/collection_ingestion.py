@@ -8,7 +8,7 @@ import logging
 import pystache
 from . import nfs_mount_parse
 import sdap_ingest_manager.granule_ingester
-from .util import md5sum_from_filepath
+from sdap_ingest_manager.history_manager import md5sum_from_filepath
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -45,10 +45,10 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
         for file_path in file_list:
             filename = os.path.basename(file_path)
             md5sum = md5sum_from_filepath(file_path)
-            already_ingested_d5sum = None
+            already_ingested = False
             if dataset_ingestion_history_manager:
-                already_ingested_d5sum = dataset_ingestion_history_manager.get_md5sum(filename)
-            if already_ingested_d5sum != md5sum:
+                already_ingested = dataset_ingestion_history_manager.has_valid_cache(file_path)
+            if not already_ingested:
                 logger.info(f"file {filename} not ingested yet, added to the list")
                 if deconstruct_nfs:
                     file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
@@ -90,8 +90,8 @@ def collection_row_callback(collection,
 
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
-    dataset_ingestion_history_manager = sdap_ingest_manager.granule_ingester\
-        .DatasetIngestionHistoryFile(history_root_path, dataset_id)
+    dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
+        .DatasetIngestionHistoryFile(history_root_path, dataset_id, md5sum_from_filepath)
     create_granule_list(netcdf_file_pattern,
                         dataset_ingestion_history_manager,
                         granule_list_file_path,

@@ -16,6 +16,7 @@ from enum import Enum
 from pathlib import Path
 from json import JSONDecodeError
 from sdap_ingest_manager import collections_ingester
+from sdap_ingest_manager import history_manager
 
 KUBECTL_COMMAND_TIMEOUT = None
 LOGGER = logging.getLogger('runjobs')

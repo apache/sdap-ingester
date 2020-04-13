@@ -20,6 +20,5 @@ from .collection_ingestion import collection_row_callback
 from .nfs_mount_parse import replace_mount_point_with_service_path
 from .nfs_mount_parse import get_nfs_mount_points
 from .util import full_path, read_local_configuration
-from .util import md5sum_from_filepath
 from .util import read_local_configuration
 
