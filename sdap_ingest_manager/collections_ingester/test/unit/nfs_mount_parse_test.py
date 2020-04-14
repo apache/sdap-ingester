@@ -20,6 +20,10 @@ class TestUnitMgr(unittest.TestCase):
         result = nfs_mount_parse.replace_mount_point_with_service_path("/home1/data/file1", self.mount_points)
         self.assertEqual(result, "/home1/data/file1")
 
+    def test_replace_service_path_with_mount_point(self):
+        result = nfs_mount_parse.replace_service_path_with_mount_point("/export/data/file1", self.mount_points )
+        self.assertEqual(result, "/home/data/file1")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import shutil
+import hashlib
 import subprocess
 import sys
 import time
@@ -221,7 +222,7 @@ def create_and_run_jobs(filepath_pattern=None,
                         job_deployment_template=None,
                         ningester_version="1.1.0",
                         delete_successful=True,
-                        history_manager=None):
+                        hist_manager=None):
     # Wipe out previously created job templates.
     temp_dir = os.path.join(temp_dir, job_group)
 
@@ -266,15 +267,17 @@ def create_and_run_jobs(filepath_pattern=None,
     # Config map names are just the filename minus extension
     job_config_map_name = os.path.splitext(os.path.basename(job_config))[0]
     connection_config_map_name = os.path.splitext(os.path.basename(connection_settings))[0]
+    mount_points = collections_ingester.get_nfs_mount_points()
 
     # For every file to be ingested, create a deployment by replacing the placeholders in the template with actual values
     for the_file in files:
         filename = os.path.basename(the_file)
         filepath = os.path.dirname(the_file)
-        md5sum = collections_ingester.md5sum_from_filepath(the_file)
+        the_local_file = collections_ingester.replace_service_path_with_mount_point(the_file, mount_points)
+        md5sum = hashlib.md5(filename.encode()).hexdigest()
         granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
         job_files += [granule_job_filepath]
-        history_buffer[md5sum] = filename.rstrip()  # use this map to retrieve the filename from the md5sum used in the job name
+        history_buffer[md5sum] = the_local_file  # use this map to retrieve the filename from the md5sum used in the job name
 
         if dry_run:
             LOGGER.info("cp {} {}".format(job_deployment_template, granule_job_filepath))
@@ -385,16 +388,17 @@ def create_and_run_jobs(filepath_pattern=None,
                 if completed_job_names:
                     LOGGER.info("where we delete successful jobs")
                     LOGGER.info(completed_job_names)
-                    if history_manager:
+                    if hist_manager:
                         for completed_job_name in completed_job_names:
                             completed_md5sum = completed_job_name.split('-')[-1]
-                            history_manager.push(history_buffer[completed_md5sum],completed_md5sum)
+                            hist_manager.push(history_buffer[completed_md5sum])
                     delete_jobs(completed_job_names, namespace=namespace, dry_run=dry_run)
                     # Also remove the resolved template
                     job_files_in_chunk = [the_file for the_file in chunk[1::2]]
                     for job_file_path in job_files_in_chunk:
                         if os.path.splitext(os.path.basename(job_file_path))[0] in completed_job_names:
                             os.remove(job_file_path)
+    hist_manager.purge()
 
 
 def parse_args():

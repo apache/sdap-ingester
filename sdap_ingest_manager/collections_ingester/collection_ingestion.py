@@ -44,9 +44,9 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
     with open(granule_list_file_path, 'w') as file_handle:
         for file_path in file_list:
             filename = os.path.basename(file_path)
-            md5sum = md5sum_from_filepath(file_path)
             already_ingested = False
             if dataset_ingestion_history_manager:
+                logger.info(f"is file {file_path} already ingested ?")
                 already_ingested = dataset_ingestion_history_manager.has_valid_cache(file_path)
             if not already_ingested:
                 logger.info(f"file {filename} not ingested yet, added to the list")
@@ -91,7 +91,7 @@ def collection_row_callback(collection,
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
     dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
-        .DatasetIngestionHistoryFile(history_root_path, dataset_id, md5sum_from_filepath)
+        .DatasetIngestionHistoryFile(history_root_path, dataset_id, lambda x: str(os.path.getmtime(x)))
     create_granule_list(netcdf_file_pattern,
                         dataset_ingestion_history_manager,
                         granule_list_file_path,
@@ -118,7 +118,7 @@ def collection_row_callback(collection,
     pods_run_kwargs['job_group'] = group_name
     pods_run_kwargs['ningester_version'] = '1.1.0'
     pods_run_kwargs['delete_successful'] = True
-    pods_run_kwargs['history_manager'] = dataset_ingestion_history_manager
+    pods_run_kwargs['hist_manager'] = dataset_ingestion_history_manager
 
     def param_to_str_arg(k, v):
         k_with_dash = k.replace('_', '-')

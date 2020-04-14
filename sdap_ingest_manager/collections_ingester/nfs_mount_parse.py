@@ -39,3 +39,17 @@ def replace_mount_point_with_service_path(file_path, mount_points):
     return file_path  # return original value if it does not start with any of the mount point.
 
 
+def replace_service_path_with_mount_point(file_path, mount_points):
+    """
+    :param file_path: is the file path as shown by the nfs server
+    :param mount_points: is the dictionary of locally mounted points as keys (e.g /home/data)
+    and value the nfs service (e.g. host2323:/export/data)
+    :return: the file path as seen by the nfs client.
+    """
+    for mount_point, server_record in mount_points.items():
+        service_path = server_record.split(":")[1]
+        if file_path.startswith(service_path):
+            logger.info("replace service path %s in file path %s with %s mount point path",
+                        service_path, file_path, mount_point)
+            return file_path.replace(service_path, mount_point, 1)
+    return file_path  # return original value if it does not start with any of the mount point.
