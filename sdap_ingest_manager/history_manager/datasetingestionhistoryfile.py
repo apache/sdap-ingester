@@ -59,7 +59,10 @@ class DatasetIngestionHistoryFile:
                     if file_name not in unique_file_names:
                         unique_file_names.add(file_name)
                         f.write(line)
+                    else:
+                        logger.info(f"skip file {file_name} in purge")
                 history_file.close()
+            logger.info(f"purge done in file {self._history_file_path}.buff replace in {self._history_file_path}")
             os.replace(f"{self._history_file_path}.buff", self._history_file_path)
         except FileNotFoundError:
             logger.info(f"no history file {self._history_file_path} to purge")

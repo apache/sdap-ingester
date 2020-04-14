@@ -398,7 +398,7 @@ def create_and_run_jobs(filepath_pattern=None,
                     for job_file_path in job_files_in_chunk:
                         if os.path.splitext(os.path.basename(job_file_path))[0] in completed_job_names:
                             os.remove(job_file_path)
-    hist_manager.purge()
+
 
 
 def parse_args():

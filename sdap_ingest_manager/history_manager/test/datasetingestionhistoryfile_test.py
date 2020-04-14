@@ -48,7 +48,7 @@ class DatasetIngestionHistoryFileTestCase(unittest.TestCase):
         current_file_path = pathlib.Path(__file__)
         self.assertEqual(self.ingestion_history.has_valid_cache(str(current_file_path)), False)
 
-    @unittest.skip("skip before test dataset is not available")
+    #@unittest.skip("skip before test dataset is not available")
     def test_purge(self):
         self.ingestion_history = DatasetIngestionHistoryFile("/Users/loubrieu/PycharmProjects/sdap_ingest_manager/venv/.sdap_ingest_manager/tmp/history/",
                                                              "avhrr-oi-analysed-sst-toto",
