@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+import os
+import logging
+import argparse
+
+import sdap_ingest_manager.collections_ingester.util
+from sdap_ingest_manager.collections_ingester.util import full_path
+from sdap_ingest_manager import collections_ingester
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def main():
+    config = collections_ingester.read_local_configuration()
+
+    parser = argparse.ArgumentParser(
+        description='Ingest one collection of data granules',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    # example
+    # $ run_single_collection -d avhrr-oi-analysed-sst -p resources/test/data/avhrr_oi/\*.nc -v analysed_sst
+    parser.add_argument('-d', '--id',
+                        help='The dataset id in nexus, if it is not created yet a new dataset will be created'
+                             'this must contain only [a-z], [0-9] and -',
+                        required=True,
+                        metavar='avhrr-oi-analysed-sst')
+
+    parser.add_argument('-p', '--path',
+                        help='The pattern used to match granule filenames for ingestion. '
+                             'Make sure to properly escape bash wildcards. '
+                             'This pattern is passed to python3 glob.iglob(filepath_pattern, recursive=True)',
+                        required=True,
+                        metavar='~/data/smap/l2b/SMAP_L2B_SSS_\*.h5')
+
+    parser.add_argument('-v', '--variable',
+                        help='The netcdf variable which will be ingested'
+                             'In Nexus there is a single variable per dataset',
+                        required=True,
+                        metavar='analyzed_sst')
+
+    the_args = parser.parse_args()
+    collection = {k: v for k, v in the_args._get_kwargs()}
+    collection['path'] = os.path.join(os.getcwd(),
+                                 collection['path'])
+
+    collections_ingester.collection_row_callback(collection,
+                                                 full_path(config.get("OPTIONS", "collection_config_template")),
+                                                 full_path(config.get("LOCAL_PATHS", "granule_file_list_path")),
+                                                 full_path(config.get("LOCAL_PATHS", "collection_config_path")),
+                                                 full_path(config.get("LOCAL_PATHS", "history_path")),
+                                                 deconstruct_nfs=True,
+                                                 job_deployment_template=full_path(config.get("INGEST",
+                                                                                              "job_deployment_template")),
+                                                 connection_settings=full_path(config.get("INGEST",
+                                                                                          "connection_config")),
+                                                 profiles=config.get("INGEST", "connection_profile").split(','),
+                                                 namespace=config.get("INGEST", "kubernetes_namespace"),
+                                                 dry_run=config.getboolean("OPTIONS", "dry_run"))
+
+
+if __name__ == "__main__":
+    main()

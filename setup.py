@@ -37,6 +37,7 @@ setuptools.setup(
     url="https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager",
     packages=setuptools.find_packages(),
     scripts=['bin/run_collections',
+             'bin/run_single_collection',
              'bin/run_granules'],
     classifiers=[
         "Programming Language :: Python :: 3",
