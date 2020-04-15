@@ -8,6 +8,7 @@ from sdap_ingest_manager import collections_ingester
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+logger.info(f"using sdap_ingest_manager {sdap_ingest_manager.__version__}")
 
 config = collections_ingester.read_local_configuration()
 
