@@ -34,7 +34,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: slow
   selector:
     matchLabels:
       metadata.name : "sdap-ingest-config-volume"
