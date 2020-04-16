@@ -136,7 +136,7 @@ The release will be automatically pushed to pypi though github action.
 (development version)
 
     cd containers/docker
-    docker build --tag tloubrieu/sdap-ingest-manager:latest .    
+    docker build --no-cache --tag tloubrieu/sdap-ingest-manager:latest .    
     docker run -it --name sdap-ingest-manager -v sdap_ingest_config:/usr/local/.sdap_ingest_manager nexusjpl/collection-ingester:latest
     docker volume inspect sdap_ingest_config
     

@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: collections-ingester
-          image: tloubrieu/sdap-ingest-manager
+          image: tloubrieu/sdap-ingest-manager:latest
           volumeMounts:
             - name: sdap-ingest-config
               mountPath: /usr/local/.sdap_ingest_manager
