@@ -137,7 +137,7 @@ The release will be automatically pushed to pypi though github action.
 
     cd containers/docker
     docker build --no-cache --tag tloubrieu/sdap-ingest-manager:latest .    
-    docker run -it --name sdap-ingest-manager -v sdap_ingest_config:/usr/local/.sdap_ingest_manager nexusjpl/collection-ingester:latest
+    docker run -it --name sdap-ingest-manager -v sdap_ingest_config:/usr/local/.sdap_ingest_manager tloubrieu/sdap-ingest-manager:latest
     docker volume inspect sdap_ingest_config
     
 You can see the configuration files in the directory of the named volume (for example /var/lib/docker/volumes/sdap_ingest_config/_data).
@@ -156,7 +156,12 @@ To publish the docker image on dockerhub do (step necessary for kubernetes deplo
     
 ## Kubernetes
 
+    kubectl create configmap collection-ingester --from-file=venv/.sdap_ingest_manager
+    kubectl get configmap collection-ingester -o yaml
+
     kubectl apply -f containers/kubernetes/job.yml -n sdap
+    
+    
 
     
 

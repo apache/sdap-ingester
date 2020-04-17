@@ -8,58 +8,9 @@ spec:
       containers:
         - name: collections-ingester
           image: tloubrieu/sdap-ingest-manager:latest
-          volumeMounts:
-            - name: sdap-ingest-config
-              mountPath: /usr/local/.sdap_ingest_manager
+          imagePullPolicy: IfNotPresent
           command: ["run_collections"]
       restartPolicy: Never
-      volumes:
-        - name: sdap-ingest-config
-          #hostPath:
-          #  path: /var/sdap_ingest_manager
-          persistentVolumeClaim:
-            claimName: sdap-ingest-config-claim
   backoffLimit: 4
 
----
 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sdap-ingest-config-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      metadata.name : "sdap-ingest-config-volume"
-
-
----
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: sdap-ingest-config-volume
-spec:
-  capacity:
-    storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: local-storage
-  local:
-    path: /var/sdap_ingest_manager
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.iokubernetes.io/node-role
-              operator: In
-              values:
-                - master
