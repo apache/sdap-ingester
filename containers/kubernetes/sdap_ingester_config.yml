@@ -12,7 +12,8 @@ data:
 
   sdap_ingest_manager.ini: |+
     [COLLECTIONS_YAML_CONFIG]
-    yaml_file = /opt/sdap_ingester_config/collections.yml
+    # config_path is the value sent as argument to the run_collection command, default is /opt/sdap_ingester_config
+    yaml_file = %(config_path)s/collections.yml
 
     [OPTIONS]
     # set to False to actually call the ingestion command for each granule
