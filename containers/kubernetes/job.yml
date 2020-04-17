@@ -19,5 +19,3 @@ spec:
             name: collection-ingester-config
       restartPolicy: Never
   backoffLimit: 4
-
-

@@ -30,17 +30,14 @@ spec:
         volumeMounts:
         - name: data-volume
           mountPath: /home/ningester/data/$GRANULE
-          subPath: $GRANULE
         - name: config-volume-1
           mountPath: /home/ningester/config/$JOBCONFIGMAPNAME.yml
         - name: config-volume-2
           mountPath: /home/ningester/config/$CONNECTIONCONFIGMAPNAME.yml
       volumes:
       - name: data-volume
-        nfs:
-          path: $GRANULEHOSTPATH/
-          server: podaac-devtest
-          readOnly: false
+        hostPath:
+          path: $GRANULEHOSTPATH/$GRANULE
       - name: config-volume-1
         configMap:
           name: $JOBCONFIGMAPNAME

@@ -178,6 +178,10 @@ Replace the configmap:
 
     kubectl apply -f containers/kubernetes/job.yml -n sdap
     
+Delete the service: 
+
+    kubectl delete jobs --all -n sdap
+    
     
 
     

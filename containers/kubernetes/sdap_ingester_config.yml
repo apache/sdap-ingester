@@ -1,0 +1,37 @@
+apiVersion: v1
+data:
+  collections.yml: |+
+    # collection id with only letter and -
+    # path: regular expression matching the netcdf files which compose the collection
+    # variable: netcdf variable to be ingested (only one per dataset)
+    # priority: order in which collections will be processed, the smaller numbers first.
+    avhrr-oi-analysed-sst:
+      path: resources/test/data/avhrr_oi/*.nc
+      variable: analysed_sst
+      priority: 2
+
+  sdap_ingest_manager.ini: |+
+    [COLLECTIONS_YAML_CONFIG]
+    yaml_file = /opt/sdap_ingester_config/collections.yml
+
+    [OPTIONS]
+    # set to False to actually call the ingestion command for each granule
+    # relative path starts at {sys.prefix}/.sdap_ingest_manager
+    dry_run = False
+    # set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
+    deconstruct_nfs = False
+    # number of parallel ingestion pods on kubernetes (1 per granule)
+    parallel_pods = 8
+
+    [INGEST]
+    # kubernetes namespace where the sdap cluster is deployed
+    kubernetes_namespace = sdap
+
+
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2020-04-17T00:11:46Z"
+  name: collection-ingester-config
+  resourceVersion: "2398917"
+  selfLink: /api/v1/namespaces/default/configmaps/collection-ingester
+  uid: b914e302-736c-4c25-9943-ebc33db418ce
