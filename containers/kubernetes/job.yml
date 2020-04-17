@@ -10,6 +10,13 @@ spec:
           image: tloubrieu/sdap-ingest-manager:latest
           imagePullPolicy: IfNotPresent
           command: ["run_collections"]
+          volumeMounts:
+            - name: config-vol
+              mountPath: /opt/sdap_ingester_config/
+      volumes:
+        - name: config-vol
+          configMap:
+            name: collection-ingester-config
       restartPolicy: Never
   backoffLimit: 4
 

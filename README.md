@@ -156,8 +156,25 @@ To publish the docker image on dockerhub do (step necessary for kubernetes deplo
     
 ## Kubernetes
 
-    kubectl create configmap collection-ingester --from-file=venv/.sdap_ingest_manager
-    kubectl get configmap collection-ingester -o yaml
+### Create the configMap for your deployment 
+
+Prepare a configMap from existing native config files:
+
+    kubectl create configmap collection-ingester-config --from-file=venv/.sdap_ingest_manager -n sdap
+    
+#### Optionally you can update the configMap manually if the one you started from is not what you needed: 
+    
+    kubectl get configmap collection-ingester-config -o yaml -n sdap > containers/kubernetes/sdap_ingester_config.yml
+    
+Manually edit the yml file to only keep the configuration which is specific to the deployment (if different from the current one)
+
+Replace the configmap:
+
+    kubectl delete configmap collection-ingester-config -n sdap
+    kubectl apply -f containers/kubernetes/sdap_ingester_config.yml -n sdap
+    
+
+### Launch the service
 
     kubectl apply -f containers/kubernetes/job.yml -n sdap
     

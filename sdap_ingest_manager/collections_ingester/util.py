@@ -18,7 +18,7 @@ def read_local_configuration():
     logger.info("====config====")
     config = configparser.ConfigParser()
     candidates = [full_path('sdap_ingest_manager.ini.default'),
-                  full_path('sdap_ingest_manager.ini')]
+                  '/opt/sdap_ingester_config/sdap_ingest_manager.ini']
     logger.info(f"get configuration from files {candidates}")
     found_files = config.read(candidates)
     logger.info(f"successfully read configuration from {found_files}")
