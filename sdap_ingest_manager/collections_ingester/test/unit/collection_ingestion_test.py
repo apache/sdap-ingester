@@ -1,6 +1,7 @@
 import unittest
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 import logging
 import filecmp
@@ -48,6 +49,55 @@ class TestUnitMgr(unittest.TestCase):
         self.assertEqual(1, line_number)
 
         os.remove(self.target_granule_list_file)
+
+    def test_create_granule_list_time_range(self):
+        logger.info("test create_granule_list with time range")
+        collection_ingestion.create_granule_list(self.granule_file_pattern,
+                                                 None,
+                                                 self.target_granule_list_file,
+                                                 date_from=datetime(2020, 3, 4, 19, 4, 28, 843998),
+                                                 date_to=datetime(2020, 6, 2, 19, 4, 28, 843998))
+        line_number = 0
+        with open(self.target_granule_list_file, 'r') as f:
+            for _ in f:
+                line_number += 1
+
+        self.assertGreaterEqual(line_number, 0)
+
+        os.remove(self.target_granule_list_file)
+
+    def test_create_granule_list_time_range_from_only(self):
+        logger.info("test create_granule_list with time range")
+        collection_ingestion.create_granule_list(self.granule_file_pattern,
+                                                 None,
+                                                 self.target_granule_list_file,
+                                                 date_from=datetime(2020, 3, 4, 19, 4, 28, 843998))
+        line_number = 0
+        with open(self.target_granule_list_file, 'r') as f:
+            for _ in f:
+                line_number += 1
+
+        self.assertGreaterEqual(line_number, 0)
+
+        os.remove(self.target_granule_list_file)
+
+    def test_create_granule_list_time_range_to_only(self):
+        logger.info("test create_granule_list with time range")
+        collection_ingestion.create_granule_list(self.granule_file_pattern,
+                                                 None,
+                                                 self.target_granule_list_file,
+                                                 date_to=datetime(2020, 3, 4, 19, 4, 28, 843998))
+        line_number = 0
+        with open(self.target_granule_list_file, 'r') as f:
+            for _ in f:
+                line_number += 1
+
+        self.assertGreaterEqual(line_number, 0)
+
+        os.remove(self.target_granule_list_file)
+
+
+
 
     def test_create_granule_list_no_history(self):
         logger.info("test create_granule_list")

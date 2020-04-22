@@ -4,6 +4,7 @@ import os.path
 from pathlib import Path
 import re
 import glob
+from datetime import datetime
 import logging
 import pystache
 from . import nfs_mount_parse
@@ -19,7 +20,7 @@ GROUP_DEFAULT_NAME = "group default name"
 
 
 def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
-                        granule_list_file_path, deconstruct_nfs=False):
+                        granule_list_file_path, deconstruct_nfs=False, date_from=None, date_to=None):
     """ Creates a granule list file from a file path pattern
         matching the granules.
         If a granules has already been ingested with same md5sum signature, it is not included in this list.
@@ -38,24 +39,47 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
     logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
+    def is_in_time_range(file, ts_from, ts_to):
+        file_mtimestamp = os.path.getmtime(file)
+        status_from = True
+        if ts_from:
+            if ts_from<file_mtimestamp:
+                status_from = True
+            else:
+                status_from = False
+
+        status_to = True
+        if ts_to:
+            if ts_to>file_mtimestamp:
+                status_to = True
+            else:
+                status_to = False
+
+        return status_from and status_to
+
+    timestamp_from = date_from.timestamp() if date_from else None
+    timestamp_to = date_to.timestamp() if date_to else None
+
     if deconstruct_nfs:
         mount_points = nfs_mount_parse.get_nfs_mount_points()
 
     with open(granule_list_file_path, 'w') as file_handle:
         for file_path in file_list:
-            filename = os.path.basename(file_path)
-            already_ingested = False
-            if dataset_ingestion_history_manager:
-                logger.info(f"is file {file_path} already ingested ?")
-                already_ingested = dataset_ingestion_history_manager.has_valid_cache(file_path)
-            if not already_ingested:
-                logger.info(f"file {filename} not ingested yet, added to the list")
-                if deconstruct_nfs:
-                    file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
-                file_handle.write(f'{file_path}\n')
+            if is_in_time_range(file_path, timestamp_from, timestamp_to):
+                filename = os.path.basename(file_path)
+                already_ingested = False
+                if dataset_ingestion_history_manager:
+                    logger.info(f"is file {file_path} already ingested ?")
+                    already_ingested = dataset_ingestion_history_manager.has_valid_cache(file_path)
+                if not already_ingested:
+                    logger.info(f"file {filename} not ingested yet, added to the list")
+                    if deconstruct_nfs:
+                        file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
+                    file_handle.write(f'{file_path}\n')
+                else:
+                    logger.debug(f"file {filename} already ingested with same md5sum")
             else:
-                logger.debug(f"file {filename} already ingested with same md5sum")
-
+                logger.debug(f"file {file_path} has not been updated in the targeted time range")
 
 def create_dataset_config(collection_id, variable_name, collection_config_template, target_config_file_path):
     logger.info("Create dataset configuration file %s", target_config_file_path)
@@ -92,10 +116,19 @@ def collection_row_callback(collection,
                                           f'{dataset_id}-granules.lst')
     dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
         .DatasetIngestionHistoryFile(history_root_path, dataset_id, lambda x: str(os.path.getmtime(x)))
+
+
+    time_range = {}
+    for time_boundary in {"from", "to"}:
+        if collection[time_boundary]:
+            # add prefix "from" because is a reserved name which can not be used as function argument
+            time_range[f'date_{time_boundary}'] = datetime.fromisoformat(collection[time_boundary])
+
     create_granule_list(netcdf_file_pattern,
                         dataset_ingestion_history_manager,
                         granule_list_file_path,
-                        deconstruct_nfs=deconstruct_nfs)
+                        deconstruct_nfs=deconstruct_nfs,
+                        **time_range)
 
     dataset_configuration_file_path = os.path.join(dataset_configuration_root_path,
                                                    f'{dataset_id}-config.yml')

@@ -45,10 +45,10 @@ class DatasetIngestionHistoryFile:
 
     def __del__(self):
         self._history_file.close()
-        self.purge()
+        self._purge()
         del self._history_dict
 
-    def purge(self):
+    def _purge(self):
         logger.info("purge the history file from duplicates")
         unique_file_names = set()
         try:

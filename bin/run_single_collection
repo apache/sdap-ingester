@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    config = collections_ingester.read_local_configuration()
 
     parser = argparse.ArgumentParser(
         description='Ingest one collection of data granules',
@@ -39,8 +38,25 @@ def main():
                         required=True,
                         metavar='analyzed_sst')
 
+    parser.add_argument('-f', '--from',
+                        help='The earliest modification time of a granule file'
+                             ' which will be ingested. Uses file system time.'
+                             ' format is ISO8601, date only, for example "2020-02-24"',
+                        required=False,
+                        metavar="2020-02-24")
+
+    parser.add_argument('-t', '--to',
+                        help='The latest modification time of a granule file'
+                             ' which will be ingested. Uses file system time.'
+                             ' format is ISO8601, date only, for example "2020-02-24"',
+                        required=False,
+                        metavar="2020-03-24")
+
     the_args = parser.parse_args()
     collection = {k: v for k, v in the_args._get_kwargs()}
+
+    config = collections_ingester.read_local_configuration()
+
     collection['path'] = os.path.join(os.getcwd(),
                                  collection['path'])
 
