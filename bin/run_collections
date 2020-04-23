@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import logging
 import argparse
+import os
+import sys
 import sdap_ingest_manager.collections_ingester.util
 from sdap_ingest_manager.collections_ingester.util import full_path
 from sdap_ingest_manager import collections_ingester
@@ -15,7 +17,7 @@ parser = argparse.ArgumentParser(description="Run ingestion for a list of collec
 
 parser.add_argument("-c", "--config", help="configuration directory which contains the sdap_ingest_manager.ini file"
                                            "and other configuration files (list of ingestion streams)",
-                    default="/opt/sdap_ingester_config")
+                    default=os.path.join(sys.prefix, ".sdap_ingest_manager"))
 
 options = parser.parse_args()
 

@@ -18,6 +18,55 @@ logger = logging.getLogger(__name__)
 GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
 GROUP_DEFAULT_NAME = "group default name"
 
+DEFAULT_DATA_FILE_EXTENSION = ['nc', 'h5']
+
+
+def is_in_time_range(file, ts_from, ts_to):
+    """
+    :param file: file path as a string
+    :param ts_from: timestamp, can be None
+    :param ts_to: timestamp, can be None
+    :return: True is the update time of the file is between ts_from and ts_to. False otherwise
+    """
+    file_mtimestamp = os.path.getmtime(file)
+    status_from = True
+    if ts_from:
+        if ts_from < file_mtimestamp:
+            status_from = True
+        else:
+            status_from = False
+
+    status_to = True
+    if ts_to:
+        if ts_to > file_mtimestamp:
+            status_to = True
+        else:
+            status_to = False
+
+    return status_from and status_to
+
+
+def get_file_list(file_path_pattern):
+    """
+
+    :param file_path_pattern: regular expression or directory which will be extended with default extensions (nc, h5, ...)
+    :return: the list of files matching
+    """
+    logger.info("get files matching %s", file_path_pattern)
+    file_path_pattern = os.path.join(sys.prefix, '.sdap_ingest_manager', file_path_pattern)
+    logger.info("from sys.prefix directory for relative path %s", file_path_pattern)
+    if os.path.isdir(file_path_pattern):
+        file_list = []
+        for extension in DEFAULT_DATA_FILE_EXTENSION:
+            extended_file_path_pattern = os.path.join(file_path_pattern, f'*.{extension}')
+            file_list.extend(glob.glob(extended_file_path_pattern))
+    else:
+        file_list = glob.glob(file_path_pattern)
+
+    logger.info("%i files found", len(file_list))
+
+    return file_list
+
 
 def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
                         granule_list_file_path, deconstruct_nfs=False, date_from=None, date_to=None):
@@ -27,35 +76,13 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
         When deconstruct_nfs is True, the paths will shown as viewed on the nfs server
         and not as they are mounted on the nfs client where the script runs (default behaviour).
     """
+
+    file_list = get_file_list(file_path_pattern)
+
     logger.info("Create granule list file %s", granule_list_file_path)
-
-    logger.info("using file pattern %s", file_path_pattern)
-    logger.info("from sys.prefix directory for relative path %s", os.path.join(sys.prefix, '.sdap_ingest_manager'))
-    file_list = glob.glob(os.path.join(sys.prefix, '.sdap_ingest_manager', file_path_pattern))
-
-    logger.info("%i files found", len(file_list))
-
     dir_path = os.path.dirname(granule_list_file_path)
     logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
-
-    def is_in_time_range(file, ts_from, ts_to):
-        file_mtimestamp = os.path.getmtime(file)
-        status_from = True
-        if ts_from:
-            if ts_from<file_mtimestamp:
-                status_from = True
-            else:
-                status_from = False
-
-        status_to = True
-        if ts_to:
-            if ts_to>file_mtimestamp:
-                status_to = True
-            else:
-                status_to = False
-
-        return status_from and status_to
 
     timestamp_from = date_from.timestamp() if date_from else None
     timestamp_to = date_to.timestamp() if date_to else None
@@ -80,6 +107,7 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
                     logger.debug(f"file {filename} already ingested with same md5sum")
             else:
                 logger.debug(f"file {file_path} has not been updated in the targeted time range")
+
 
 def create_dataset_config(collection_id, variable_name, collection_config_template, target_config_file_path):
     logger.info("Create dataset configuration file %s", target_config_file_path)
@@ -120,9 +148,10 @@ def collection_row_callback(collection,
 
     time_range = {}
     for time_boundary in {"from", "to"}:
-        if collection[time_boundary]:
+        if time_boundary in collection.keys() and collection[time_boundary]:
             # add prefix "from" because is a reserved name which can not be used as function argument
             time_range[f'date_{time_boundary}'] = datetime.fromisoformat(collection[time_boundary])
+            logger.info(f"time criteria {time_boundary} is {time_range[f'date_{time_boundary}']}")
 
     create_granule_list(netcdf_file_pattern,
                         dataset_ingestion_history_manager,

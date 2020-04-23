@@ -20,7 +20,9 @@ from sdap_ingest_manager import collections_ingester
 from sdap_ingest_manager import history_manager
 
 KUBECTL_COMMAND_TIMEOUT = None
-LOGGER = logging.getLogger('runjobs')
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class CommandFailedException(Exception):
@@ -54,7 +56,7 @@ def is_non_zero_file(fpath):
 def run_piped_commands(*tuple_of_commands, output_type=OutputType.LOG, dry_run=True):
     command_as_string = ' | '.join([' '.join(command) for command in tuple_of_commands])
 
-    LOGGER.debug("Running command: {}".format(command_as_string))
+    logger.debug("Running command: {}".format(command_as_string))
 
     if dry_run:
         return
@@ -74,11 +76,11 @@ def run_piped_commands(*tuple_of_commands, output_type=OutputType.LOG, dry_run=T
 
 def run_single_command_and_wait(command, output_type=OutputType.LOG, dry_run=True):
     command_as_string = ' '.join(command)
-    LOGGER.debug("Running command: {}".format(command_as_string))
+    logger.debug("Running command: {}".format(command_as_string))
 
     if dry_run:
         return
-
+    logger.info(f"command {' '.join(command)}")
     submitted_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     return wait_and_print(submitted_process, command_as_string, output_type=output_type)
@@ -91,14 +93,14 @@ def wait_and_print(submitted_subprocess, command_string, output_type=OutputType.
         stdout_as_list_of_strings = stdoutdata.decode(sys.getdefaultencoding()).strip().split('\n')
 
     if stderrdata:
-        LOGGER.error(stderrdata.decode(sys.getdefaultencoding()).strip())
+        logger.error(stderrdata.decode(sys.getdefaultencoding()).strip())
 
     if submitted_subprocess.returncode != 0:
         raise CommandFailedException("Command failed, check log messages for details. "
                                      "Command was: {}".format(command_string))
 
     if output_type == OutputType.LOG:
-        LOGGER.info('\t\n'.join(stdout_as_list_of_strings))
+        logger.info('\t\n'.join(stdout_as_list_of_strings))
         return None
     elif output_type == OutputType.JSON:
         try:
@@ -110,7 +112,7 @@ def wait_and_print(submitted_subprocess, command_string, output_type=OutputType.
                 json_ouput = {'items': items}
             return json_ouput
         except JSONDecodeError as e:
-            LOGGER.exception(
+            logger.exception(
                 "Could not decode output as json. Did you specify '-o json' for the last command in the pipe?")
             raise e
 
@@ -197,7 +199,7 @@ def create_temp_job_json(temp_dir, job_names, namespace='default', dry_run=False
 
         job_json_path = os.path.join(temp_dir, '{}.json'.format(job_json['metadata']['name']))
         if dry_run:
-            LOGGER.info("touch {}".format(job_json_path))
+            logger.info("touch {}".format(job_json_path))
         else:
             with open(job_json_path, 'w') as job_json_file:
                 job_json_file.write(json.dumps(job_json))
@@ -227,7 +229,7 @@ def create_and_run_jobs(filepath_pattern=None,
     temp_dir = os.path.join(temp_dir, job_group)
 
     if dry_run:
-        LOGGER.info("mkdir -p {}".format(temp_dir))
+        logger.info("mkdir -p {}".format(temp_dir))
     else:
         os.makedirs(temp_dir, exist_ok=True)
 
@@ -247,7 +249,7 @@ def create_and_run_jobs(filepath_pattern=None,
             namespace=namespace,
             job_group=job_group)
         if not failed_job_names:
-            LOGGER.warning("No failed jobs found with job group {}. Nothing to do!".format(job_group))
+            logger.warning("No failed jobs found with job group {}. Nothing to do!".format(job_group))
             return
         job_files = create_temp_job_json(temp_dir, failed_job_names, namespace=namespace,
                                          dry_run=dry_run)
@@ -259,7 +261,7 @@ def create_and_run_jobs(filepath_pattern=None,
         try:
             delete_jobs(job_names, namespace=namespace, dry_run=(dry_run or process_templates))
         except CommandFailedException:
-            LOGGER.warning("Failed to delete jobs, assuming they do not exist. Continuing execution.")
+            logger.warning("Failed to delete jobs, assuming they do not exist. Continuing execution.")
 
     else:
         raise Exception("Unknown input")
@@ -280,15 +282,15 @@ def create_and_run_jobs(filepath_pattern=None,
         history_buffer[md5sum] = the_local_file  # use this map to retrieve the filename from the md5sum used in the job name
 
         if dry_run:
-            LOGGER.info("cp {} {}".format(job_deployment_template, granule_job_filepath))
-            LOGGER.info("$JOBNAME={}".format(md5sum))
-            LOGGER.info("$JOBGROUP={}".format(job_group))
-            LOGGER.info("$GRANULEHOSTPATH={}".format(filepath))
-            LOGGER.info("$GRANULE={}".format(filename))
-            LOGGER.info("$JOBCONFIGMAPNAME={}".format(job_config_map_name))
-            LOGGER.info("$CONNECTIONCONFIGMAPNAME={}".format(connection_config_map_name))
-            LOGGER.info("$NINGESTERTAG={}".format(ningester_version))
-            LOGGER.info("$PROFILES={}".format(','.join(profiles)))
+            logger.info("cp {} {}".format(job_deployment_template, granule_job_filepath))
+            logger.info("$JOBNAME={}".format(md5sum))
+            logger.info("$JOBGROUP={}".format(job_group))
+            logger.info("$GRANULEHOSTPATH={}".format(filepath))
+            logger.info("$GRANULE={}".format(filename))
+            logger.info("$JOBCONFIGMAPNAME={}".format(job_config_map_name))
+            logger.info("$CONNECTIONCONFIGMAPNAME={}".format(connection_config_map_name))
+            logger.info("$NINGESTERTAG={}".format(ningester_version))
+            logger.info("$PROFILES={}".format(','.join(profiles)))
         else:
             shutil.copy(job_deployment_template, granule_job_filepath)
             for line in fileinput.input(granule_job_filepath, inplace=True):
@@ -329,7 +331,7 @@ def create_and_run_jobs(filepath_pattern=None,
     while i < total_jobs:
         config = collections_ingester.read_local_configuration()
         max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
-        LOGGER.info(f"number of parallel jobs is {max_concurrent_jobs}")
+        logger.info(f"number of parallel jobs is {max_concurrent_jobs}")
 
         chunk = job_files[i:i + max_concurrent_jobs]
         i += max_concurrent_jobs
@@ -338,7 +340,7 @@ def create_and_run_jobs(filepath_pattern=None,
 
         apply_job_deployments = ['kubectl', 'apply', '-n', namespace, *chunk]
 
-        LOGGER.info("Launching {} more job(s)".format(len(chunk) // 2))
+        logger.info("Launching {} more job(s)".format(len(chunk) // 2))
         run_single_command_and_wait(apply_job_deployments, dry_run=(dry_run or process_templates))
 
         if not (dry_run or process_templates):
@@ -347,7 +349,7 @@ def create_and_run_jobs(filepath_pattern=None,
                 job_names=job_names_in_chunk)
 
             while len(completed_job_names) + len(failed_job_names) < len(chunk) // 2:
-                LOGGER.info(
+                logger.info(
                     "{} unknown, {} running, {} success, {} failed, {} finished out of {} total".format(
                         len(unknown_job_names),
                         len(running_job_names),
@@ -367,7 +369,7 @@ def create_and_run_jobs(filepath_pattern=None,
             total_success += len(completed_job_names)
             total_fail += len(failed_job_names)
 
-            LOGGER.info("{} unknown, {} running, {} complete, {} failed, {} finished out of {} total".format(
+            logger.info("{} unknown, {} running, {} complete, {} failed, {} finished out of {} total".format(
                 len(unknown_job_names),
                 len(running_job_names),
                 total_success, total_fail,
@@ -375,7 +377,7 @@ def create_and_run_jobs(filepath_pattern=None,
                 total_jobs))
 
             if delete_successful:
-                LOGGER.info("Deleting successful jobs")
+                logger.info("Deleting successful jobs")
                 # Get jobs in group as JSON output
                 (completed_job_names,
                  failed_job_names,
@@ -386,8 +388,8 @@ def create_and_run_jobs(filepath_pattern=None,
 
                 # If some jobs are complete, delete them
                 if completed_job_names:
-                    LOGGER.info("where we delete successful jobs")
-                    LOGGER.info(completed_job_names)
+                    logger.info("where we delete successful jobs")
+                    logger.info(completed_job_names)
                     if hist_manager:
                         for completed_job_name in completed_job_names:
                             completed_md5sum = completed_job_name.split('-')[-1]
@@ -533,7 +535,7 @@ def parse_args():
 
 def interrupt(sig, frame):
 
-    LOGGER.warning("Received signal {}. {}".format(sig, frame))
+    logger.warning("Received signal {}. {}".format(sig, frame))
     sys.exit(sig)
 
 
@@ -545,9 +547,9 @@ def run_granule_as_kubernetes_pod():
     signal.signal(signal.SIGHUP, interrupt)
     signal.signal(signal.SIGQUIT, interrupt)
 
-    LOGGER.info("Starting {}".format(datetime.datetime.now()))
+    logger.info("Starting {}".format(datetime.datetime.now()))
     the_args = parse_args()
-    LOGGER.info("Ran with arguments {}".format(the_args))
+    logger.info("Ran with arguments {}".format(the_args))
 
     exit_code = 0
     try:
@@ -555,8 +557,8 @@ def run_granule_as_kubernetes_pod():
         create_and_run_jobs(**params)
 
     except Exception:
-        LOGGER.exception("Encountered an unexpected error.")
+        logger.exception("Encountered an unexpected error.")
         exit_code = 1
 
-    LOGGER.info("Finished {}".format(datetime.datetime.now()))
+    logger.info("Finished {}".format(datetime.datetime.now()))
     sys.exit(exit_code)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import logging
 import argparse
 
@@ -18,7 +19,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # example
-    # $ run_single_collection -d avhrr-oi-analysed-sst -p resources/test/data/avhrr_oi/\*.nc -v analysed_sst
+    # $ run_single_collection -d avhrr-oi-analysed-sst -p resources/test/data/avhrr_oi/\*.nc -v analysed_sst  --from 2020-03-22 --to 2020-04-22
     parser.add_argument('-d', '--id',
                         help='The dataset id in nexus, if it is not created yet a new dataset will be created'
                              'this must contain only [a-z], [0-9] and -',
@@ -26,7 +27,8 @@ def main():
                         metavar='avhrr-oi-analysed-sst')
 
     parser.add_argument('-p', '--path',
-                        help='The pattern used to match granule filenames for ingestion. '
+                        help='Can be a directory, only .nc or .h5 files directly in this directory will be explored. '
+                             'Can also be a pattern used to match granule filenames for ingestion. '
                              'Make sure to properly escape bash wildcards. '
                              'This pattern is passed to python3 glob.iglob(filepath_pattern, recursive=True)',
                         required=True,
@@ -51,11 +53,14 @@ def main():
                              ' format is ISO8601, date only, for example "2020-02-24"',
                         required=False,
                         metavar="2020-03-24")
+    parser.add_argument("-c", "--config", help="configuration directory which contains the sdap_ingest_manager.ini file"
+                                               "and other configuration files (list of ingestion streams)",
+                        default=os.path.join(sys.prefix, ".sdap_ingest_manager"))
 
     the_args = parser.parse_args()
     collection = {k: v for k, v in the_args._get_kwargs()}
 
-    config = collections_ingester.read_local_configuration()
+    config = collections_ingester.read_local_configuration(config_path=the_args.config)
 
     collection['path'] = os.path.join(os.getcwd(),
                                  collection['path'])
