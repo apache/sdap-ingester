@@ -3,6 +3,7 @@ import requests
 import logging
 import ctypes
 
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -11,17 +12,21 @@ def doc_key(dataset_id, file_name):
     return ctypes.c_size_t(hash(f'{dataset_id}{file_name}')).value
 
 
-class SolrIngestionHistory:
+class DatasetIngestionHistorySolr:
     _solr = None
     _collection_name = "nexusgranules"
     _solr_url = None
     _req_session = None
+    _dataset_id = None
 
-    def __init__(self, solr_url):
-        if not self._solr:
-            self._solr_url = solr_url
-            self.create_collection_if_needed()
-            self._solr = pysolr.Solr(f'{solr_url}/{self._collection_name}')
+    def __init__(self, solr_url, dataset_id):
+        self._solr_url = solr_url
+        self.create_collection_if_needed()
+        self._solr = pysolr.Solr(f'{solr_url}/{self._collection_name}')
+        self._dataset_id = dataset_id
+
+    def __del__(self):
+        self._req_session.close()
 
     def create_collection_if_needed(self):
         if not self._req_session:
@@ -44,44 +49,45 @@ class SolrIngestionHistory:
         else:
             logger.info(f"collection {self._collection_name} already exists")
 
-
         # Update schema
         schema_url = f'{self._solr_url}/solr/{self._collection_name}/schema'
         # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
-        #self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
+        # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
         self.add_str_field(schema_url, "dataset_s", "StrField")
         self.add_str_field(schema_url, "granule_s", "StrField")
         self.add_str_field(schema_url, "granule_md5sum_s", "StrField")
 
-    def push(self, dataset_id, file_name, md5sum):
-        hash_id = doc_key(dataset_id, file_name)
+    def push(self, file_name, md5sum):
+        hash_id = doc_key(self._dataset_id, file_name)
         self._solr.delete(q=f"id:{hash_id}")
         self._solr.add([{
             'id': hash_id,
-            'dataset_s': dataset_id,
+            'dataset_s': self._dataset_id,
             'granule_s': file_name,
             'granule_md5sum_s': md5sum}])
         self._solr.commit()
         return None
 
-    def get(self, dataset_id, file_name):
-        hash_id = doc_key(dataset_id, file_name)
+    def get(self, file_name):
+        hash_id = doc_key(self._dataset_id, file_name)
         results = self._solr.search(q=f"id:{hash_id}")
         return results
 
-    def get_md5sum(self, dataset_id, file_name):
-        results = self.get(dataset_id, file_name)
-        return results.docs[0]['granule_md5sum_s']
+    def get_md5sum(self, file_name):
+        results = self.get(file_name)
+        if results:
+            return results.docs[0]['granule_md5sum_s']
+        else:
+            return None
 
-
-    # helper
     def add_str_field(self, schema_url, field_name, field_type):
-        '''
+        """
+        Helper to add a string field in a solr schema
         :param schema_url:
         :param field_name:
         :param field_type
         :return:
-        '''
+        """
         add_field_payload = {
             "add-field": {
                 "name": field_name,

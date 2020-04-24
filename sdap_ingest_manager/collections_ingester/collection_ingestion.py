@@ -4,11 +4,12 @@ import os.path
 from pathlib import Path
 import re
 import glob
+from datetime import datetime
 import logging
 import pystache
 from . import nfs_mount_parse
 import sdap_ingest_manager.granule_ingester
-from .util import md5sum_from_filepath
+from sdap_ingest_manager.history_manager import md5sum_from_filepath
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,55 +18,95 @@ logger = logging.getLogger(__name__)
 GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
 GROUP_DEFAULT_NAME = "group default name"
 
+DEFAULT_DATA_FILE_EXTENSION = ['nc', 'h5']
 
-def create_granule_list(file_path_pattern, history_file,
-                        granule_list_file_path, deconstruct_nfs=False):
+
+def is_in_time_range(file, ts_from, ts_to):
+    """
+    :param file: file path as a string
+    :param ts_from: timestamp, can be None
+    :param ts_to: timestamp, can be None
+    :return: True is the update time of the file is between ts_from and ts_to. False otherwise
+    """
+    file_mtimestamp = os.path.getmtime(file)
+    status_from = True
+    if ts_from:
+        if ts_from < file_mtimestamp:
+            status_from = True
+        else:
+            status_from = False
+
+    status_to = True
+    if ts_to:
+        if ts_to > file_mtimestamp:
+            status_to = True
+        else:
+            status_to = False
+
+    return status_from and status_to
+
+
+def get_file_list(file_path_pattern):
+    """
+
+    :param file_path_pattern: regular expression or directory which will be extended with default extensions (nc, h5, ...)
+    :return: the list of files matching
+    """
+    logger.info("get files matching %s", file_path_pattern)
+    file_path_pattern = os.path.join(sys.prefix, '.sdap_ingest_manager', file_path_pattern)
+    logger.info("from sys.prefix directory for relative path %s", file_path_pattern)
+    if os.path.isdir(file_path_pattern):
+        file_list = []
+        for extension in DEFAULT_DATA_FILE_EXTENSION:
+            extended_file_path_pattern = os.path.join(file_path_pattern, f'*.{extension}')
+            file_list.extend(glob.glob(extended_file_path_pattern))
+    else:
+        file_list = glob.glob(file_path_pattern)
+
+    logger.info("%i files found", len(file_list))
+
+    return file_list
+
+
+def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
+                        granule_list_file_path, deconstruct_nfs=False, date_from=None, date_to=None):
     """ Creates a granule list file from a file path pattern
         matching the granules.
         If a granules has already been ingested with same md5sum signature, it is not included in this list.
         When deconstruct_nfs is True, the paths will shown as viewed on the nfs server
         and not as they are mounted on the nfs client where the script runs (default behaviour).
     """
+
+    file_list = get_file_list(file_path_pattern)
+
     logger.info("Create granule list file %s", granule_list_file_path)
-
-    logger.info("using file pattern %s", file_path_pattern)
-    logger.info("from sys.prefix directory for relative path %s", os.path.join(sys.prefix, '.sdap_ingest_manager'))
-    file_list = glob.glob(os.path.join(sys.prefix, '.sdap_ingest_manager', file_path_pattern))
-
-    logger.info("%i files found", len(file_list))
-
     dir_path = os.path.dirname(granule_list_file_path)
     logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
+    timestamp_from = date_from.timestamp() if date_from else None
+    timestamp_to = date_to.timestamp() if date_to else None
+
     if deconstruct_nfs:
         mount_points = nfs_mount_parse.get_nfs_mount_points()
 
-    logger.info(f"loading history file {history_file}")
-    history = {}
-    try:
-        with open(history_file, 'r') as f_history:
-            for line in f_history:
-                filename, md5sum = line.strip().split(',')
-                logger.info(f"add to history file {filename} with md5sum {md5sum}")
-                history[filename] = md5sum
-    except FileNotFoundError:
-        logger.info("no history file created yet")
-
     with open(granule_list_file_path, 'w') as file_handle:
         for file_path in file_list:
-            filename = os.path.basename(file_path)
-            md5sum = md5sum_from_filepath(file_path)
-            if filename not in history.keys() \
-                    or (filename in history.keys() and history[filename] != md5sum):
-                logger.info(f"file {filename} not ingested yet, added to the list")
-                if deconstruct_nfs:
-                    file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
-                file_handle.write(f'{file_path}\n')
+            if is_in_time_range(file_path, timestamp_from, timestamp_to):
+                filename = os.path.basename(file_path)
+                already_ingested = False
+                if dataset_ingestion_history_manager:
+                    logger.info(f"is file {file_path} already ingested ?")
+                    already_ingested = dataset_ingestion_history_manager.has_valid_cache(file_path)
+                if not already_ingested:
+                    logger.info(f"file {filename} not ingested yet, added to the list")
+                    if deconstruct_nfs:
+                        file_path = nfs_mount_parse.replace_mount_point_with_service_path(file_path, mount_points)
+                    file_handle.write(f'{file_path}\n')
+                else:
+                    logger.debug(f"file {filename} already ingested with same md5sum")
             else:
-                logger.debug(f"file {filename} already ingested with same md5sum")
-
-    del history
+                logger.debug(f"file {file_path} has not been updated in the targeted time range")
 
 
 def create_dataset_config(collection_id, variable_name, collection_config_template, target_config_file_path):
@@ -101,12 +142,22 @@ def collection_row_callback(collection,
 
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
-    history_file_path = os.path.join(history_root_path,
-                                     f'{dataset_id}.csv')
+    dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
+        .DatasetIngestionHistoryFile(history_root_path, dataset_id, lambda x: str(os.path.getmtime(x)))
+
+
+    time_range = {}
+    for time_boundary in {"from", "to"}:
+        if time_boundary in collection.keys() and collection[time_boundary]:
+            # add prefix "from" because is a reserved name which can not be used as function argument
+            time_range[f'date_{time_boundary}'] = datetime.fromisoformat(collection[time_boundary])
+            logger.info(f"time criteria {time_boundary} is {time_range[f'date_{time_boundary}']}")
+
     create_granule_list(netcdf_file_pattern,
-                        history_file_path,
+                        dataset_ingestion_history_manager,
                         granule_list_file_path,
-                        deconstruct_nfs=deconstruct_nfs)
+                        deconstruct_nfs=deconstruct_nfs,
+                        **time_range)
 
     dataset_configuration_file_path = os.path.join(dataset_configuration_root_path,
                                                    f'{dataset_id}-config.yml')
@@ -129,7 +180,7 @@ def collection_row_callback(collection,
     pods_run_kwargs['job_group'] = group_name
     pods_run_kwargs['ningester_version'] = '1.1.0'
     pods_run_kwargs['delete_successful'] = True
-    pods_run_kwargs['history_file'] = os.path.join(history_root_path, f'{dataset_id}.csv')
+    pods_run_kwargs['hist_manager'] = dataset_ingestion_history_manager
 
     def param_to_str_arg(k, v):
         k_with_dash = k.replace('_', '-')

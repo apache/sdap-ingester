@@ -116,6 +116,9 @@ Update the code and the test with your favorite IDE (e.g. pyCharm).
 
 ### Test and create the package
 
+A package based on the dev branch is automatically published at github release when a push is made. 
+
+
 Change version in file setup.py 
 
     $ python setup.py test
@@ -123,6 +126,74 @@ Change version in file setup.py
     $ git push origin <version>
     
 The release will be automatically pushed to pypi though github action.
+
+
+
+# Containerization
+
+## Docker
+
+(development version)
+
+    cd containers/docker
+    docker build --no-cache --tag tloubrieu/sdap-ingest-manager:latest .    
+    docker run -it --name sdap-ingest-manager -v sdap_ingest_config:/usr/local/.sdap_ingest_manager tloubrieu/sdap-ingest-manager:latest
+    docker volume inspect sdap_ingest_config
+    
+You can see the configuration files in the directory of the named volume (for example /var/lib/docker/volumes/sdap_ingest_config/_data).
+
+Note on macos, to access this directory, you need to go inside the Virtual Machine which runs docker service. To update the configuration on macos:
+
+    docker run --rm -it -v /:/vm-root alpine:edge /bin/ash
+    cd /vm-root/var/lib/docker/volumes/sdap_ingest_config/_data
+    cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
+    vi sdap_ingest_manager.ini
+    
+To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
+
+    docker login
+    docker push tloubrieu/sdap-ingest-manager:latest
+    
+## Kubernetes
+
+### Create the configMap for your deployment 
+
+Prepare a configMap from existing native config files:
+
+    kubectl create configmap collection-ingester-config --from-file=venv/.sdap_ingest_manager -n sdap
+    
+#### Optionally you can update the configMap manually if the one you started from is not what you needed: 
+    
+    kubectl get configmap collection-ingester-config -o yaml -n sdap > containers/kubernetes/sdap_ingester_config.yml
+    
+Manually edit the yml file to only keep the configuration which is specific to the deployment (if different from the current one)
+
+Replace the configmap:
+
+    kubectl delete configmap collection-ingester-config -n sdap
+    kubectl apply -f containers/kubernetes/sdap_ingester_config.yml -n sdap
+    
+
+### Launch the service
+
+    kubectl apply -f containers/kubernetes/job.yml -n sdap
+    
+Delete the service: 
+
+    kubectl delete jobs --all -n sdap
+    
+    
+
+    
+
+    
+    
+    
+ 
+    
+    
+
+
 
 
 

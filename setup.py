@@ -2,7 +2,7 @@ import setuptools
 import os
 import subprocess
 import sys
-import site
+import re
 
 PACKAGE_NAME = "sdap_ingest_manager"
 
@@ -22,13 +22,17 @@ def post_install_message():
     print(tabulate([[message]]))
 
 
+with open("./sdap_ingest_manager/__init__.py") as fi:
+    result = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fi.read())
+version = result.group(1)
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
 setuptools.setup(
-    name=PACKAGE_NAME, # Replace with your own username
-    version="0.2.0rc3",
+    name=PACKAGE_NAME,
+    version=version,
     author="Apache - SDAP",
     author_email="dev@sdap.apache.org",
     description="a helper to ingest data in sdap",
@@ -37,6 +41,7 @@ setuptools.setup(
     url="https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager",
     packages=setuptools.find_packages(),
     scripts=['bin/run_collections',
+             'bin/run_single_collection',
              'bin/run_granules'],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -68,5 +73,4 @@ setuptools.setup(
     ]
 )
 
-#if len(sys.argv) >= 2 and sys.argv[1] == "install":
 post_install_message()

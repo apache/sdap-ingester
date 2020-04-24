@@ -50,8 +50,9 @@ class TestValidationMgr(unittest.TestCase):
 
         collections_ingester.read_yaml_collection_config(full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
                                                         collection_row_callback)
-    # not tested on github actions
-    def best_validation_no_parse_nfs(self):
+
+    @unittest.skip("does not work in github action environment")
+    def test_validation_no_parse_nfs(self):
         logger.info("validation test without nfs parsing")
 
         def collection_row_callback_no_parse_nfs(row):
@@ -72,8 +73,8 @@ class TestValidationMgr(unittest.TestCase):
 
         self.validation_with_google_spreadsheet_and_callback(collection_row_callback_no_parse_nfs)
 
-    # not tested on github action
-    def best_validation_parse_nfs(self):
+    @unittest.skip("does not work in github action environment")
+    def test_validation_parse_nfs(self):
         logger.info("validation test with nfs parsing")
 
         def collection_row_callback_parse_nfs(row):
