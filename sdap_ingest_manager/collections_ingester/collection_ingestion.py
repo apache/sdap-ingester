@@ -69,7 +69,9 @@ def get_file_list(file_path_pattern):
 
 
 def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
-                        granule_list_file_path, deconstruct_nfs=False, date_from=None, date_to=None):
+                        granule_list_file_path, deconstruct_nfs=False,
+                        date_from=None, date_to=None,
+                        forward_processing=False):
     """ Creates a granule list file from a file path pattern
         matching the granules.
         If a granules has already been ingested with same md5sum signature, it is not included in this list.
@@ -84,8 +86,16 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
     logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
-    timestamp_from = date_from.timestamp() if date_from else None
-    timestamp_to = date_to.timestamp() if date_to else None
+    if forward_processing:
+        if dataset_ingestion_history_manager:
+            timestamp_from = dataset_ingestion_history_manager.get_latest_ingested_file_update()
+        if dataset_ingestion_history_manager is None or timestamp_from is None:
+            logger.info("No ingestion history available, forward processing ignored")
+            timestamp_from = None
+        timestamp_to = None
+    else:
+        timestamp_from = date_from.timestamp() if date_from else None
+        timestamp_to = date_to.timestamp() if date_to else None
 
     if deconstruct_nfs:
         mount_points = nfs_mount_parse.get_nfs_mount_points()
@@ -140,6 +150,11 @@ def collection_row_callback(collection,
     netcdf_variable = collection['variable']
     netcdf_file_pattern = collection['path']
 
+    if 'forward_processing' in collection.keys():
+        forward_processing = collection['forward_processing']
+    else:
+        forward_processing = False
+
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
     dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
@@ -157,7 +172,8 @@ def collection_row_callback(collection,
                         dataset_ingestion_history_manager,
                         granule_list_file_path,
                         deconstruct_nfs=deconstruct_nfs,
-                        **time_range)
+                        **time_range,
+                        forward_processing=forward_processing)
 
     dataset_configuration_file_path = os.path.join(dataset_configuration_root_path,
                                                    f'{dataset_id}-config.yml')

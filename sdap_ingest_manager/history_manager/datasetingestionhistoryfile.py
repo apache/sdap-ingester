@@ -14,6 +14,8 @@ class DatasetIngestionHistoryFile:
     _history_file_path = None
     _history_file = None
     _history_dict = {}
+    _latest_ingested_file_update_file_path = None
+    _latest_ingested_file_update = None
 
     def __init__(self, history_path, dataset_id, signature_fun):
         """
@@ -29,6 +31,14 @@ class DatasetIngestionHistoryFile:
         self._load_history_dict()
         Path(history_path).mkdir(parents=True, exist_ok=True)
         self._history_file = open(f"{self._history_file_path}", 'a')
+
+        self._latest_ingested_file_update_file_path = os.path.join(history_path, f'{dataset_id}.ts')
+        if os.path.exists(self._latest_ingested_file_update_file_path):
+            logger.info(f"read latest ingested file update date from {self._latest_ingested_file_update_file_path}")
+            with open(self._latest_ingested_file_update_file_path, 'r') as f_ts:
+                self._latest_ingested_file_update = float(f_ts.readline())
+        else:
+            self._latest_ingested_file_update = None
 
     def _load_history_dict(self):
         logger.info(f"loading history file {self._history_file_path}")
@@ -46,7 +56,13 @@ class DatasetIngestionHistoryFile:
     def __del__(self):
         self._history_file.close()
         self._purge()
+        self._save_latest_timestamp()
         del self._history_dict
+
+    def  _save_latest_timestamp(self):
+        if self._latest_ingested_file_update:
+            with open(self._latest_ingested_file_update_file_path, 'w') as f_ts:
+                f_ts.write(f'{str(self._latest_ingested_file_update)}\n')
 
     def _purge(self):
         logger.info("purge the history file from duplicates")
@@ -85,6 +101,13 @@ class DatasetIngestionHistoryFile:
         md5sum = self._signature_fun(file_path)
         self._push_record(file_name, md5sum)
 
+        if self._latest_ingested_file_update:
+            self._latest_ingested_file_update = max(self._latest_ingested_file_update,
+                                                    os.path.getmtime(file_path))
+        else:
+            self._latest_ingested_file_update = os.path.getmtime(file_path)
+
+
     def _get_md5sum(self, file_name):
         if file_name in self._history_dict.keys():
             return self._history_dict[file_name]
@@ -97,3 +120,6 @@ class DatasetIngestionHistoryFile:
         md5sum = self._signature_fun(file_path)
         logger.debug(f"compare {md5sum} with {self._get_md5sum(file_name)}")
         return md5sum == self._get_md5sum(file_name)
+
+    def get_latest_ingested_file_update(self):
+        return self._latest_ingested_file_update

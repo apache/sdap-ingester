@@ -19,12 +19,20 @@ parser.add_argument("-c", "--config", help="configuration directory which contai
                                            "and other configuration files (list of ingestion streams)",
                     default=os.path.join(sys.prefix, ".sdap_ingest_manager"))
 
+parser.add_argument("-fp", "--forward-processing",
+                    help="when configured, will only consider granules updated after the"
+                         " update time of the latest ingested granule (the older are ignored)",
+                    action='store_true',
+                    default=False)
+
 options = parser.parse_args()
 
 config = collections_ingester.read_local_configuration(config_path=options.config)
 
 
 def collection_row_callback(row):
+
+    row['forward_processing'] = options.forward_processing
 
     collections_ingester.collection_row_callback(row,
                                                 full_path(config.get("OPTIONS", "collection_config_template")),

@@ -97,6 +97,22 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
 
+    def test_create_granule_list_time_forward_processing(self):
+        logger.info("test create_granule_list with time range")
+        collection_ingestion.create_granule_list(self.granule_file_pattern,
+                                                 None,
+                                                 self.target_granule_list_file,
+                                                 forward_processing=True)
+        line_number = 0
+        with open(self.target_granule_list_file, 'r') as f:
+            for _ in f:
+                line_number += 1
+
+        self.assertGreaterEqual(line_number, 0)
+
+        os.remove(self.target_granule_list_file)
+
+
 
 
     def test_create_granule_list_no_history(self):

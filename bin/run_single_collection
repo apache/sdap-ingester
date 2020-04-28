@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-
     parser = argparse.ArgumentParser(
-        description='Ingest one collection of data granules',
+        description='Ingest one collection of data granules'
+                    'Examples '
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/collections_ingester/test/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23'
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/collections_ingester/test/data/avhrr_oi -v analysed_sst  --forward-processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    # example
-    # % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/collections_ingester/test/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23
     parser.add_argument('-d', '--id',
                         help='The dataset id in nexus, if it is not created yet a new dataset will be created'
                              'this must contain only [a-z], [0-9] and -',
@@ -40,21 +40,33 @@ def main():
                         required=True,
                         metavar='analyzed_sst')
 
+    #subset_group_mutex = parser.add_mutually_exclusive_group(required=False)
+    #update_time_group = subset_group_mutex.add_argument_group()
+    #forward_processing_group = subset_group_mutex.add_argument_group()
     parser.add_argument('-f', '--from',
-                        help='The earliest modification time of a granule file'
-                             ' which will be ingested. Uses file system time.'
-                             ' format is ISO8601, date only, for example "2020-02-24"',
-                        required=False,
-                        metavar="2020-02-24")
+                                   help='The earliest modification time of a granule file'
+                                        ' which will be ingested. Uses file system time.'
+                                        ' format is ISO8601, date only, for example "2020-02-24"',
+                                   required=False,
+                                   metavar="2020-02-24")
 
     parser.add_argument('-t', '--to',
-                        help='The latest modification time of a granule file'
-                             ' which will be ingested. Uses file system time.'
-                             ' format is ISO8601, date only, for example "2020-02-24"',
-                        required=False,
-                        metavar="2020-03-24")
-    parser.add_argument("-c", "--config", help="configuration directory which contains the sdap_ingest_manager.ini file"
-                                               "and other configuration files (list of ingestion streams)",
+                                   help='The latest modification time of a granule file'
+                                        ' which will be ingested. Uses file system time.'
+                                        ' format is ISO8601, date only, for example "2020-02-24"',
+                                   required=False,
+                                   metavar="2020-03-24")
+
+    parser.add_argument("-fp", "--forward-processing",
+                                          help="when configured, will only consider granules updated after the"
+                                               " update time of the latest ingested granule (the older are ignored)."
+                                               " When set, --from and --to options are ignored",
+                                          action='store_true',
+                                          default=False)
+
+    parser.add_argument("-c", "--config",
+                        help="configuration directory which contains the sdap_ingest_manager.ini file"
+                             "and other configuration files (list of ingestion streams)",
                         default=os.path.join(sys.prefix, ".sdap_ingest_manager"))
 
     the_args = parser.parse_args()
@@ -63,7 +75,7 @@ def main():
     config = collections_ingester.read_local_configuration(config_path=the_args.config)
 
     collection['path'] = os.path.join(os.getcwd(),
-                                 collection['path'])
+                                      collection['path'])
 
     collections_ingester.collection_row_callback(collection,
                                                  full_path(config.get("OPTIONS", "collection_config_template")),
