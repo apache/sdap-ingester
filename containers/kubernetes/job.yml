@@ -15,10 +15,16 @@ spec:
               mountPath: /opt/sdap_ingester_config/
             - name: temp-root-vol
               mountPath: /usr/local/.sdap_ingest_manager/
+            - name: data
+              mountPath: /data
       volumes:
         - name: config-vol
           configMap:
             name: collection-ingester-config
+        - name: data
+          hostPath:
+            path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager
+            type: Directory
         - name: temp-root-vol
 
       restartPolicy: Never
