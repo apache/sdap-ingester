@@ -20,12 +20,15 @@ spec:
           configMap:
             name: collection-ingester-config
         - name: data
-          hostPath:
-            path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
-            type: Directory
-        - name: temp-root-vol
-
+          persistentVolumeClaim:
+            claimName: data-volume-claim
       restartPolicy: Never
   backoffLimit: 4
+
+---
+
+
+
+
 
 
