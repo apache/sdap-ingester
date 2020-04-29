@@ -14,19 +14,22 @@ def read_yaml_collection_config(file, collection_callback):
     with keys [id, variable, path]
     :return:
     """
-    with open(file, 'r') as f:
-        collections = yaml.load(f, Loader=yaml.FullLoader)
+    try:
+        with open(file, 'r') as f:
+            collections = yaml.load(f, Loader=yaml.FullLoader)
 
-    collections_array = []
-    for (c_id, collection) in collections.items():
-        collection['id'] = c_id
-        for k, v in collection.items():
-            if type(v) == str:
-                collection[k] = v.strip()
-        collections_array.append(collection)
+        collections_array = []
+        for (c_id, collection) in collections.items():
+            collection['id'] = c_id
+            for k, v in collection.items():
+                if type(v) == str:
+                    collection[k] = v.strip()
+            collections_array.append(collection)
 
-    logger.info(f"collections are {collections_array}")
-    sorted_collections = sorted(collections_array, key=lambda c: c['priority'])
+        logger.info(f"collections are {collections_array}")
+        sorted_collections = sorted(collections_array, key=lambda c: c['priority'])
 
-    for collection in sorted_collections:
-        collection_callback(collection)
+        for collection in sorted_collections:
+            collection_callback(collection)
+    except FileNotFoundError:
+        logger.error(f"no collection configuration found at {file}")
