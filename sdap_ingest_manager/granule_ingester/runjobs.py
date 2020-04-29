@@ -305,7 +305,7 @@ def create_and_run_jobs(filepath_pattern=None,
                 line = line.replace('$NINGESTERTAG', ningester_version)
                 line = line.replace('$PROFILES', ','.join(profiles))
 
-                print(line, end='')
+                logger.info(line, end='')
 
     # Generate a configmap from the connection settings and apply it
     connection_settings = os.path.join(os.path.join(Path(__file__).parent.absolute(), connection_settings))
