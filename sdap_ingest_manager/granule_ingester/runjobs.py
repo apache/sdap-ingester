@@ -304,7 +304,7 @@ def create_and_run_jobs(filepath_pattern=None,
                 line = line.replace('$CONNECTIONCONFIGMAPNAME', connection_config_map_name)
                 line = line.replace('$NINGESTERTAG', ningester_version)
                 line = line.replace('$PROFILES', ','.join(profiles))
-
+                print(line, end='')
                 logger.info(line)
 
     # Generate a configmap from the connection settings and apply it
