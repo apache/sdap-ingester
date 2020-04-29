@@ -39,9 +39,9 @@ spec:
       # this piece is replicated from job.yml so that data is mounted the same way in kubernetes
       # this need to be made in a cleaner way
       - name: data
-          hostPath:
-            path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
-            type: Directory
+        hostPath:
+          path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
+          type: Directory
       - name: config-volume-1
         configMap:
           name: $JOBCONFIGMAPNAME
