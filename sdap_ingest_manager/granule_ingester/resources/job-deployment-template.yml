@@ -28,16 +28,14 @@ spec:
               key: password
               optional: true
         volumeMounts:
-        - name: data-volume
+        - name: data
           mountPath: /home/ningester/data/$GRANULE
+          subPath: $GRANULEDATAPATH
         - name: config-volume-1
           mountPath: /home/ningester/config/$JOBCONFIGMAPNAME.yml
         - name: config-volume-2
           mountPath: /home/ningester/config/$CONNECTIONCONFIGMAPNAME.yml
       volumes:
-      - name: data-volume
-        hostPath:
-          path: $GRANULEHOSTPATH/$GRANULE
       - name: config-volume-1
         configMap:
           name: $JOBCONFIGMAPNAME

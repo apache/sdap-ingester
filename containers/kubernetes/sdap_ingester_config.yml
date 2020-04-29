@@ -6,7 +6,7 @@ data:
     # variable: netcdf variable to be ingested (only one per dataset)
     # priority: order in which collections will be processed, the smaller numbers first.
     avhrr-oi-analysed-sst:
-      path: /data/sdap_ingest_manager/collections_ingester/data/avhrr_oi/*.nc
+      path: /data/avhrr_oi/*.nc
       variable: analysed_sst
       priority: 2
 

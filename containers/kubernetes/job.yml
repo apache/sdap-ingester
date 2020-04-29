@@ -9,12 +9,10 @@ spec:
         - name: collections-ingester
           image: tloubrieu/sdap-ingest-manager:latest
           imagePullPolicy: IfNotPresent
-          command: ["run_collections", "--config_path=/opt/sdap_ingester_config/"]
+          command: ["run_collections", "--config=/opt/sdap_ingester_config/"]
           volumeMounts:
             - name: config-vol
               mountPath: /opt/sdap_ingester_config/
-            - name: temp-root-vol
-              mountPath: /usr/local/.sdap_ingest_manager/
             - name: data
               mountPath: /data
       volumes:
@@ -23,7 +21,7 @@ spec:
             name: collection-ingester-config
         - name: data
           hostPath:
-            path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager
+            path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
             type: Directory
         - name: temp-root-vol
 

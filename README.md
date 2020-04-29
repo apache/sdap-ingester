@@ -144,7 +144,7 @@ You can see the configuration files in the directory of the named volume (for ex
 
 Note on macos, to access this directory, you need to go inside the Virtual Machine which runs docker service. To update the configuration on macos:
 
-    docker run --rm -it -v /:/vm-root alpine:edge /bin/ash
+    docker run --rm -it -v /:/vm-root alpine:edge /bin/bash
     cd /vm-root/var/lib/docker/volumes/sdap_ingest_config/_data
     cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
     vi sdap_ingest_manager.ini

@@ -275,6 +275,7 @@ def create_and_run_jobs(filepath_pattern=None,
     for the_file in files:
         filename = os.path.basename(the_file)
         filepath = os.path.dirname(the_file)
+        data_relative_filepath = os.path.relpath(filepath, start="/data")
         the_local_file = collections_ingester.replace_service_path_with_mount_point(the_file, mount_points)
         md5sum = hashlib.md5(filename.encode()).hexdigest()
         granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
@@ -285,7 +286,7 @@ def create_and_run_jobs(filepath_pattern=None,
             logger.info("cp {} {}".format(job_deployment_template, granule_job_filepath))
             logger.info("$JOBNAME={}".format(md5sum))
             logger.info("$JOBGROUP={}".format(job_group))
-            logger.info("$GRANULEHOSTPATH={}".format(filepath))
+            logger.info("$GRANULEDATAPATH={}".format(filepath))
             logger.info("$GRANULE={}".format(filename))
             logger.info("$JOBCONFIGMAPNAME={}".format(job_config_map_name))
             logger.info("$CONNECTIONCONFIGMAPNAME={}".format(connection_config_map_name))
@@ -296,7 +297,7 @@ def create_and_run_jobs(filepath_pattern=None,
             for line in fileinput.input(granule_job_filepath, inplace=True):
                 line = line.replace('$JOBNAME', md5sum)
                 line = line.replace('$JOBGROUP', job_group)
-                line = line.replace('$GRANULEHOSTPATH', filepath)
+                line = line.replace('$GRANULEDATAPATH', filepath)
                 line = line.replace('$GRANULE', filename)
                 line = line.replace('$JOBCONFIGMAPNAME', job_config_map_name)
                 line = line.replace('$CONNECTIONCONFIGMAPNAME', connection_config_map_name)
