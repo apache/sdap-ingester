@@ -2,13 +2,16 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: data-volume
+  labels:
+    name: data-volume
 spec:
   capacity:
     storage: 3Gi
   volumeMode: Filesystem
   accessModes:
-  - ReadOnlyMany
+  - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
+  storageClassName: hostpath
   hostPath:
     path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
     type: Directory
@@ -21,11 +24,12 @@ metadata:
   name: data-volume-claim
 spec:
   accessModes:
-    - ReadOnlyMany
+  - ReadWriteOnce
   volumeMode: Filesystem
   resources:
     requests:
       storage: 3Gi
+  storageClassName: hostpath
   selector:
     matchLabels:
       name: "data-volume"
