@@ -18,14 +18,14 @@ class DatasetIngestionHistoryFileTestCase(unittest.TestCase):
     def test_get_md5sum(self):
         self.ingestion_history = DatasetIngestionHistoryFile(HISTORY_ROOT_PATH, DATASET_ID, md5sum_from_filepath)
         self.ingestion_history._push_record("blue", "12weeukrhbwerqu7wier")
-        result = self.ingestion_history._get_md5sum("blue")
+        result = self.ingestion_history._get_signature("blue")
         self.assertEqual(result, "12weeukrhbwerqu7wier")
 
     # @unittest.skip("does not work without a solr server for test")
     def test_get_missing_md5sum(self):
         self.ingestion_history = DatasetIngestionHistoryFile(HISTORY_ROOT_PATH, DATASET_ID, md5sum_from_filepath)
         self.ingestion_history._push_record("blue", "12weeukrhbwerqu7wier")
-        result = self.ingestion_history._get_md5sum("green")
+        result = self.ingestion_history._get_signature("green")
         self.assertEqual(result, None)
 
     def test_has_valid_cache(self):

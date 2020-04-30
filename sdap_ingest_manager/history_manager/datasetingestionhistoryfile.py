@@ -51,13 +51,40 @@ class DatasetIngestionHistoryFile:
         except FileNotFoundError:
             logger.info("no history file created yet")
 
-
-
     def __del__(self):
         self._history_file.close()
         self._purge()
         self._save_latest_timestamp()
         del self._history_dict
+
+    def push(self, file_path):
+        file_path = file_path.strip()
+        file_name = os.path.basename(file_path)
+        md5sum = self._signature_fun(file_path)
+        self._push_record(file_name, md5sum)
+
+        if self._latest_ingested_file_update:
+            self._latest_ingested_file_update = max(self._latest_ingested_file_update,
+                                                    os.path.getmtime(file_path))
+        else:
+            self._latest_ingested_file_update = os.path.getmtime(file_path)
+
+    def has_valid_cache(self, file_path):
+        file_path = file_path.strip()
+        file_name = os.path.basename(file_path)
+        md5sum = self._signature_fun(file_path)
+        logger.debug(f"compare {md5sum} with {self._get_signature(file_name)}")
+        return md5sum == self._get_signature(file_name)
+
+    def get_latest_ingested_file_update(self):
+        return self._latest_ingested_file_update
+
+    def reset_cache(self):
+        try:
+            os.remove(self._history_file_path)
+            logger.info(f"history cache {self._history_file_path} removed")
+        except FileNotFoundError:
+            logger.info(f"history cache {self._history_file_path} does not exist, does not need to be removed")
 
     def  _save_latest_timestamp(self):
         if self._latest_ingested_file_update:
@@ -83,43 +110,13 @@ class DatasetIngestionHistoryFile:
         except FileNotFoundError:
             logger.info(f"no history file {self._history_file_path} to purge")
 
-    def reset_cache(self):
-        try:
-            os.remove(self._history_file_path)
-            logger.info(f"history cache {self._history_file_path} removed")
-        except FileNotFoundError:
-            logger.info(f"history cache {self._history_file_path} does not exist, does not need to be removed")
-
     def _push_record(self, file_name, md5sum):
         self._history_dict[file_name] = md5sum
         self._history_file.write(f'{file_name},{md5sum}\n')
         return None
 
-    def push(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        md5sum = self._signature_fun(file_path)
-        self._push_record(file_name, md5sum)
-
-        if self._latest_ingested_file_update:
-            self._latest_ingested_file_update = max(self._latest_ingested_file_update,
-                                                    os.path.getmtime(file_path))
-        else:
-            self._latest_ingested_file_update = os.path.getmtime(file_path)
-
-
-    def _get_md5sum(self, file_name):
+    def _get_signature(self, file_name):
         if file_name in self._history_dict.keys():
             return self._history_dict[file_name]
         else:
             return None
-
-    def has_valid_cache(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        md5sum = self._signature_fun(file_path)
-        logger.debug(f"compare {md5sum} with {self._get_md5sum(file_name)}")
-        return md5sum == self._get_md5sum(file_name)
-
-    def get_latest_ingested_file_update(self):
-        return self._latest_ingested_file_update

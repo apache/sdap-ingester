@@ -7,6 +7,7 @@ import filecmp
 import os
 import sys
 from pathlib import Path
+from sdap_ingest_manager.collections_ingester import create_history_manager_builder
 
 
 logging.basicConfig(level=logging.INFO)
@@ -32,13 +33,15 @@ class TestValidationMgr(unittest.TestCase):
     def test_validation_with_local_collection_configuration(self):
         logger.info("validation with local validation configuration file")
 
+        history_manager_builder = create_history_manager_builder(self._config)
+
         def collection_row_callback(row):
             collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
                                          full_path(self._config.get("LOCAL_PATHS", "collection_config_path")),
-                                         full_path(self._config.get("LOCAL_PATHS", "history_path")),
+                                         history_manager_builder=history_manager_builder,
                                          deconstruct_nfs=False,
                                          job_deployment_template=self.job_deployment_file_path,
                                          connection_settings=self.connection_settings_file_path,
@@ -55,13 +58,15 @@ class TestValidationMgr(unittest.TestCase):
     def test_validation_no_parse_nfs(self):
         logger.info("validation test without nfs parsing")
 
+        history_manager_builder = create_history_manager_builder(self._config)
+
         def collection_row_callback_no_parse_nfs(row):
             collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
                                          full_path(self._config.get("LOCAL_PATHS", "collection_config_path")),
-                                         full_path(self._config.get("LOCAL_PATHS", "history_path")),
+                                         history_manager_builder=history_manager_builder,
                                          deconstruct_nfs=False,
                                          job_deployment_template=self.job_deployment_file_path,
                                          connection_settings=self.connection_settings_file_path,
@@ -77,13 +82,15 @@ class TestValidationMgr(unittest.TestCase):
     def test_validation_parse_nfs(self):
         logger.info("validation test with nfs parsing")
 
+        history_manager_builder = create_history_manager_builder(self._config)
+
         def collection_row_callback_parse_nfs(row):
             collections_ingester \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
                                          full_path(self._config.get("LOCAL_PATHS", "collection_config_path")),
-                                         full_path(self._config.get("LOCAL_PATHS", "history_path")),
+                                         history_manager_builder=history_manager_builder,
                                          deconstruct_nfs=True,
                                          job_deployment_template=self.job_deployment_file_path,
                                          connection_settings=self.connection_settings_file_path,

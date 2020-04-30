@@ -22,13 +22,18 @@ cell_range = D2:G
 granule_file_list_path = tmp/granule_lists
 # path to the job configuration, one per dataset, generated
 collection_config_path = tmp/dataset_config
+
+[HISTORY]
+# history manager, object used to manage the history of ingested granules
+#history_manager=
+history_manager= sdap_ingest_manager.history_manager.DatasetIngestionHistoryFile
 # path to the history of files successfully ingested, generated
 history_path=tmp/history
 
 
 [OPTIONS]
-# set to False to actually call the ingestion command for each granule
 # relative path starts at {sys.prefix}/.sdap_ingest_manager
+# set to False to actually call the ingestion command for each granule
 dry_run = True
 # set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
 deconstruct_nfs = True

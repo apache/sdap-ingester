@@ -10,6 +10,7 @@ import pystache
 from . import nfs_mount_parse
 import sdap_ingest_manager.granule_ingester
 from sdap_ingest_manager.history_manager import md5sum_from_filepath
+from sdap_ingest_manager.history_manager import DatasetIngestionHistoryBuilder
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -86,6 +87,7 @@ def create_granule_list(file_path_pattern, dataset_ingestion_history_manager,
     logger.info("Granule list file created in directory %s", dir_path)
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
+    # determine update time range from input option and history_manager
     if forward_processing:
         if dataset_ingestion_history_manager:
             timestamp_from = dataset_ingestion_history_manager.get_latest_ingested_file_update()
@@ -139,7 +141,7 @@ def collection_row_callback(collection,
                             collection_config_template,
                             granule_file_list_root_path,
                             dataset_configuration_root_path,
-                            history_root_path,
+                            history_manager_builder=None,
                             deconstruct_nfs=False,
                             **pods_run_kwargs
                             ):
@@ -157,8 +159,8 @@ def collection_row_callback(collection,
 
     granule_list_file_path = os.path.join(granule_file_list_root_path,
                                           f'{dataset_id}-granules.lst')
-    dataset_ingestion_history_manager = sdap_ingest_manager.history_manager\
-        .DatasetIngestionHistoryFile(history_root_path, dataset_id, lambda x: str(os.path.getmtime(x)))
+
+    dataset_ingestion_history_manager = history_manager_builder.get_history_manager(dataset_id, lambda x: str(os.path.getmtime(x)))
 
 
     time_range = {}
