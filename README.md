@@ -20,6 +20,9 @@ See project https://github.com/apache/incubator-sdap-nexus
 
     $ helm install nexus .  --namespace=sdap --dependency-update -f ~/overridden-nexus-values.yml 
 
+For development purpose, you might want to expose solr port outside kubernetes
+
+   kubectl port-forward solr-set-0 8983:8983 -n sdap 
 
 ## Install, Configure and run
 

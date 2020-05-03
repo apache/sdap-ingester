@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 class DatasetIngestionHistoryBuilder:
 
     _HISTORY_MANAGER_OBJECT_SUPPORTED = {'DatasetIngestionHistoryFile', 'DatasetIngestionHistorySolr'}
-
+    _HISTORY_MANAGER_MODULE = ''
     _history_manager_object = None
     _history_path = None
     _solr_url = None
@@ -16,13 +16,14 @@ class DatasetIngestionHistoryBuilder:
 
         self.history_manager_object = history_manager
         logger.info(f"Initialize {history_manager} builder")
-        if history_manager == 'DatasetIngestionHistoryFile':
+        self._HISTORY_MANAGER_MODULE = self.__module__[0:self.__module__.rfind('.')]
+        if history_manager == '.'.join([self._HISTORY_MANAGER_MODULE, 'DatasetIngestionHistoryFile']):
             if history_path:
                 self._history_path = history_path
             else:
                 logger.error(f"mandatory history_path option is missing")
-        elif history_manager == 'DatasetIngestionHistorySolr':
-            if history_path:
+        elif history_manager == '.'.join([self._HISTORY_MANAGER_MODULE, 'DatasetIngestionHistorySolr']):
+            if solr_url:
                 self._solr_url = solr_url
             else:
                 logger.error(f"mandatory solr_url option is missing")
