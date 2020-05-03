@@ -14,19 +14,18 @@ class DatasetIngestionHistoryBuilder:
 
     def __init__(self, history_manager=None, history_path = None, solr_url=None):
 
-        if history_manager in self._HISTORY_MANAGER_OBJECT_SUPPORTED:
-            self.history_manager_object = history_manager
-            logger.info(f"Initialize {history_manager} builder")
-            if history_manager == 'DatasetIngestionHistoryFile':
-                if history_path:
-                    self._history_path = history_path
-                else:
-                    logger.error(f"mandatory history_path option is missing")
-            elif history_manager == 'DatasetIngestionHistorySolr':
-                if history_path:
-                    self._solr_url = solr_url
-                else:
-                    logger.error(f"mandatory solr_url option is missing")
+        self.history_manager_object = history_manager
+        logger.info(f"Initialize {history_manager} builder")
+        if history_manager == 'DatasetIngestionHistoryFile':
+            if history_path:
+                self._history_path = history_path
+            else:
+                logger.error(f"mandatory history_path option is missing")
+        elif history_manager == 'DatasetIngestionHistorySolr':
+            if history_path:
+                self._solr_url = solr_url
+            else:
+                logger.error(f"mandatory solr_url option is missing")
         else:
             logger.error(f"history manager {history_manager} is not supported")
             logger.info(f"supported history managers are {self._HISTORY_MANAGER_OBJECT_SUPPORTED}")
