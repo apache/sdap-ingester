@@ -114,16 +114,16 @@ class DatasetIngestionHistorySolr:
             result = self._req_session.get('/'.join([self._solr_url.strip("/"), 'admin', 'collections']), params=payload)
             response = result.json()
             logger.info(f"solr collection created {response}")
+            # Update schema
+            schema_url = '/'.join([self._solr_url.strip('/'), self._granule_collection_name, 'schema'])
+            # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
+            # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
+            self._add_field(schema_url, "dataset_s", "StrField")
+            self._add_field(schema_url, "granule_s", "StrField")
+            self._add_field(schema_url, "granule_signature_s", "StrField")
+
         else:
             logger.info(f"collection {self._granule_collection_name} already exists")
-
-        # Update schema
-        schema_url = '/'.join([self._solr_url.strip('/'), 'solr', self._granule_collection_name, 'schema'])
-        # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
-        # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
-        self._add_field(schema_url, "dataset_s", "StrField")
-        self._add_field(schema_url, "granule_s", "StrField")
-        self._add_field(schema_url, "granule_signature_s", "StrField")
 
         if self._dataset_collection_name not in existing_collections:
             # Create collection
@@ -134,15 +134,16 @@ class DatasetIngestionHistorySolr:
             result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']), params=payload)
             response = result.json()
             logger.info(f"solr collection created {response}")
+            # Update schema
+            # http://localhost:8983/solr/nexusdatasets/schema?_=1588555874864&wt=json
+            schema_url = '/'.join([self._solr_url.strip('/'), self._dataset_collection_name, 'schema'])
+            # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
+            self._add_field(schema_url, "dataset_s", "StrField")
+            self._add_field(schema_url, "latest_update_l", "TrieLongField")
+
         else:
             logger.info(f"collection {self._dataset_collection_name} already exists")
 
-        # Update schema
-        schema_url = '/'.join([self._solr_url.strip('/'), 'solr', self._dataset_collection_name, 'schema'])
-        # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
-        # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
-        self._add_field(schema_url, "dataset_s", "StrField")
-        self._add_field(schema_url, "latest_update_l", "TrieLongField")
 
     def _add_field(self, schema_url, field_name, field_type):
         """
@@ -159,4 +160,4 @@ class DatasetIngestionHistorySolr:
                 "stored": False
             }
         }
-        result = self._req_session.post(schema_url, data=add_field_payload)
+        result = self._req_session.post(schema_url, data=add_field_payload.__str__())
