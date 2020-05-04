@@ -1,6 +1,7 @@
 import logging
 import sdap_ingest_manager.history_manager.datasetingestionhistoryfile
 import sdap_ingest_manager.history_manager.datasetingestionhistorysolr
+from sdap_ingest_manager.history_manager import DatasetIngestionHistorySolrException
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -34,5 +35,9 @@ class DatasetIngestionHistoryBuilder:
         if self._history_manager_object == '.'.join([self._HISTORY_MANAGER_MODULE, 'DatasetIngestionHistoryFile']):
             return eval(self._history_manager_object)(self._history_path, dataset_id, signature_fun)
         elif self._history_manager_object == '.'.join([self._HISTORY_MANAGER_MODULE, 'DatasetIngestionHistorySolr']):
-            return eval(self._history_manager_object)(self._solr_url, dataset_id, signature_fun)
-
+            try:
+                return eval(self._history_manager_object)(self._solr_url, dataset_id, signature_fun)
+            except DatasetIngestionHistorySolrException:
+                return None
+        else:
+            return None
