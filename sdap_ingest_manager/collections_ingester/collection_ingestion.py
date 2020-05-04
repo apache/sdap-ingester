@@ -7,7 +7,7 @@ import glob
 from datetime import datetime
 import logging
 import pystache
-from . import nfs_mount_parse
+from sdap_ingest_manager.collections_ingester import nfs_mount_parse
 import sdap_ingest_manager.granule_ingester
 from sdap_ingest_manager.history_manager import md5sum_from_filepath
 from sdap_ingest_manager.history_manager import DatasetIngestionHistoryBuilder

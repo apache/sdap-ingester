@@ -26,7 +26,7 @@ collection_config_path = tmp/dataset_config
 [HISTORY]
 # history manager, object used to manage the history of ingested granules
 history_manager= sdap_ingest_manager.history_manager.DatasetIngestionHistorySolr
-solr_url = localhost:8983
+solr_url = http://sdap-solr:8983/solr/
 #history_manager= sdap_ingest_manager.history_manager.DatasetIngestionHistoryFile
 # path to the history of files successfully ingested, generated
 #history_path=tmp/history

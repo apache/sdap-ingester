@@ -86,7 +86,7 @@ class DatasetIngestionHistoryFile:
         except FileNotFoundError:
             logger.info(f"history cache {self._history_file_path} does not exist, does not need to be removed")
 
-    def  _save_latest_timestamp(self):
+    def _save_latest_timestamp(self):
         if self._latest_ingested_file_update:
             with open(self._latest_ingested_file_update_file_path, 'w') as f_ts:
                 f_ts.write(f'{str(self._latest_ingested_file_update)}\n')
