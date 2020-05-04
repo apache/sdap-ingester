@@ -2,7 +2,7 @@ import os
 import pysolr
 import requests
 import logging
-import ctypes
+import hashlib
 
 
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def doc_key(dataset_id, file_name):
-    return ctypes.c_size_t(hash(f'{dataset_id}{file_name}')).value
+    return hashlib.sha1(f'{dataset_id}{file_name}'.encode('utf-8')).hexdigest()
 
 
 class DatasetIngestionHistorySolr:
