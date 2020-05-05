@@ -30,7 +30,7 @@ class DatasetIngestionHistoryFile:
         self._history_dict = {}
         self._load_history_dict()
         Path(history_path).mkdir(parents=True, exist_ok=True)
-        self._history_file = open(f"{self._history_file_path}", 'a')
+        self._history_file = open(f"{self._history_file_path}", 'a', buffering=1)
 
         self._latest_ingested_file_update_file_path = os.path.join(history_path, f'{dataset_id}.ts')
         if os.path.exists(self._latest_ingested_file_update_file_path):
