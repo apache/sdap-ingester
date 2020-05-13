@@ -331,7 +331,7 @@ def create_and_run_jobs(filepath_pattern=None,
     i = 0
 
     while i < total_jobs:
-        config = collections_ingester.read_local_configuration()
+        config = collections_ingester.LocalConfiguration().get()
         max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
         logger.info(f"number of parallel jobs is {max_concurrent_jobs}")
 

@@ -8,6 +8,7 @@ from sdap_ingest_manager.collections_ingester import full_path
 from sdap_ingest_manager import collections_ingester
 from sdap_ingest_manager.collections_ingester import create_history_manager_builder
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ parser.add_argument("-fp", "--forward-processing",
 
 options = parser.parse_args()
 
-config = collections_ingester.read_local_configuration(config_path=options.config)
+config = collections_ingester.LocalConfiguration(config_path=options.config).get()
 
 
 def collection_row_callback(row):

@@ -75,7 +75,7 @@ def main():
     collection['path'] = os.path.join(os.getcwd(),
                                       collection['path'])
 
-    config = collections_ingester.read_local_configuration(config_path=the_args.config)
+    config = collections_ingester.LocalConfiguration(config_path=the_args.config).get()
     history_manager_builder = create_history_manager_builder(config)
 
     collections_ingester.collection_row_callback(collection,

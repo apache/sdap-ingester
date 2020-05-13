@@ -17,7 +17,7 @@ full_path = collections_ingester.full_path
 
 
 class TestValidationMgr(unittest.TestCase):
-    _config = collections_ingester.read_local_configuration()
+    _config = collections_ingester.LocalConfiguration().get()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
