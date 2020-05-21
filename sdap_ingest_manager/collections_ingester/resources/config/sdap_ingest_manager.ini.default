@@ -1,4 +1,4 @@
-[COLLECTIONS_YAML_CONFIG]
+[INGESTION_ORDER_YAML_CONFIG]
 yaml_file = collections.yml.example
 
 [COLLECTIONS_GOOGLE_SPREADSHEET]
@@ -19,7 +19,7 @@ cell_range = D2:G
 git_url = https://github.com/tloubrieu-jpl/sdap-ingester-config
 git_branch = master
 git_patoken = f8a99113002854f8ac7f1d47e800bb21c00cc9a5
-git_local = tmp/config_repo
+git_local_dir = tmp/config_repo
 
 [LOCAL_PATHS]
 # path to temporary resources created in the ingestion process, does not need to be changed

@@ -23,6 +23,24 @@ def get_conf_section_option_dict(config, section):
     return {k: config.get(section, k) for k in config.options(section)}
 
 
+class ConfigWithPath(configparser.ConfigParser):
+
+    PATH_OPTIONS_SUFFIX = {'_dir', '_file'}
+
+    def read(self, filenames):
+        """ replaces every configuration option ending with '_dir' or '_file' with the aboslute path based on the first item path in filenames argument
+            this makes every option absolute paths while we suppose that they might be relative path based on path of the current config file
+        """
+        super().read(filenames)
+        absolute_dir = os.path.join(os.getcwd(),
+                                     os.path.dirname(filenames[0]))
+        for section in self.sections():
+            for option in self.options(section):
+                if option.endswith("_file") or option.endswith("_dir"):
+                    new_option_value =  os.path.join(absolute_dir, self.get(section, option).strip())
+                    self.set(section, option, new_option_value)
+
+
 class LocalConfiguration:
     def __init__(self, config_path="/opt/sdap_ingester_config"):
         self._config_path = config_path
@@ -49,7 +67,6 @@ class LocalConfiguration:
         found_files = config.read(candidates)
         logger.info(f"successfully read configuration from {found_files}")
         return config
-
 
 def create_history_manager_builder(_config):
     if _config.has_section("HISTORY"):
