@@ -22,7 +22,7 @@ spec:
             name: collection-ingester-config
         - name: data-volume-for-collection-ingester
           #hostPath:
-          #  path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/collections_ingester/test/data
+          #  path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/ingestion_order_executor/test/data
           #  type: Directory
           persistentVolumeClaim:
             claimName: data-volume-claim

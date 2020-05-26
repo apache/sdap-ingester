@@ -17,8 +17,8 @@ from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 
-from sdap_ingest_manager import collections_ingester
-from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
+from sdap_ingest_manager import ingestion_order_executor
+from sdap_ingest_manager.config import LocalConfiguration
 
 KUBECTL_COMMAND_TIMEOUT = None
 
@@ -270,7 +270,7 @@ def create_and_run_jobs(filepath_pattern=None,
     # Config map names are just the filename minus extension
     job_config_map_name = os.path.splitext(os.path.basename(job_config))[0]
     connection_config_map_name = os.path.splitext(os.path.basename(connection_settings))[0]
-    mount_points = collections_ingester.get_nfs_mount_points()
+    mount_points = ingestion_order_executor.get_nfs_mount_points()
 
     # For every file to be ingested, create a deployment by replacing the placeholders in the template with actual values
     for the_file in files:
@@ -278,7 +278,7 @@ def create_and_run_jobs(filepath_pattern=None,
         filepath = os.path.dirname(the_file)
         # the granule files must be mounted in kubernetes collection ingester job on a data directory
         data_relative_filepath = os.path.relpath(filepath, start="/data")
-        the_local_file = collections_ingester.replace_service_path_with_mount_point(the_file, mount_points)
+        the_local_file = ingestion_order_executor.replace_service_path_with_mount_point(the_file, mount_points)
         md5sum = hashlib.md5(filename.encode()).hexdigest()
         granule_job_filepath = os.path.join(temp_dir, '{}-{}.yml'.format(job_group, md5sum))
         job_files += [granule_job_filepath]

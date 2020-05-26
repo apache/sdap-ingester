@@ -7,10 +7,10 @@ from typing import List
 from flask import Flask
 from flask_restplus import Api, Resource
 
-from sdap_ingest_manager.collections_ingester import IngestionLauncher
+from sdap_ingest_manager.ingestion_order_executor import IngestionOrderExecutor
 from sdap_ingest_manager.history_manager import DatasetIngestionHistoryFile, DatasetIngestionHistorySolr
-from sdap_ingest_manager.ingestion_orders import GitIngestionOrderStore, FileIngestionOrderStore
-from sdap_ingest_manager.ingestion_orders.templates import Templates
+from sdap_ingest_manager.ingestion_order_store import GitIngestionOrderStore, FileIngestionOrderStore
+from sdap_ingest_manager.ingestion_order_store.templates import Templates
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.DEBUG)
@@ -122,16 +122,16 @@ def main():
                                              order_template=templates.order_template)
 
     message_schema = os.path.join(os.path.dirname(__file__),
-                                  '../collections_ingester/resources/dataset_config_template.yml')
-    ingestion_launcher = IngestionLauncher()
+                                  '../ingestion_order_executor/resources/dataset_config_template.yml')
+    ingestion_launcher = IngestionOrderExecutor()
     for ingestion_order in list(order_store.orders().values()):
         if options.history_path:
             history_manager = DatasetIngestionHistoryFile(options.history_path, ingestion_order['id'])
         else:
             history_manager = DatasetIngestionHistorySolr(options.history_url, ingestion_order['id'])
-        ingestion_launcher.dispatch_ingestion_order(collection=ingestion_order,
-                                                    collection_config_template=message_schema,
-                                                    history_manager=history_manager)
+        ingestion_launcher.execute_ingestion_order(collection=ingestion_order,
+                                                   collection_config_template=message_schema,
+                                                   history_manager=history_manager)
 
     flask_app.run()
 

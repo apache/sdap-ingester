@@ -4,10 +4,10 @@ import logging
 import os
 import sys
 
-from sdap_ingest_manager import collections_ingester
-from sdap_ingest_manager.collections_ingester import create_history_manager
-from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
-from sdap_ingest_manager.collections_ingester.util import full_path
+from sdap_ingest_manager import ingestion_order_executor
+from sdap_ingest_manager.ingestion_order_executor import create_history_manager
+from sdap_ingest_manager.config import LocalConfiguration
+from sdap_ingest_manager.util.util import full_path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,8 +17,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Ingest one collection of data granules'
                     'Examples '
-                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/collections_ingester/test/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23'
-                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/collections_ingester/test/data/avhrr_oi -v analysed_sst  --forward-processing',
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23'
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi -v analysed_sst  --forward-processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-d', '--id',
@@ -78,19 +78,19 @@ def main():
     config = LocalConfiguration(config_path=the_args.config).get()
     history_manager_builder = create_history_manager(config)
 
-    collections_ingester.collection_row_callback(collection,
-                                                 full_path(config.get("OPTIONS", "collection_config_template")),
-                                                 full_path(config.get("LOCAL_PATHS", "granule_file_list_path")),
-                                                 full_path(config.get("LOCAL_PATHS", "collection_config_path")),
-                                                 history_manager_builder=history_manager_builder,
-                                                 deconstruct_nfs=True,
-                                                 job_deployment_template=full_path(config.get("INGEST",
+    ingestion_order_executor.collection_row_callback(collection,
+                                                     full_path(config.get("OPTIONS", "collection_config_template")),
+                                                     full_path(config.get("LOCAL_PATHS", "granule_file_list_path")),
+                                                     full_path(config.get("LOCAL_PATHS", "collection_config_path")),
+                                                     history_manager_builder=history_manager_builder,
+                                                     deconstruct_nfs=True,
+                                                     job_deployment_template=full_path(config.get("INGEST",
                                                                                               "job_deployment_template")),
-                                                 connection_settings=full_path(config.get("INGEST",
+                                                     connection_settings=full_path(config.get("INGEST",
                                                                                           "connection_config")),
-                                                 profiles=config.get("INGEST", "connection_profile").split(','),
-                                                 namespace=config.get("INGEST", "kubernetes_namespace"),
-                                                 dry_run=config.getboolean("OPTIONS", "dry_run"))
+                                                     profiles=config.get("INGEST", "connection_profile").split(','),
+                                                     namespace=config.get("INGEST", "kubernetes_namespace"),
+                                                     dry_run=config.getboolean("OPTIONS", "dry_run"))
 
 
 if __name__ == "__main__":

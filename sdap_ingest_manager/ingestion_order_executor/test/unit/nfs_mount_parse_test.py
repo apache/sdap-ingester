@@ -1,5 +1,5 @@
 import unittest
-from sdap_ingest_manager.collections_ingester import nfs_mount_parse
+from sdap_ingest_manager.util import nfs_mount_parse
 
 
 class TestUnitMgr(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestUnitMgr(unittest.TestCase):
         self.assertEqual(result, "/home1/data/file1")
 
     def test_replace_service_path_with_mount_point(self):
-        result = nfs_mount_parse.replace_service_path_with_mount_point("/export/data/file1", self.mount_points )
+        result = nfs_mount_parse.replace_service_path_with_mount_point("/export/data/file1", self.mount_points)
         self.assertEqual(result, "/home/data/file1")
 
 

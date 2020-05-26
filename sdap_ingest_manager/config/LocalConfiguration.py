@@ -2,7 +2,7 @@ import configparser
 import logging
 import os
 
-from sdap_ingest_manager.collections_ingester.util import full_path
+from sdap_ingest_manager.util.util import full_path
 
 logger = logging.getLogger(__name__)
 

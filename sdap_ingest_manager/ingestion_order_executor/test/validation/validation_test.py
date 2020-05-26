@@ -5,18 +5,18 @@ import sys
 import unittest
 from pathlib import Path
 
-from sdap_ingest_manager import collections_ingester
-from sdap_ingest_manager.collections_ingester import create_history_manager
-from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
+from sdap_ingest_manager import ingestion_order_executor
+from sdap_ingest_manager.ingestion_order_executor import create_history_manager
+from sdap_ingest_manager.config import LocalConfiguration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-full_path = collections_ingester.full_path
+full_path = ingestion_order_executor.full_path
 
 
 class TestValidationMgr(unittest.TestCase):
-    _config = LocalConfiguration('../../resources/config').get()
+    _config = LocalConfiguration('../../../resources/config').get()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
@@ -35,7 +35,7 @@ class TestValidationMgr(unittest.TestCase):
         history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback(row):
-            collections_ingester \
+            ingestion_order_executor \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -50,7 +50,7 @@ class TestValidationMgr(unittest.TestCase):
                                          dry_run=True
                                          )
 
-        collections_ingester.read_yaml_collection_config(
+        ingestion_order_executor.read_yaml_collection_config(
             full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
             collection_row_callback)
 
@@ -61,7 +61,7 @@ class TestValidationMgr(unittest.TestCase):
         history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback_no_parse_nfs(row):
-            collections_ingester \
+            ingestion_order_executor \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -84,7 +84,7 @@ class TestValidationMgr(unittest.TestCase):
         history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback_parse_nfs(row):
-            collections_ingester \
+            ingestion_order_executor \
                 .collection_row_callback(row,
                                          full_path(self._config.get("OPTIONS", "collection_config_template")),
                                          full_path(self._config.get("LOCAL_PATHS", "granule_file_list_path")),
@@ -100,7 +100,7 @@ class TestValidationMgr(unittest.TestCase):
         self.validation_with_google_spreadsheet_and_callback(collection_row_callback_parse_nfs)
 
     def validation_with_google_spreadsheet_and_callback(self, call_back):
-        collections_ingester.read_google_spreadsheet(
+        ingestion_order_executor.read_google_spreadsheet(
             self._config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'scope'),
             self._config.get("COLLECTIONS_GOOGLE_SPREADSHEET", "spreadsheet_id"),
             self._config.get('COLLECTIONS_GOOGLE_SPREADSHEET', 'sheet_name'),
@@ -110,7 +110,7 @@ class TestValidationMgr(unittest.TestCase):
         self.result_validation()
 
     def validation_with_local_yaml_file_and_callback(self, call_back):
-        collections_ingester.read_yaml_collection_config(
+        ingestion_order_executor.read_yaml_collection_config(
             self._config.get("COLLECTIONS_YAML_CONFIG", "yaml_file"),
             call_back
         )

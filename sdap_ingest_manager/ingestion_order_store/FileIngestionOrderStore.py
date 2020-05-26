@@ -1,4 +1,4 @@
-from sdap_ingest_manager.ingestion_orders import IngestionOrderStore
+from sdap_ingest_manager.ingestion_order_store import IngestionOrderStore
 
 
 class FileIngestionOrderStore(IngestionOrderStore):

@@ -11,8 +11,8 @@ from typing import Dict, List
 import pystache
 import yaml
 
-from sdap_ingest_manager.collections_ingester import nfs_mount_parse
-from sdap_ingest_manager.collections_ingester.publisher import MessagePublisher
+from sdap_ingest_manager.util import nfs_mount_parse
+from sdap_ingest_manager.publisher import MessagePublisher
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -31,14 +31,14 @@ def collection_row_callback(collection: dict,
                             deconstruct_nfs=False,
                             **pods_run_kwargs
                             ):
-    return IngestionLauncher().dispatch_ingestion_order(collection,
-                                                        collection_config_template,
-                                                        history_manager_builder,
-                                                        deconstruct_nfs,
-                                                        **pods_run_kwargs)
+    return IngestionOrderExecutor().execute_ingestion_order(collection,
+                                                            collection_config_template,
+                                                            history_manager_builder,
+                                                            deconstruct_nfs,
+                                                            **pods_run_kwargs)
 
 
-class IngestionLauncher:
+class IngestionOrderExecutor:
 
     def __init__(self):
 
@@ -46,12 +46,12 @@ class IngestionLauncher:
         self._publisher = MessagePublisher(host='localhost', username='guest', password='guest', queue='nexus')
         self._publisher.connect()
 
-    def dispatch_ingestion_order(self,
-                                 collection: dict,
-                                 collection_config_template: str,
-                                 history_manager: DatasetIngestionHistory,
-                                 deconstruct_nfs=False,
-                                 **kwargs):
+    def execute_ingestion_order(self,
+                                collection: dict,
+                                collection_config_template: str,
+                                history_manager: DatasetIngestionHistory,
+                                deconstruct_nfs=False,
+                                **kwargs):
         """ Create the configuration and launch the ingestion
             for the given collection row
         """

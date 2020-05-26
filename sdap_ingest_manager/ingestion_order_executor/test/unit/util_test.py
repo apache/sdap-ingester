@@ -2,9 +2,9 @@ import logging
 import os
 import unittest
 
-from sdap_ingest_manager.collections_ingester import LocalConfiguration
-from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
-from sdap_ingest_manager.collections_ingester.util import ConfigWithPath
+from sdap_ingest_manager.ingestion_order_executor import LocalConfiguration
+from sdap_ingest_manager.config import LocalConfiguration
+from sdap_ingest_manager.util.util import ConfigWithPath
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

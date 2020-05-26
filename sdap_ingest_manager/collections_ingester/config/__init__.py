@@ -1,1 +1,0 @@
-from sdap_ingest_manager.collections_ingester.config.LocalConfiguration import LocalConfiguration

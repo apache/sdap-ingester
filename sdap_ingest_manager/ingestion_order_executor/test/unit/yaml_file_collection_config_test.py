@@ -1,7 +1,7 @@
 import unittest
 import pathlib
 import os
-from sdap_ingest_manager.collections_ingester import read_yaml_collection_config
+from sdap_ingest_manager.ingestion_order_executor import read_yaml_collection_config
 
 
 def collection_callback_counter(row, n_collection):
