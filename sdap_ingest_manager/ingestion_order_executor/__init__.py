@@ -1,4 +1,3 @@
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .IngestionOrderExecutor import IngestionOrderExecutor, collection_row_callback
-
+from sdap_ingest_manager.ingestion_order_executor.IngestionOrderExecutor import IngestionOrderExecutor
+from sdap_ingest_manager.ingestion_order_executor.IngestionOrderExecutor import collection_row_callback

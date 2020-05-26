@@ -1,14 +1,12 @@
 import argparse
 import logging
 import os
-import sys
-from typing import List
 
 from flask import Flask
 from flask_restplus import Api, Resource
 
-from sdap_ingest_manager.ingestion_order_executor import IngestionOrderExecutor
 from sdap_ingest_manager.history_manager import DatasetIngestionHistoryFile, DatasetIngestionHistorySolr
+from sdap_ingest_manager.ingestion_order_executor import IngestionOrderExecutor
 from sdap_ingest_manager.ingestion_order_store import GitIngestionOrderStore, FileIngestionOrderStore
 from sdap_ingest_manager.ingestion_order_store.templates import Templates
 
@@ -122,7 +120,7 @@ def main():
                                              order_template=templates.order_template)
 
     message_schema = os.path.join(os.path.dirname(__file__),
-                                  '../ingestion_order_executor/resources/dataset_config_template.yml')
+                                  'resources/dataset_config_template.yml')
     ingestion_launcher = IngestionOrderExecutor()
     for ingestion_order in list(order_store.orders().values()):
         if options.history_path:

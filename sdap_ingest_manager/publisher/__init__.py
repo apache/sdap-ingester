@@ -1,1 +1,1 @@
-from sdap_ingest_manager.publisher import MessagePublisher
+from sdap_ingest_manager.publisher.MessagePublisher import MessagePublisher
