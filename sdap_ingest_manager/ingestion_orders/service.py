@@ -41,14 +41,30 @@ class OrdersClass(Resource):
 
 
 
-@name_space.route("/synchronize")
+@name_space.route("/pull")
 class MainClass(Resource):
     @app.doc(description="Pull configuration from the reference repository",
              responses={200: 'OK', 400: 'Bad request', 500: 'Internal error'},
              params={}
              )
     def get(self):
-        global orders
+
+        orders.pull()
+
+        return {
+            "message": "ingestion orders succesfully synchonized",
+            "git_url" : orders.get_git_url(),
+            "git_branch": orders.get_git_branch(),
+            "orders": orders.dump()
+        }
+
+@name_space.route("/push")
+class MainClass(Resource):
+    @app.doc(description="Push configuration from the reference repository",
+             responses={200: 'OK', 400: 'Bad request', 500: 'Internal error'},
+             params={}
+             )
+    def get(self):
 
         orders.pull()
 
