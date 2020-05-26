@@ -6,7 +6,7 @@ DATASET_ID = "zobi_la_mouche"
 
 
 class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
-    @unittest.skip("does not work without a solr server for test")
+    @unittest.skip("does not work without a solr server for history_manager")
     def test_get(self):
         ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
 
@@ -18,7 +18,7 @@ class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
         self.assertEqual(result.docs[0]['granule_s'], "blue")
         self.assertEqual(result.docs[0]['granule_md5sum_s'], "12weeukrhbwerqu7wier")
 
-    @unittest.skip("does not work without a solr server for test")
+    @unittest.skip("does not work without a solr server for history_manager")
     def test_get_md5sum(self):
         ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
 
@@ -28,7 +28,7 @@ class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
 
         self.assertEqual(result, "12weeukrhbwerqu7wier")
 
-    @unittest.skip("does not work without a solr server for test")
+    @unittest.skip("does not work without a solr server for history_manager")
     def test_get_missing_md5sum(self):
         ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
 

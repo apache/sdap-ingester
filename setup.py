@@ -60,9 +60,9 @@ setuptools.setup(
                   'sdap_ingest_manager/granule_ingester/resources/connection-config.yml',
                   'sdap_ingest_manager/granule_ingester/resources/job-deployment-template.yml']
                  ),
-                ('.sdap_ingest_manager/resources/test/data/avhrr_oi/',
-                 ['sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi/20151101120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc',
-                  'sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi/20151102120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc'])
+                ('.sdap_ingest_manager/resources/history_manager/data/avhrr_oi/',
+                 ['sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi/20151101120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc',
+                  'sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi/20151102120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc'])
             ],
     install_requires=[
         "google-api-python-client>=1.7",

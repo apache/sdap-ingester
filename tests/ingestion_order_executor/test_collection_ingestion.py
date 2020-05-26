@@ -33,7 +33,7 @@ class TestUnitMgr(unittest.TestCase):
                                                                 "../data/dataset_config_file_ok.yml")
 
     def test_create_granule_list(self):
-        logger.info("test create_granule_list")
+        logger.info("history_manager create_granule_list")
         dataset_ingestion_history_manager = sdap_ingest_manager.history_manager \
             .DatasetIngestionHistoryFile(self.history_path, self.dataset_id, md5sum_from_filepath)
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
@@ -50,7 +50,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_granule_list_time_range(self):
-        logger.info("test create_granule_list with time range")
+        logger.info("history_manager create_granule_list with time range")
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    None,
                                                    self.target_granule_list_file,
@@ -66,7 +66,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_granule_list_time_range_from_only(self):
-        logger.info("test create_granule_list with time range")
+        logger.info("history_manager create_granule_list with time range")
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    None,
                                                    self.target_granule_list_file,
@@ -81,7 +81,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_granule_list_time_range_to_only(self):
-        logger.info("test create_granule_list with time range")
+        logger.info("history_manager create_granule_list with time range")
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    None,
                                                    self.target_granule_list_file,
@@ -96,7 +96,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_granule_list_time_forward_processing(self):
-        logger.info("test create_granule_list with time range")
+        logger.info("history_manager create_granule_list with time range")
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    None,
                                                    self.target_granule_list_file,
@@ -111,7 +111,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_granule_list_no_history(self):
-        logger.info("test create_granule_list")
+        logger.info("history_manager create_granule_list")
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    None,
                                                    self.target_granule_list_file
@@ -126,7 +126,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_granule_list_file)
 
     def test_create_dataset_config(self):
-        logger.info("test create_dataset_config")
+        logger.info("history_manager create_dataset_config")
         IngestionOrderExecutor()._fill_template("avhrr-oi-analysed-sst",
                                                   "analysed_sst",
                                                 self.collection_config_template,
@@ -138,7 +138,7 @@ class TestUnitMgr(unittest.TestCase):
         os.remove(self.target_dataset_config_file)
 
     def tearDown(self):
-        logger.info("tear down test results")
+        logger.info("tear down history_manager results")
 
 
 if __name__ == '__main__':

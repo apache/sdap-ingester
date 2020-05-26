@@ -16,7 +16,7 @@ full_path = ingestion_order_executor.full_path
 
 
 class TestValidationMgr(unittest.TestCase):
-    _config = LocalConfiguration('../../../resources/config').get()
+    _config = LocalConfiguration('../../sdap_ingest_manager/resources/config').get()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
@@ -56,7 +56,7 @@ class TestValidationMgr(unittest.TestCase):
 
     @unittest.skip("does not work in github action environment")
     def test_validation_no_parse_nfs(self):
-        logger.info("validation test without nfs parsing")
+        logger.info("validation history_manager without nfs parsing")
 
         history_manager_builder = create_history_manager(self._config)
 
@@ -79,7 +79,7 @@ class TestValidationMgr(unittest.TestCase):
 
     @unittest.skip("does not work in github action environment")
     def test_validation_parse_nfs(self):
-        logger.info("validation test with nfs parsing")
+        logger.info("validation history_manager with nfs parsing")
 
         history_manager_builder = create_history_manager(self._config)
 
@@ -117,7 +117,7 @@ class TestValidationMgr(unittest.TestCase):
         self.result_validation()
 
     def result_validation(self):
-        # test the granule list file
+        # history_manager the granule list file
         line_number = 0
         with open(self.granule_list_file_result, 'r') as f:
             for _ in f:
@@ -125,7 +125,7 @@ class TestValidationMgr(unittest.TestCase):
 
         self.assertEqual(2, line_number)
 
-        # test the configuration file
+        # history_manager the configuration file
         error_message = f'the dataset configuration file created does not match the expected results\n' \
                         'to compare run ' \
                         f'diff {self.expected_dataset_configuration_file} {self.dataset_config_file_result} '
@@ -133,7 +133,7 @@ class TestValidationMgr(unittest.TestCase):
                         error_message)
 
     def tearDown(self):
-        logger.info("tear down test results")
+        logger.info("tear down history_manager results")
         # os.remove(self.granule_list_file_result)
         # os.remove(self.dataset_config_file_result)
 

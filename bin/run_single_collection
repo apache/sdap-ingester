@@ -17,8 +17,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Ingest one collection of data granules'
                     'Examples '
-                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23'
-                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/test/data/avhrr_oi -v analysed_sst  --forward-processing',
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi -v analysed_sst  --from 2020-03-22 --to 2020-04-23'
+                    ' % run_single_collection -d avhrr-oi-analysed-sst -p sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi -v analysed_sst  --forward-processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-d', '--id',
