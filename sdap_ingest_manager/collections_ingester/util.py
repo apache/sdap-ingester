@@ -1,8 +1,9 @@
 import configparser
+import logging
 import os
 import sys
-import logging
-from sdap_ingest_manager.history_manager import DatasetIngestionHistoryBuilder
+
+from sdap_ingest_manager.history_manager import DatasetIngestionHistoryFile, DatasetIngestionHistorySolr
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,7 +25,6 @@ def get_conf_section_option_dict(config, section):
 
 
 class ConfigWithPath(configparser.ConfigParser):
-
     PATH_OPTIONS_SUFFIX = {'_dir', '_file'}
 
     def read(self, filenames):
@@ -33,46 +33,24 @@ class ConfigWithPath(configparser.ConfigParser):
         """
         super().read(filenames)
         absolute_dir = os.path.join(os.getcwd(),
-                                     os.path.dirname(filenames[0]))
+                                    os.path.dirname(filenames[0]))
         for section in self.sections():
             for option in self.options(section):
                 if option.endswith("_file") or option.endswith("_dir"):
-                    new_option_value =  os.path.join(absolute_dir, self.get(section, option).strip())
+                    new_option_value = os.path.join(absolute_dir, self.get(section, option).strip())
                     self.set(section, option, new_option_value)
 
 
-class LocalConfiguration:
-    def __init__(self, config_path="/opt/sdap_ingester_config"):
-        self._config_path = config_path
-        self._config = self._read_local_configuration()
-
-    def get(self):
-        return self._config
-
-    def save(self):
-        logger.info("save configuration")
-        local_config_file_path = os.path.join(self._config_path, 'sdap_ingest_manager.ini')
-        with open(local_config_file_path, 'w') as f:
-            self._config.write(f)
-        logger.info(f"successfully saved configuration to {self._config_path}")
-
-    def _read_local_configuration(self):
-        logger.info("====config====")
-        config = configparser.ConfigParser()
-        config.add_section("COLLECTIONS_YAML_CONFIG")
-        config.set("COLLECTIONS_YAML_CONFIG", "config_path", self._config_path)
-        candidates = [full_path('sdap_ingest_manager.ini.default'),
-                      os.path.join(self._config_path, 'sdap_ingest_manager.ini')]
-        logger.info(f"get configuration from files {candidates}")
-        found_files = config.read(candidates)
-        logger.info(f"successfully read configuration from {found_files}")
-        return config
-
-def create_history_manager_builder(_config):
-    if _config.has_section("HISTORY"):
-        history_options_dict = get_conf_section_option_dict(_config, "HISTORY")
-        if "history_path" in history_options_dict.keys():
-            history_options_dict["history_path"] = full_path(history_options_dict["history_path"])
-        return DatasetIngestionHistoryBuilder(**history_options_dict)
+def create_history_manager(config, dataset_id):
+    if config.has_section("HISTORY"):
+        history_options_dict = get_conf_section_option_dict(config, "HISTORY")
+        if 'history_path' in history_options_dict and 'solr_url' in history_options_dict:
+            logger.error(
+                "Either 'history_path' or 'solr_url' option should be supplied in HISTORY config, but not both.")
+            return None
+        if 'history_Path' in history_options_dict:
+            return DatasetIngestionHistoryFile(full_path(history_options_dict["history_path"]), dataset_id)
+        if 'solr_url' in history_options_dict:
+            return DatasetIngestionHistorySolr(history_options_dict['solr_url'], dataset_id)
     else:
         return None

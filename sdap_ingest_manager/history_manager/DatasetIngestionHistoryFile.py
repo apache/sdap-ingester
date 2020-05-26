@@ -1,23 +1,16 @@
+import logging
 import os
 from pathlib import Path
-import logging
-from sdap_ingest_manager.history_manager import md5sum_from_filepath
 
+from sdap_ingest_manager.history_manager import DatasetIngestionHistory, md5sum_from_filepath
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class DatasetIngestionHistoryFile:
-    _signature_fun =  md5sum_from_filepath
-    _dataset_id = None
-    _history_file_path = None
-    _history_file = None
-    _history_dict = {}
-    _latest_ingested_file_update_file_path = None
-    _latest_ingested_file_update = None
+class DatasetIngestionHistoryFile(DatasetIngestionHistory):
 
-    def __init__(self, history_path, dataset_id, signature_fun):
+    def __init__(self, history_path: str, dataset_id: str, signature_fun=None):
         """
         Constructor
         :param history_path:
@@ -26,9 +19,10 @@ class DatasetIngestionHistoryFile:
         """
         self._dataset_id = dataset_id
         self._history_file_path = os.path.join(history_path, f'{dataset_id}.csv')
-        self._signature_fun = signature_fun
+        self._signature_fun = md5sum_from_filepath if signature_fun is None else signature_fun
         self._history_dict = {}
         self._load_history_dict()
+
         Path(history_path).mkdir(parents=True, exist_ok=True)
         self._history_file = open(f"{self._history_file_path}", 'a', buffering=1)
 
@@ -37,8 +31,6 @@ class DatasetIngestionHistoryFile:
             logger.info(f"read latest ingested file update date from {self._latest_ingested_file_update_file_path}")
             with open(self._latest_ingested_file_update_file_path, 'r') as f_ts:
                 self._latest_ingested_file_update = float(f_ts.readline())
-        else:
-            self._latest_ingested_file_update = None
 
     def _load_history_dict(self):
         logger.info(f"loading history file {self._history_file_path}")
@@ -56,28 +48,6 @@ class DatasetIngestionHistoryFile:
         self._purge()
         self._save_latest_timestamp()
         del self._history_dict
-
-    def push(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        md5sum = self._signature_fun(file_path)
-        self._push_record(file_name, md5sum)
-
-        if self._latest_ingested_file_update:
-            self._latest_ingested_file_update = max(self._latest_ingested_file_update,
-                                                    os.path.getmtime(file_path))
-        else:
-            self._latest_ingested_file_update = os.path.getmtime(file_path)
-
-    def has_valid_cache(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        md5sum = self._signature_fun(file_path)
-        logger.debug(f"compare {md5sum} with {self._get_signature(file_name)}")
-        return md5sum == self._get_signature(file_name)
-
-    def get_latest_ingested_file_update(self):
-        return self._latest_ingested_file_update
 
     def reset_cache(self):
         try:
@@ -110,13 +80,10 @@ class DatasetIngestionHistoryFile:
         except FileNotFoundError:
             logger.info(f"no history file {self._history_file_path} to purge")
 
-    def _push_record(self, file_name, md5sum):
-        self._history_dict[file_name] = md5sum
-        self._history_file.write(f'{file_name},{md5sum}\n')
+    def _push_record(self, file_name, signature):
+        self._history_dict[file_name] = signature
+        self._history_file.write(f'{file_name},{signature}\n')
         return None
 
     def _get_signature(self, file_name):
-        if file_name in self._history_dict.keys():
-            return self._history_dict[file_name]
-        else:
-            return None
+        return self._history_dict.get(file_name, None)

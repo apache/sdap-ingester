@@ -1,14 +1,13 @@
-import unittest
-
-import sdap_ingest_manager.collections_ingester.util
-from sdap_ingest_manager import collections_ingester
-import logging
 import filecmp
+import logging
 import os
 import sys
+import unittest
 from pathlib import Path
-from sdap_ingest_manager.collections_ingester import create_history_manager_builder
 
+from sdap_ingest_manager import collections_ingester
+from sdap_ingest_manager.collections_ingester import create_history_manager
+from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ full_path = collections_ingester.full_path
 
 
 class TestValidationMgr(unittest.TestCase):
-    _config = collections_ingester.LocalConfiguration().get()
+    _config = LocalConfiguration('../../resources/config').get()
 
     def setUp(self):
         logger.info("\n===== VALIDATION TESTS =====")
@@ -33,7 +32,7 @@ class TestValidationMgr(unittest.TestCase):
     def test_validation_with_local_collection_configuration(self):
         logger.info("validation with local validation configuration file")
 
-        history_manager_builder = create_history_manager_builder(self._config)
+        history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback(row):
             collections_ingester \
@@ -51,14 +50,15 @@ class TestValidationMgr(unittest.TestCase):
                                          dry_run=True
                                          )
 
-        collections_ingester.read_yaml_collection_config(full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
-                                                        collection_row_callback)
+        collections_ingester.read_yaml_collection_config(
+            full_path(self._config.get('COLLECTIONS_YAML_CONFIG', 'yaml_file')),
+            collection_row_callback)
 
     @unittest.skip("does not work in github action environment")
     def test_validation_no_parse_nfs(self):
         logger.info("validation test without nfs parsing")
 
-        history_manager_builder = create_history_manager_builder(self._config)
+        history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback_no_parse_nfs(row):
             collections_ingester \
@@ -70,8 +70,7 @@ class TestValidationMgr(unittest.TestCase):
                                          deconstruct_nfs=False,
                                          job_deployment_template=self.job_deployment_file_path,
                                          connection_settings=self.connection_settings_file_path,
-                                         profiles=self._config.get("INGEST", "connection_profile").split(
-                                             ','),
+                                         profiles=self._config.get("INGEST", "connection_profile").split(','),
                                          namespace=self._config.get("INGEST", "kubernetes_namespace"),
                                          dry_run=True
                                          )
@@ -82,7 +81,7 @@ class TestValidationMgr(unittest.TestCase):
     def test_validation_parse_nfs(self):
         logger.info("validation test with nfs parsing")
 
-        history_manager_builder = create_history_manager_builder(self._config)
+        history_manager_builder = create_history_manager(self._config)
 
         def collection_row_callback_parse_nfs(row):
             collections_ingester \
@@ -135,8 +134,8 @@ class TestValidationMgr(unittest.TestCase):
 
     def tearDown(self):
         logger.info("tear down test results")
-        os.remove(self.granule_list_file_result)
-        os.remove(self.dataset_config_file_result)
+        # os.remove(self.granule_list_file_result)
+        # os.remove(self.dataset_config_file_result)
 
 
 if __name__ == '__main__':

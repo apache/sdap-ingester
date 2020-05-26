@@ -1,13 +1,13 @@
 #!/usr/bin/env python
+import argparse
+import logging
 import os
 import sys
-import logging
-import argparse
 
-import sdap_ingest_manager.collections_ingester.util
-from sdap_ingest_manager.collections_ingester.util import full_path
 from sdap_ingest_manager import collections_ingester
-from sdap_ingest_manager.collections_ingester import create_history_manager_builder
+from sdap_ingest_manager.collections_ingester import create_history_manager
+from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
+from sdap_ingest_manager.collections_ingester.util import full_path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,29 +41,29 @@ def main():
                         required=True,
                         metavar='analyzed_sst')
 
-    #subset_group_mutex = parser.add_mutually_exclusive_group(required=False)
-    #update_time_group = subset_group_mutex.add_argument_group()
-    #forward_processing_group = subset_group_mutex.add_argument_group()
+    # subset_group_mutex = parser.add_mutually_exclusive_group(required=False)
+    # update_time_group = subset_group_mutex.add_argument_group()
+    # forward_processing_group = subset_group_mutex.add_argument_group()
     parser.add_argument('-f', '--from',
-                                   help='The earliest modification time of a granule file'
-                                        ' which will be ingested. Uses file system time.'
-                                        ' format is ISO8601, date only, for example "2020-02-24"',
-                                   required=False,
-                                   metavar="2020-02-24")
+                        help='The earliest modification time of a granule file'
+                             ' which will be ingested. Uses file system time.'
+                             ' format is ISO8601, date only, for example "2020-02-24"',
+                        required=False,
+                        metavar="2020-02-24")
 
     parser.add_argument('-t', '--to',
-                                   help='The latest modification time of a granule file'
-                                        ' which will be ingested. Uses file system time.'
-                                        ' format is ISO8601, date only, for example "2020-02-24"',
-                                   required=False,
-                                   metavar="2020-03-24")
+                        help='The latest modification time of a granule file'
+                             ' which will be ingested. Uses file system time.'
+                             ' format is ISO8601, date only, for example "2020-02-24"',
+                        required=False,
+                        metavar="2020-03-24")
 
     parser.add_argument("-fp", "--forward-processing",
-                                          help="when configured, will only consider granules updated after the"
-                                               " update time of the latest ingested granule (the older are ignored)."
-                                               " When set, --from and --to options are ignored",
-                                          action='store_true',
-                                          default=False)
+                        help="when configured, will only consider granules updated after the"
+                             " update time of the latest ingested granule (the older are ignored)."
+                             " When set, --from and --to options are ignored",
+                        action='store_true',
+                        default=False)
 
     parser.add_argument("-c", "--config",
                         help="configuration directory which contains the sdap_ingest_manager.ini file"
@@ -75,8 +75,8 @@ def main():
     collection['path'] = os.path.join(os.getcwd(),
                                       collection['path'])
 
-    config = collections_ingester.LocalConfiguration(config_path=the_args.config).get()
-    history_manager_builder = create_history_manager_builder(config)
+    config = LocalConfiguration(config_path=the_args.config).get()
+    history_manager_builder = create_history_manager(config)
 
     collections_ingester.collection_row_callback(collection,
                                                  full_path(config.get("OPTIONS", "collection_config_template")),

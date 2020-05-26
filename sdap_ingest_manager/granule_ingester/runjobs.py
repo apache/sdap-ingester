@@ -4,20 +4,21 @@ import argparse
 import datetime
 import fileinput
 import glob
+import hashlib
 import json
 import logging
 import os
 import shutil
-import hashlib
+import signal
 import subprocess
 import sys
 import time
-import signal
 from enum import Enum
-from pathlib import Path
 from json import JSONDecodeError
+from pathlib import Path
+
 from sdap_ingest_manager import collections_ingester
-from sdap_ingest_manager import history_manager
+from sdap_ingest_manager.collections_ingester.config import LocalConfiguration
 
 KUBECTL_COMMAND_TIMEOUT = None
 
@@ -331,7 +332,7 @@ def create_and_run_jobs(filepath_pattern=None,
     i = 0
 
     while i < total_jobs:
-        config = collections_ingester.LocalConfiguration().get()
+        config = LocalConfiguration().get()
         max_concurrent_jobs = config.getint("OPTIONS", "parallel_pods")
         logger.info(f"number of parallel jobs is {max_concurrent_jobs}")
 

@@ -1,13 +1,19 @@
-import os
-import sys
-from flask import Flask
-from flask_restplus import Api, Resource, fields
 import argparse
 import logging
-from sdap_ingest_manager.ingestion_orders.ingestion_orders import IngestionOrders
+import os
+import sys
+from typing import List
+
+from flask import Flask
+from flask_restplus import Api, Resource
+
+from sdap_ingest_manager.collections_ingester import IngestionLauncher
+from sdap_ingest_manager.history_manager import DatasetIngestionHistoryFile, DatasetIngestionHistorySolr
+from sdap_ingest_manager.ingestion_orders import GitIngestionOrderStore, FileIngestionOrderStore
 from sdap_ingest_manager.ingestion_orders.templates import Templates
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("pika").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 flask_app = Flask(__name__)
@@ -40,7 +46,6 @@ class OrdersClass(Resource):
         }
 
 
-
 @name_space.route("/synchronize")
 class MainClass(Resource):
     @app.doc(description="Pull configuration from the reference repository",
@@ -48,15 +53,15 @@ class MainClass(Resource):
              params={}
              )
     def get(self):
-        global orders
+        global order_store
 
-        orders.pull()
+        order_store.load()
 
         return {
             "message": "ingestion orders succesfully synchonized",
-            "git_url" : orders.get_git_url(),
-            "git_branch": orders.get_git_branch(),
-            "orders": orders.dump()
+            "git_url": order_store.get_git_url(),
+            "git_branch": order_store.get_git_branch(),
+            "orders": order_store.orders()
         }
 
 
@@ -92,25 +97,41 @@ class OrderClass(Resource):
 
 
 def main():
-    global orders
+    global order_store
 
     parser = argparse.ArgumentParser(description="Run ingestion for a list of collection ingestion streams")
-
-    default_configuration = os.path.join(sys.prefix, '.sdap_ingest_manager')
-    parser.add_argument("-gu", "--git-url", help="git repository from which the ingestion order list is pulled/saved",
-                        default="https://github.com/tloubrieu-jpl/sdap-ingester-config")
+    parser.add_argument("-gu", "--git-url",
+                        help="git repository from which the ingestion order list is pulled/saved")
     parser.add_argument("-gb", "--git-branch", help="git branch from which the ingestion order list is pulled/saved",
                         default="master")
-    parser.add_argument("-gt", "--git-token", help="git personnal access token used to access the repository",
-                        default="master")
+    parser.add_argument("-gt", "--git-token", help="git personal access token used to access the repository")
+    parser.add_argument("--local-ingestion-orders", help="path to local ingestion orders file", required=True)
+    history_group = parser.add_mutually_exclusive_group(required=True)
+    history_group.add_argument("--history-path", help="path to ingestion history local directory")
+    history_group.add_argument("--history-url", help="url to ingestion history solr database")
+
     options = parser.parse_args()
 
-    logger.info("")
+    if options.local_ingestion_orders:
+        order_store = FileIngestionOrderStore(path=options.local_ingestion_orders,
+                                              order_template=templates.order_template)
+    else:
+        order_store = GitIngestionOrderStore(options.git_url,
+                                             git_branch=options.git_branch,
+                                             git_token=options.git_token,
+                                             order_template=templates.order_template)
 
-    orders = IngestionOrders(options.git_url,
-                             git_branch=options.git_branch,
-                             git_token=options.git_token,
-                             order_template=templates.order_template)
+    message_schema = os.path.join(os.path.dirname(__file__),
+                                  '../collections_ingester/resources/dataset_config_template.yml')
+    ingestion_launcher = IngestionLauncher()
+    for ingestion_order in list(order_store.orders().values()):
+        if options.history_path:
+            history_manager = DatasetIngestionHistoryFile(options.history_path, ingestion_order['id'])
+        else:
+            history_manager = DatasetIngestionHistorySolr(options.history_url, ingestion_order['id'])
+        ingestion_launcher.dispatch_ingestion_order(collection=ingestion_order,
+                                                    collection_config_template=message_schema,
+                                                    history_manager=history_manager)
 
     flask_app.run()
 

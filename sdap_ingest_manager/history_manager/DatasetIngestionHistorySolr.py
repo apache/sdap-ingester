@@ -1,10 +1,10 @@
-import os
+import hashlib
+import logging
+
 import pysolr
 import requests
-import logging
-import hashlib
 
-
+from sdap_ingest_manager.history_manager import DatasetIngestionHistory, md5sum_from_filepath
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -14,25 +14,19 @@ def doc_key(dataset_id, file_name):
     return hashlib.sha1(f'{dataset_id}{file_name}'.encode('utf-8')).hexdigest()
 
 
-class DatasetIngestionHistorySolr:
-    _solr_granules = None
-    _solr_datasets = None
+class DatasetIngestionHistorySolr(DatasetIngestionHistory):
     _granule_collection_name = "nexusgranules"
     _dataset_collection_name = "nexusdatasets"
-    _solr_url = None
     _req_session = None
-    _dataset_id = None
-    _signature_fun = None
-    _latest_ingested_file_update = None
 
-    def __init__(self, solr_url, dataset_id, signature_fun):
+    def __init__(self, solr_url, dataset_id, signature_fun=None):
         try:
             self._solr_url = solr_url
             self._create_collection_if_needed()
             self._solr_granules = pysolr.Solr('/'.join([solr_url.strip('/'), self._granule_collection_name]))
             self._solr_datasets = pysolr.Solr('/'.join([solr_url.strip('/'), self._dataset_collection_name]))
             self._dataset_id = dataset_id
-            self._signature_fun = signature_fun
+            self._signature_fun = md5sum_from_filepath if signature_fun is None else signature_fun
             self._latest_ingested_file_update = self._get_latest_file_update()
         except requests.exceptions.RequestException:
             raise DatasetIngestionHistorySolrException(f"solr instance unreachable {solr_url}")
@@ -40,28 +34,6 @@ class DatasetIngestionHistorySolr:
     def __del__(self):
         self._push_latest_ingested_date()
         self._req_session.close()
-
-    def push(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        signature = self._signature_fun(file_path)
-        self._push_record(file_name, signature)
-
-        if self._latest_ingested_file_update:
-            self._latest_ingested_file_update = max(self._latest_ingested_file_update,
-                                                    os.path.getmtime(file_path))
-        else:
-            self._latest_ingested_file_update = os.path.getmtime(file_path)
-
-    def has_valid_cache(self, file_path):
-        file_path = file_path.strip()
-        file_name = os.path.basename(file_path)
-        signature = self._signature_fun(file_path)
-        logger.debug(f"compare {signature} with {self._get_signature(file_name)}")
-        return signature == self._get_signature(file_name)
-
-    def get_latest_ingested_file_update(self):
-        return self._latest_ingested_file_update
 
     def _push_record(self, file_name, signature):
         hash_id = doc_key(self._dataset_id, file_name)
@@ -104,7 +76,8 @@ class DatasetIngestionHistorySolr:
                 self._req_session = requests.session()
 
             payload = {'action': 'CLUSTERSTATUS'}
-            result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']), params=payload)
+            result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']),
+                                           params=payload)
             response = result.json()
             node_number = len(response['cluster']['live_nodes'])
 
@@ -116,7 +89,8 @@ class DatasetIngestionHistorySolr:
                            'name': self._granule_collection_name,
                            'numShards': node_number
                            }
-                result = self._req_session.get('/'.join([self._solr_url.strip("/"), 'admin', 'collections']), params=payload)
+                result = self._req_session.get('/'.join([self._solr_url.strip("/"), 'admin', 'collections']),
+                                               params=payload)
                 response = result.json()
                 logger.info(f"solr collection created {response}")
                 # Update schema
@@ -136,7 +110,8 @@ class DatasetIngestionHistorySolr:
                            'name': self._dataset_collection_name,
                            'numShards': node_number
                            }
-                result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']), params=payload)
+                result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']),
+                                               params=payload)
                 response = result.json()
                 logger.info(f"solr collection created {response}")
                 # Update schema

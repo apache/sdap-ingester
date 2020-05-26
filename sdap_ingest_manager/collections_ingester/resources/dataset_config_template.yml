@@ -1,45 +1,20 @@
-# Tile Slicer Config
-ningester:
-    tile_slicer: sliceFileByTilesDesired
-    sliceFileByTilesDesired:
-      tilesDesired: 1296
-      timeDimension: time
-      dimensions:
-        - lat
-        - lon
+granule:
+  resource: {{granule}}
+slicer:
+  name: sliceFileByStepSize
+  dimension_step_sizes:
+    time: 1
+    lat: 30
+    lon: 30
+processors:
+  - name: GridReadingProcessor
+    latitude: lat
+    longitude: lon
+    time: time
+    variable_to_read: {{variable}}
+  - name: emptyTileFilter
+  - name: kelvinToCelsius
+  - name: tileSummary
+    dataset_name: {{dataset_id}}
+  - name: generateTileId
 
----
-# Tile processors configuration
-ningester:
-  tile_processors:
-    - pythonChainProcessor
-    - generateTileId
-    - addDatasetName
-  pythonChainProcessor:
-    enabled:
-    processor_list:
-      -
-        name: GridReadingProcessor
-        config:
-          latitude: lat
-          longitude: lon
-          time: time
-          variable_to_read: {{variable}}
-      -
-        name: EmptyTileFilter
-      -
-        name: TileSummarizingProcessor
-        config:
-          stored_var_name: {{variable}}
-  generateTileId:
-    enabled:
-    salt: {{variable}}
-  addDatasetName:
-    enabled:
-    datasetName: {{dataset_id}}
----
-# Tile writer configuration
-ningester:
-  tile_writer:
-    data_store: cassandraStore
-    metadata_store: solrStore
