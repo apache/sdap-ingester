@@ -6,4 +6,5 @@ class FileIngestionOrderStore(IngestionOrderStore):
         self._file_name = path
         super().__init__(order_template)
 
+    def load(self):
         self._read_from_file()

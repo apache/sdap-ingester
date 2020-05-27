@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from git import Repo, Remote
+from git import Repo
 
 from sdap_ingest_manager.ingestion_order_store.IngestionOrderStore import IngestionOrderStore
 
@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class GitIngestionOrderStore(IngestionOrderStore):
-    _ingestion_orders = {}
 
     def __init__(self, git_url,
                  git_branch='master',
@@ -29,13 +28,12 @@ class GitIngestionOrderStore(IngestionOrderStore):
         self._git_branch = git_branch
         self._git_token = git_token
         self._local_dir = os.path.join(sys.prefix, 'sdap', 'conf')
-        self._file_name = os.path.join(self._local_dir, 'ingestion_orders.yml')
+        self._file_name = os.path.join(self._local_dir, 'ingestion_order_store.yml')
         self._repo = None
 
         super().__init__(order_template)
 
         self._init_local_config_repo()
-        self._read_from_file()
 
     def get_git_url(self):
         return self._repo.remotes.origin.url
@@ -44,8 +42,7 @@ class GitIngestionOrderStore(IngestionOrderStore):
         return self._repo.active_branch.name
 
     def load(self):
-        o = self._repo.remotes.origin
-        o.pull()
+        self._repo.remotes.origin.pull()
         self._read_from_file()
 
     def _init_local_config_repo(self):

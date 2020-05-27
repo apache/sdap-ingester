@@ -18,6 +18,13 @@ def md5sum_from_filepath(file_path):
     return hasher.hexdigest()
 
 
+class IngestionHistoryBuilder(ABC):
+
+    @abstractmethod
+    def build(self, dataset_id: str):
+        pass
+
+
 class IngestionHistory(ABC):
     _signature_fun = None
     _latest_ingested_file_update = None

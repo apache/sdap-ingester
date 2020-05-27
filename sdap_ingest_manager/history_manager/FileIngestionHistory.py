@@ -2,10 +2,22 @@ import logging
 import os
 from pathlib import Path
 
-from sdap_ingest_manager.history_manager import IngestionHistory, md5sum_from_filepath
+from sdap_ingest_manager.history_manager.IngestionHistory import IngestionHistory, IngestionHistoryBuilder, \
+    md5sum_from_filepath
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+class FileIngestionHistoryBuilder(IngestionHistoryBuilder):
+    def __init__(self, history_path: str, signature_fun=None):
+        self._history_path = history_path
+        self._signature_fun = signature_fun
+
+    def build(self, dataset_id: str):
+        return FileIngestionHistory(history_path=self._history_path,
+                                    dataset_id=dataset_id,
+                                    signature_fun=self._signature_fun)
 
 
 class FileIngestionHistory(IngestionHistory):

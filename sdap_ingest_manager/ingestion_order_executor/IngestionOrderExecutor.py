@@ -8,6 +8,10 @@ from datetime import datetime
 from typing import Dict
 
 import pystache
+from typing import Dict, List
+
+import pystache
+import yaml
 
 from sdap_ingest_manager.history_manager import IngestionHistory
 from sdap_ingest_manager.publisher import MessagePublisher
@@ -21,11 +25,8 @@ DEFAULT_DATA_FILE_EXTENSION = ['nc', 'h5']
 
 class IngestionOrderExecutor:
 
-    def __init__(self):
-
-        # move this out of __init__, pass it in during instantiation
-        self._publisher = MessagePublisher(host='localhost', username='guest', password='guest', queue='nexus')
-        self._publisher.connect()
+    def __init__(self, message_publisher: MessagePublisher):
+        self._publisher = message_publisher
 
     def execute_ingestion_order(self,
                                 collection: dict,

@@ -4,7 +4,7 @@ import logging
 import pysolr
 import requests
 
-from sdap_ingest_manager.history_manager import IngestionHistory, md5sum_from_filepath
+from sdap_ingest_manager.history_manager import IngestionHistory, IngestionHistoryBuilder, md5sum_from_filepath
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -14,12 +14,23 @@ def doc_key(dataset_id, file_name):
     return hashlib.sha1(f'{dataset_id}{file_name}'.encode('utf-8')).hexdigest()
 
 
+class SolrIngestionHistoryBuilder(IngestionHistoryBuilder):
+    def __init__(self, solr_url: str, signature_fun=None):
+        self._solr_url = solr_url
+        self._signature_fun = signature_fun
+
+    def build(self, dataset_id: str):
+        return SolrIngestionHistory(solr_url=self._solr_url,
+                                    dataset_id=dataset_id,
+                                    signature_fun=self._signature_fun)
+
+
 class SolrIngestionHistory(IngestionHistory):
     _granule_collection_name = "nexusgranules"
     _dataset_collection_name = "nexusdatasets"
     _req_session = None
 
-    def __init__(self, solr_url, dataset_id, signature_fun=None):
+    def __init__(self, solr_url: str, dataset_id: str, signature_fun=None):
         try:
             self._solr_url = solr_url
             self._create_collection_if_needed()

@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 
 import yaml
 from flask_restplus import marshal
@@ -6,15 +7,19 @@ from flask_restplus import marshal
 logger = logging.getLogger(__name__)
 
 
-class IngestionOrderStore:
+class IngestionOrderStore(ABC):
     _ingestion_orders = {}
     _file_name = None
 
     def __init__(self, order_template):
         self._order_template = order_template
 
+    @abstractmethod
+    def load(self):
+        pass
+
     def orders(self):
-        return self._ingestion_orders
+        return list(self._ingestion_orders.values())
 
     def _read_from_file(self):
         try:
