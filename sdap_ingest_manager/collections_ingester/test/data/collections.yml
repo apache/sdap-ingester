@@ -1,9 +1,0 @@
-avhrr-oi-analysed-sst:
-  path: resources/test/data/avhrr_oi/*.nc
-  variable: analysed_sst
-  priority: 2
-
-avhrr-oi-analysed-sst2:
-  path: resources/test/data/avhrr_oi/*.nc
-  variable: analysed_sst
-  priority: 1
