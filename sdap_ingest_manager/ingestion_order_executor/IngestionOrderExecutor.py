@@ -1,41 +1,22 @@
 from __future__ import print_function
 
-from sdap_ingest_manager.history_manager import DatasetIngestionHistory
 import glob
 import logging
 import os.path
 import sys
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 import pystache
-import yaml
 
-from sdap_ingest_manager.util import nfs_mount_parse
+from sdap_ingest_manager.history_manager import IngestionHistory
 from sdap_ingest_manager.publisher import MessagePublisher
+from sdap_ingest_manager.util import nfs_mount_parse
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-GROUP_PATTERN = "(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?"
-GROUP_DEFAULT_NAME = "group default name"
-
 DEFAULT_DATA_FILE_EXTENSION = ['nc', 'h5']
-
-
-def collection_row_callback(collection: dict,
-                            collection_config_template,
-                            granule_file_list_root_path: str,
-                            dataset_configuration_root_path: str,
-                            history_manager_builder,
-                            deconstruct_nfs=False,
-                            **pods_run_kwargs
-                            ):
-    return IngestionOrderExecutor().execute_ingestion_order(collection,
-                                                            collection_config_template,
-                                                            history_manager_builder,
-                                                            deconstruct_nfs,
-                                                            **pods_run_kwargs)
 
 
 class IngestionOrderExecutor:
@@ -49,7 +30,7 @@ class IngestionOrderExecutor:
     def execute_ingestion_order(self,
                                 collection: dict,
                                 collection_config_template: str,
-                                history_manager: DatasetIngestionHistory,
+                                history_manager: IngestionHistory,
                                 deconstruct_nfs=False,
                                 **kwargs):
         """ Create the configuration and launch the ingestion
@@ -70,19 +51,6 @@ class IngestionOrderExecutor:
                                                  config_template=config_template_str)
             self._publisher.publish_message(dataset_config)
             history_manager.push(granule)
-
-    @staticmethod
-    def _generate_messages(dataset_config: str, granule_list: List[str]) -> List[str]:
-        messages = []
-        job_config_dict = yaml.load(dataset_config, yaml.FullLoader)
-        for granule_name in granule_list:
-            message = {
-                "granule": {
-                    "resource": granule_name
-                },
-                **job_config_dict}
-            messages.append(yaml.dump(message))
-        return messages
 
     @staticmethod
     def _get_time_range(collection) -> Dict[str, datetime]:
@@ -133,7 +101,7 @@ class IngestionOrderExecutor:
     @classmethod
     def _get_granules(cls,
                       file_path_pattern: str,
-                      history_manager: DatasetIngestionHistory,
+                      history_manager: IngestionHistory,
                       deconstruct_nfs: bool = False,
                       date_from: datetime = None,
                       date_to: datetime = None):

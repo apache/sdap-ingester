@@ -1,5 +1,5 @@
 import unittest
-from sdap_ingest_manager.history_manager import DatasetIngestionHistorySolr
+from sdap_ingest_manager.history_manager import SolrIngestionHistory
 
 SOLR_URL = "http://localhost:8984/solr"
 DATASET_ID = "zobi_la_mouche"
@@ -8,7 +8,7 @@ DATASET_ID = "zobi_la_mouche"
 class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
     @unittest.skip("does not work without a solr server for history_manager")
     def test_get(self):
-        ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
+        ingestion_history = SolrIngestionHistory(SOLR_URL, DATASET_ID)
 
         ingestion_history.push("blue", "12weeukrhbwerqu7wier")
 
@@ -20,7 +20,7 @@ class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
 
     @unittest.skip("does not work without a solr server for history_manager")
     def test_get_md5sum(self):
-        ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
+        ingestion_history = SolrIngestionHistory(SOLR_URL, DATASET_ID)
 
         ingestion_history.push("blue", "12weeukrhbwerqu7wier")
 
@@ -30,7 +30,7 @@ class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
 
     @unittest.skip("does not work without a solr server for history_manager")
     def test_get_missing_md5sum(self):
-        ingestion_history = DatasetIngestionHistorySolr(SOLR_URL, DATASET_ID)
+        ingestion_history = SolrIngestionHistory(SOLR_URL, DATASET_ID)
 
         ingestion_history.push("blue", "12weeukrhbwerqu7wier")
 

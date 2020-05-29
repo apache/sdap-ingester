@@ -5,7 +5,7 @@ import os
 from flask import Flask
 from flask_restplus import Api, Resource
 
-from sdap_ingest_manager.history_manager import DatasetIngestionHistoryFile, DatasetIngestionHistorySolr
+from sdap_ingest_manager.history_manager import FileIngestionHistory, SolrIngestionHistory
 from sdap_ingest_manager.ingestion_order_executor import IngestionOrderExecutor
 from sdap_ingest_manager.ingestion_order_store import GitIngestionOrderStore, FileIngestionOrderStore
 from sdap_ingest_manager.ingestion_order_store.templates import Templates
@@ -44,14 +44,31 @@ class OrdersClass(Resource):
         }
 
 
-@name_space.route("/synchronize")
+
+@name_space.route("/pull")
 class MainClass(Resource):
     @app.doc(description="Pull configuration from the reference repository",
              responses={200: 'OK', 400: 'Bad request', 500: 'Internal error'},
              params={}
              )
     def get(self):
-        global order_store
+
+        order_store.pull()
+
+        return {
+            "message": "ingestion orders succesfully synchonized",
+            "git_url" : order_store.get_git_url(),
+            "git_branch": order_store.get_git_branch(),
+            "orders": order_store.dump()
+        }
+
+@name_space.route("/push")
+class MainClass(Resource):
+    @app.doc(description="Push configuration from the reference repository",
+             responses={200: 'OK', 400: 'Bad request', 500: 'Internal error'},
+             params={}
+             )
+    def get(self):
 
         order_store.load()
 
@@ -124,9 +141,9 @@ def main():
     ingestion_launcher = IngestionOrderExecutor()
     for ingestion_order in list(order_store.orders().values()):
         if options.history_path:
-            history_manager = DatasetIngestionHistoryFile(options.history_path, ingestion_order['id'])
+            history_manager = FileIngestionHistory(options.history_path, ingestion_order['id'])
         else:
-            history_manager = DatasetIngestionHistorySolr(options.history_url, ingestion_order['id'])
+            history_manager = SolrIngestionHistory(options.history_url, ingestion_order['id'])
         ingestion_launcher.execute_ingestion_order(collection=ingestion_order,
                                                    collection_config_template=message_schema,
                                                    history_manager=history_manager)
@@ -136,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

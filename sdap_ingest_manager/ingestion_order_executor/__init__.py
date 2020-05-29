@@ -14,4 +14,3 @@
 # limitations under the License.
 
 from sdap_ingest_manager.ingestion_order_executor.IngestionOrderExecutor import IngestionOrderExecutor
-from sdap_ingest_manager.ingestion_order_executor.IngestionOrderExecutor import collection_row_callback

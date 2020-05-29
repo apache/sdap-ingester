@@ -117,6 +117,19 @@ Note the command pip install -e . does not work as it does not deploy the config
 
 Update the code and the test with your favorite IDE (e.g. pyCharm).
 
+## Launch for development/tests
+
+### Prerequisite
+
+Deploy a local rabbitmq service, for example with docker.
+
+    docker run -d --hostname localhost --name rabbitmq rabbitmq:3
+   
+Launch the service
+
+    python sdap_ingest_manager/service.py  --local-ingestion-orders=tests/resources/data/collections.yml  --history-path=/tmp
+
+
 ### Test and create the package
 
 A package based on the dev branch is automatically published at github release when a push is made. 

@@ -2,8 +2,6 @@ import logging
 import os
 import sys
 
-import yaml
-from flask_restplus import marshal
 from git import Repo, Remote
 
 from sdap_ingest_manager.ingestion_order_store.IngestionOrderStore import IngestionOrderStore
@@ -31,7 +29,7 @@ class GitIngestionOrderStore(IngestionOrderStore):
         self._git_branch = git_branch
         self._git_token = git_token
         self._local_dir = os.path.join(sys.prefix, 'sdap', 'conf')
-        self._file_name = os.path.join(self._local_dir, 'ingestion_order_store.yml')
+        self._file_name = os.path.join(self._local_dir, 'ingestion_orders.yml')
         self._repo = None
 
         super().__init__(order_template)
@@ -46,7 +44,7 @@ class GitIngestionOrderStore(IngestionOrderStore):
         return self._repo.active_branch.name
 
     def load(self):
-        o: Remote = self._repo.remotes.origin
+        o = self._repo.remotes.origin
         o.pull()
         self._read_from_file()
 

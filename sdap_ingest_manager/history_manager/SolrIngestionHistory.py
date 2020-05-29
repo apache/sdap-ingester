@@ -4,7 +4,7 @@ import logging
 import pysolr
 import requests
 
-from sdap_ingest_manager.history_manager import DatasetIngestionHistory, md5sum_from_filepath
+from sdap_ingest_manager.history_manager import IngestionHistory, md5sum_from_filepath
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ def doc_key(dataset_id, file_name):
     return hashlib.sha1(f'{dataset_id}{file_name}'.encode('utf-8')).hexdigest()
 
 
-class DatasetIngestionHistorySolr(DatasetIngestionHistory):
+class SolrIngestionHistory(IngestionHistory):
     _granule_collection_name = "nexusgranules"
     _dataset_collection_name = "nexusdatasets"
     _req_session = None

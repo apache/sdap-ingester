@@ -29,6 +29,8 @@ version = result.group(1)
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open('requirements.txt') as f:
+    pip_requirements = f.readlines()
 
 setuptools.setup(
     name=PACKAGE_NAME,
@@ -50,27 +52,8 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    data_files=[('.sdap_ingest_manager',
-                 ['sdap_ingest_manager/ingestion_order_executor/resources/config/credentials.json.template',
-                  'sdap_ingest_manager/ingestion_order_executor/resources/config/sdap_ingest_manager.ini.default',
-                  'sdap_ingest_manager/ingestion_order_executor/resources/config/collections.yml.example']
-                 ),
-                ('.sdap_ingest_manager/resources/',
-                 ['sdap_ingest_manager/ingestion_order_executor/resources/dataset_config_template.yml',
-                  'sdap_ingest_manager/granule_ingester/resources/connection-config.yml',
-                  'sdap_ingest_manager/granule_ingester/resources/job-deployment-template.yml']
-                 ),
-                ('.sdap_ingest_manager/resources/history_manager/data/avhrr_oi/',
-                 ['sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi/20151101120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc',
-                  'sdap_ingest_manager/ingestion_order_executor/history_manager/data/avhrr_oi/20151102120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc'])
-            ],
-    install_requires=[
-        "google-api-python-client>=1.7",
-        "google-auth-oauthlib>=0.4",
-        "pystache>=0.5",
-        "pyyaml",
-        "pysolr>=3.8"
-    ]
+    data_files=[('.sdap_ingest_manager/resources/', ['sdap_ingest_manager/resources/dataset_config_template.yml'])],
+    install_requires=pip_requirements
 )
 
 post_install_message()

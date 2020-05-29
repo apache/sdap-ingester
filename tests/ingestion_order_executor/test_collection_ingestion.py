@@ -35,7 +35,7 @@ class TestUnitMgr(unittest.TestCase):
     def test_create_granule_list(self):
         logger.info("history_manager create_granule_list")
         dataset_ingestion_history_manager = sdap_ingest_manager.history_manager \
-            .DatasetIngestionHistoryFile(self.history_path, self.dataset_id, md5sum_from_filepath)
+            .FileIngestionHistory(self.history_path, self.dataset_id, md5sum_from_filepath)
         IngestionOrderExecutor.create_granule_list(self.granule_file_pattern,
                                                    dataset_ingestion_history_manager,
                                                    self.target_granule_list_file
