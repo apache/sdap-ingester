@@ -123,7 +123,7 @@ Update the code and the test with your favorite IDE (e.g. pyCharm).
 
 Deploy a local rabbitmq service, for example with docker.
 
-    docker run -d --hostname localhost --expose 5672 --name rabbitmq rabbitmq:3
+    docker run -d --hostname localhost -p 5672:5672 --name rabbitmq rabbitmq:3
    
 ### Launch the service
 
