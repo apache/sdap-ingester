@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+
 from git import Repo, Remote
 
 from sdap_ingest_manager.ingestion_order_store.IngestionOrderStore import IngestionOrderStore
@@ -54,3 +55,4 @@ class GitIngestionOrderStore(IngestionOrderStore):
             self._repo.create_remote('origin', self._git_url)
         self._repo.git.fetch()
         self._repo.git.checkout(self._git_branch)
+

@@ -31,3 +31,6 @@ class IngestionOrderStore:
 
         except FileNotFoundError:
             logger.error(f"no collection configuration found at {self._ingestion_orders}")
+               
+    def get_content(self):
+        return yaml.dump(self._ingestion_orders)
