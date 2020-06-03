@@ -1,1 +1,4 @@
 from sdap_ingest_manager.config.LocalConfiguration import LocalConfiguration
+from sdap_ingest_manager.config.ConfigMap import ConfigMap
+from sdap_ingest_manager.confg.LocalDirConfig import LocalDirConfig
+from sdpa_ingest_manager.config.RemoteGitConfig import RemoteGitConfig
