@@ -1,0 +1,4 @@
+
+
+class UnreadableFileException(Exception):
+    pass
