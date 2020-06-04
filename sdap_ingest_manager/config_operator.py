@@ -1,6 +1,5 @@
 import argparse
-from sdap_ingest_manager.config import RemoteGitConfig, LocalDirConfig, ConfigMap
-
+from sdap_ingest_manager.config import RemoteGitConfig, LocalDirConfig, K8ConfigMap
 
 
 def main():
@@ -16,6 +15,8 @@ def main():
 
     parser.add_argument("-n", "--namespace", help="kubernetes namespace where the configuration will be deployed", required=True)
     parser.add_argument("-cm", "--config-map", help="configmap name in kubernetes", required=True)
+    parser.add_argument("-u", "--updated-continuously", nargs='?',  const=True, default=False,
+                        help="k8 configMap is updated as soon as a syntactically correct configuration file is updated")
 
     options = parser.parse_args()
 
@@ -24,10 +25,11 @@ def main():
     else:
         config = RemoteGitConfig(options.git_url, branch=options.git_branch, token=options.git_token)
     
-    config_map = ConfigMap(options.config_map, options.namespace, config)
+    config_map = K8ConfigMap(options.config_map, options.namespace, config)
     config_map.publish()
 
-    config.when_updated(config_map.publish)
+    if options.updated_continuously:
+        config.when_updated(config_map.publish)
 
 
 if __name__ == "__main__":
