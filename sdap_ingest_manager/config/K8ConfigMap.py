@@ -59,6 +59,8 @@ class K8ConfigMap:
             return config_keys
 
     def _patch(self):
+        """ replaces files available in the config but does not delete
+            what is not available (e.g. which has not been parsed)"""
         try:
             logger.info(f'replace configMap entry {self._configmap_name}')
             api_response = self._api_core_v1_instance.patch_namespaced_config_map(

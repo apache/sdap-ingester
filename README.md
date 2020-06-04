@@ -125,9 +125,27 @@ Deploy a local rabbitmq service, for example with docker.
 
     docker run -d --hostname localhost -p 5672:5672 --name rabbitmq rabbitmq:3
    
+   
 ### Launch the service
 
-    python sdap_ingest_manager/service.py  --local-ingestion-orders=tests/resources/data/collections.yml  --history-path=/tmp
+#### The config operator:
+
+This component helps to import a configuration directory on local file system or on a git repository as a configMap in kubernetes.
+This makes the configuration easily accessible to all the nodes of the cluster whereas the configuration stays in a single place.
+The configurations can be updated while the service is running (-u). The configuration updates will be published to kubernetes pods by patching the existing configurations.
+
+    config-operator -h
+    config-operator -l tests/resources/data  -n sdap -cm collection-ingester-config
+    config-operator --git-url=https://github.com/tloubrieu-jpl/sdap-ingester-config --namespace=sdap --config-map=collection-ingester-config
+
+#### The collection ingestion service
+
+The service reads the collection configuration and submit granule ingestion messages to the message broker (rabbitmq).
+For each collection, 2 ingestion priority levels are proposed: the nominal priority, the priority for forward processing (newer files), usually higher. 
+An history of the ingested granules is managed so that the ingestion can stop and re-start anytime.
+
+    collection-ingester -h
+    collection-ingester  --local-ingestion-orders=tests/resources/data/collections.yml  --history-path=/tmp
 
 
 ### Test and create the package
@@ -149,47 +167,15 @@ The release will be automatically pushed to pypi though github action.
 
 ## Docker
 
-(development version)
-
-    cd containers/docker
-    docker build --no-cache --tag tloubrieu/sdap-ingest-manager:latest .    
-    docker run -it --name sdap-ingest-manager -v sdap_ingest_config:/usr/local/.sdap_ingest_manager tloubrieu/sdap-ingest-manager:latest
-    docker volume inspect sdap_ingest_config
-    
-You can see the configuration files in the directory of the named volume (for example /var/lib/docker/volumes/sdap_ingest_config/_data).
-
-Note on macos, to access this directory, you need to go inside the Virtual Machine which runs docker service. To update the configuration on macos:
-
-    docker run --rm -it -v /:/vm-root alpine:edge /bin/bash
-    cd /vm-root/var/lib/docker/volumes/sdap_ingest_config/_data
-    cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
-    vi sdap_ingest_manager.ini
-    
+    docker build . -f containers/docker/config-operator/Dockerfile --no-cache --tag tloubrieu/sdap-ingest-manager:latest
+        
 To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
 
     docker login
     docker push tloubrieu/sdap-ingest-manager:latest
     
 ## Kubernetes
-
-### Create the configMap for your deployment 
-
-Prepare a configMap from existing native config files:
-
-    kubectl create configmap collection-ingester-config --from-file=venv/.sdap_ingest_manager -n sdap
     
-#### Optionally you can update the configMap manually if the one you started from is not what you needed: 
-    
-    kubectl get configmap collection-ingester-config -o yaml -n sdap > containers/kubernetes/sdap_ingester_config.yml
-    
-Manually edit the yml file to only keep the configuration which is specific to the deployment (if different from the current one)
-
-Replace the configmap:
-
-    kubectl delete configmap collection-ingester-config -n sdap
-    kubectl apply -f containers/kubernetes/sdap_ingester_config.yml -n sdap
-    
-
 ### Launch the service
 
     kubectl apply -f containers/kubernetes/job.yml -n sdap

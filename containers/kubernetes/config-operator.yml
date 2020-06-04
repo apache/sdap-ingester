@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: collection-ingester
+spec:
+  template:
+    spec:
+      containers:
+        - name: collections-ingester
+          image: tloubrieu/sdap-ingest-manager:latest
+          imagePullPolicy: IfNotPresent
+          command: ["run_collections", "--config=/opt/sdap_ingester_config/"]
+          volumeMounts:
+            - name: config-vol
+              mountPath: /opt/sdap_ingester_config/
+            - name: data-volume-for-collection-ingester
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: config-vol
+          configMap:
+            name: collection-ingester-config
+        - name: data-volume-for-collection-ingester
+          #hostPath:
+          #  path: /Users/loubrieu/PycharmProjects/sdap_ingest_manager/sdap_ingest_manager/ingestion_order_executor/history_manager/data
+          #  type: Directory
+          persistentVolumeClaim:
+            claimName: data-volume-claim
+
+      restartPolicy: Never
+  backoffLimit: 4
+
+---
+
+
+
+
+
+
