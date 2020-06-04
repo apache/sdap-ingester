@@ -6,30 +6,14 @@ import re
 
 PACKAGE_NAME = "sdap_collection_manager"
 
-
-def post_install_message():
-    try:
-        from tabulate import tabulate
-    except ImportError:
-        subprocess.call([sys.executable, "-m", "pip", "install", 'tabulate'])
-    finally:
-        from tabulate import tabulate
-
-    path_to_configuration_files = os.path.join(sys.prefix, f".{PACKAGE_NAME}")
-    message = f"Now, create configuration files in \n" \
-              f"***{path_to_configuration_files}*** \n" \
-              f" Use templates and examples provided there"
-    print(tabulate([[message]]))
-
-
-with open("collection_manager/__init__.py") as fi:
+with open("./sdap_ingest_manager/__init__.py") as fi:
     result = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fi.read())
 version = result.group(1)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements.txt') as f:
+with open('requirements.txt', 'r') as f:
     pip_requirements = f.readlines()
 
 setuptools.setup(
@@ -52,5 +36,3 @@ setuptools.setup(
     data_files=[('.collection_manager/resources/', ['collection_manager/resources/dataset_config_template.yml'])],
     install_requires=pip_requirements
 )
-
-post_install_message()

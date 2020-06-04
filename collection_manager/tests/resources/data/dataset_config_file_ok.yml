@@ -7,7 +7,6 @@ ningester:
       dimensions:
         - lat
         - lon
- zobi;
 ---
 # Tile processors configuration
 ningester:

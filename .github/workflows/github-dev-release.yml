@@ -62,5 +62,11 @@ jobs:
       run: |
         pip install pds-github-util
         python-snapshot-release --token ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish the Python distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: ${{ secrets.pypi_username }}
+        password: ${{ secrets.pypi_password }}
+        repository_url: https://test.pypi.org/legacy/
 
 

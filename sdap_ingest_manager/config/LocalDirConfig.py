@@ -27,7 +27,7 @@ class LocalDirConfig:
         return files
 
     def _test_read_yaml(self, file_name):
-        """ check yaml syntax raiseyaml.parser.ParserError is it doesn't"""
+        """ check yaml syntax raise yaml.parser.ParserError is it doesn't"""
         with open(os.path.join(self._local_dir, file_name), 'r') as f:
             docs = yaml.load_all(f, Loader=yaml.FullLoader)
             for doc in docs:
