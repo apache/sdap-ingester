@@ -42,9 +42,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager",
     packages=setuptools.find_packages(),
-    scripts=['bin/run_collections',
-             'bin/run_single_collection',
-             'bin/run_granules'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
@@ -53,7 +50,12 @@ setuptools.setup(
     python_requires='>=3.6',
     include_package_data=True,
     data_files=[('.sdap_ingest_manager/resources/', ['sdap_ingest_manager/resources/dataset_config_template.yml'])],
-    install_requires=pip_requirements
+    install_requires=pip_requirements,
+    entry_points={
+        'config-operator': ['summary=sdap_ingest_manager.config_operator:main'],
+        'collection-ingester': ['summary=sdap_ingest_manager.service:main'],
+    },
+
 )
 
 post_install_message()

@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class ConfigMap:
+class K8ConfigMap:
     def __init__(self, configmap_name, namespace, git_remote_config):
         self._git_remote_config = git_remote_config
         self._namespace = namespace
@@ -58,10 +58,10 @@ class ConfigMap:
         finally:
             return config_keys
 
-    def _replace(self):
+    def _patch(self):
         try:
             logger.info(f'replace configMap entry {self._configmap_name}')
-            api_response = self._api_core_v1_instance.replace_namespaced_config_map(
+            api_response = self._api_core_v1_instance.patch_namespaced_config_map(
                 name=self._configmap_name,
                 namespace=self._namespace,
                 body=self._create_configmap_object()
@@ -87,5 +87,5 @@ class ConfigMap:
             self._create()
         except ApiException as e:
             logger.error("Exception when calling Kubernetes CoreV1Api ,create failed, try to replace %s\n" % e)
-            self._replace()
+            self._patch()
 

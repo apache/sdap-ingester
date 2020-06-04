@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import yaml
 
 from sdap_ingest_manager.config.exceptions import UnreadableFileException
 
@@ -25,13 +26,24 @@ class LocalDirConfig:
 
         return files
 
+    def _test_read_yaml(self, file_name):
+        """ check yaml syntax raiseyaml.parser.ParserError is it doesn't"""
+        with open(os.path.join(self._local_dir, file_name), 'r') as f:
+            docs = yaml.load_all(f, Loader=yaml.FullLoader)
+            for doc in docs:
+                pass
+
     def get_file_content(self, file_name):
         logger.info(f'read configuration file {file_name}')
         try:
-            with open(os.path.join(self._local_dir, file_name)) as f:
-                    return f.read()
+            self._test_read_yaml(file_name)
+            with open(os.path.join(self._local_dir, file_name), 'r') as f:
+                return f.read()
         except UnicodeDecodeError as e:
             raise UnreadableFileException(e)
+        except yaml.parser.ParserError as e:
+            raise UnreadableFileException(e)
+
 
     def _get_latest_update(self):
         return time.ctime(max(os.path.getmtime(root) for root,_,_ in os.walk(self._local_dir)))
