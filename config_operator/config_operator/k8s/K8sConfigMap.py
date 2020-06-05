@@ -2,13 +2,13 @@ import logging
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
-from sdap_ingest_manager.config.exceptions import UnreadableFileException
+from config_operator.config_source.exceptions import UnreadableFileException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class K8ConfigMap:
+class K8sConfigMap:
     def __init__(self, configmap_name, namespace, git_remote_config):
         self._git_remote_config = git_remote_config
         self._namespace = namespace

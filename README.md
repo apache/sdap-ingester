@@ -128,17 +128,6 @@ Deploy a local rabbitmq service, for example with docker.
    
 ### Launch the service
 
-#### The config operator:
-
-This component helps to import a configuration directory on local file system or on a git repository as a configMap in kubernetes.
-This makes the configuration easily accessible to all the nodes of the cluster whereas the configuration stays in a single place.
-The configurations can be updated while the service is running (-u). The configuration updates will be published to kubernetes pods by patching the existing configurations.
-
-    config-operator -h
-    config-operator -l tests/resources/data  -n sdap -cm collection-ingester-config
-    config-operator --git-url=https://github.com/tloubrieu-jpl/sdap-ingester-config --namespace=sdap --config-map=collection-ingester-config
-
-#### The collection ingestion service
 
 The service reads the collection configuration and submit granule ingestion messages to the message broker (rabbitmq).
 For each collection, 2 ingestion priority levels are proposed: the nominal priority, the priority for forward processing (newer files), usually higher. 
