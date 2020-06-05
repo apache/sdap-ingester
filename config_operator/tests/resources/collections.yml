@@ -1,0 +1,9 @@
+avhrr-oi-analysed-sst:
+  path: resources/history_manager/data/avhrr_oi/*.nc
+  variable: analysed_sst
+  priority: 9
+
+avhrr-oi-analysed-sst2:
+  path: resources/history_manager/data/avhrr_oi/*.nc
+  variable: analysed_sst
+  priority: 1

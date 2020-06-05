@@ -1,5 +1,6 @@
 import argparse
-from sdap_ingest_manager.config import RemoteGitConfig, LocalDirConfig, K8ConfigMap
+from config_operator.config_source import RemoteGitConfig, LocalDirConfig
+from config_operator.k8s import K8sConfigMap
 
 
 def main():
@@ -25,7 +26,7 @@ def main():
     else:
         config = RemoteGitConfig(options.git_url, branch=options.git_branch, token=options.git_token)
     
-    config_map = K8ConfigMap(options.config_map, options.namespace, config)
+    config_map = K8sConfigMap(options.config_map, options.namespace, config)
     config_map.publish()
 
     if options.updated_continuously:

@@ -3,7 +3,8 @@ import time
 import logging
 import yaml
 
-from sdap_ingest_manager.config.exceptions import UnreadableFileException
+
+from config_operator.config_source.exceptions import UnreadableFileException
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -12,7 +13,9 @@ LISTEN_FOR_UPDATE_INTERVAL_SECONDS = 1
 
 
 class LocalDirConfig:
+
     def __init__(self, local_dir):
+        logger.info(f'create config on local dir {local_dir}')
         self._local_dir = local_dir
         self._latest_update = self._get_latest_update()
         

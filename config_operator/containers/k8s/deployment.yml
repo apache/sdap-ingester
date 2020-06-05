@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-operator
+  labels:
+    app: sdap-config-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdap-config-operator
+  template:
+    metadata:
+      labels:
+        app: sdap-config-operator
+    spec:
+      containers:
+      - name: sdap-config-operator
+        image: tloubrieu/config-operator:latest
+        imagePullPolicy: IfNotPresent
+        command: ['config-operator', '--git-url', 'https://github.com/tloubrieu-jpl/sdap-ingester-config' , '--namespace', 'sdap', '--config-map', 'collection-ingester-conf', '-u']
