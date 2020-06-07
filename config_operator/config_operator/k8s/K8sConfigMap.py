@@ -1,3 +1,4 @@
+import os
 import logging
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
@@ -14,7 +15,10 @@ class K8sConfigMap:
         self._namespace = namespace
         self._configmap_name = configmap_name
 
-        config.load_kube_config()
+        if os.getenv('KUBERNETES_SERVICE_HOST'):
+            config.load_incluster_config()
+        else:
+            config.load_kube_config()
         configuration = client.Configuration()
         self._api_instance = client.ApiClient(configuration)
         self._api_core_v1_instance = client.CoreV1Api(self._api_instance)

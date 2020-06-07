@@ -35,4 +35,4 @@ To publish the docker image on dockerhub do (step necessary for kubernetes deplo
     
 ## Kubernetes
     
-     kubectl apply -f containers/k8s/deployment.yml -n sdap 
+     kubectl apply -f containers/k8s/deployment-git-src.yml -n sdap 

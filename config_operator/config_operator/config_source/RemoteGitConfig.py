@@ -9,12 +9,13 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 LISTEN_FOR_UPDATE_INTERVAL_SECONDS = 5
-
+DEFAULT_LOCAL_REPO_DIR = os.path.join(sys.prefix, 'sdap', 'conf')
 
 class RemoteGitConfig(LocalDirConfig):
     def __init__(self, git_url,
                  branch='master',
-                 token=None
+                 token=None,
+                 local_dir=DEFAULT_LOCAL_REPO_DIR
                  ):
         """
 
@@ -25,7 +26,8 @@ class RemoteGitConfig(LocalDirConfig):
         self._git_url = git_url if git_url.endswith(".git") else git_url + '.git'
         self._git_branch = branch
         self._git_token = token
-        local_dir = os.path.join(sys.prefix, 'sdap', 'conf')
+        if local_dir is None:
+            local_dir = DEFAULT_LOCAL_REPO_DIR
         super().__init__(local_dir)
         self._repo = None
         self._init_local_config_repo()
