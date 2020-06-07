@@ -49,13 +49,17 @@ class LocalDirConfig:
 
 
     def _get_latest_update(self):
-        return time.ctime(max(os.path.getmtime(root) for root,_,_ in os.walk(self._local_dir)))
+        m_times = [os.path.getmtime(root) for root, _, _ in os.walk(self._local_dir)]
+        if m_times:
+            return time.ctime(max(m_times))
+        else:
+            return None
 
     def when_updated(self, callback):
         while True:
             time.sleep(LISTEN_FOR_UPDATE_INTERVAL_SECONDS)
             latest_update = self._get_latest_update()
-            if latest_update > self._latest_update:
+            if latest_update is None or (latest_update > self._latest_update):
                 logger.info("local config dir has been updated")
                 callback()
                 self._latest_update = latest_update
