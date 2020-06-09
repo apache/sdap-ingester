@@ -1,9 +1,12 @@
+import logging
 import kopf
 from config_operator.config_source import RemoteGitConfig
 from config_operator.k8s import K8sConfigMap
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@kopf.on.create('sdap.apache.org', 'v1', 'git-repo-configs')
+@kopf.on.create('sdap.apache.org', 'v1', 'gitbasedconfigs')
 def create_fn(body, spec, **kwargs):
     # Get info from Git Repo Config object
     name = body['metadata']['name']
@@ -15,12 +18,15 @@ def create_fn(body, spec, **kwargs):
         raise kopf.HandlerFatalError(f"config-map must be set.")
 
     git_url = spec['git-url']
+    logger.info(f'git-url = {git_url}')
     config_map = spec['config-map']
+    logger.info(f'config-map = {config_map}')
 
     _kargs = {}
-    for k in {'git-branch', 'git-token'}:
-        if k in spec.keys():
-            _kargs[k.split('-')[0]] = spec[k]
+    for k in {'git-branch', 'git-token', 'update-every-seconds'}:
+        if k in spec:
+            logger.info(f'{k} = {spec[k]}')
+            _kargs[k.replace('-', '_')] = spec[k]
 
     config = RemoteGitConfig(git_url, **_kargs)
 

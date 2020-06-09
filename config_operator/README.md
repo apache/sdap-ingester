@@ -51,4 +51,6 @@ Check that the configMap has been generated:
 
     kubectl get configmaps -n sdap
     
+
+    
     

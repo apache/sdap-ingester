@@ -1,7 +1,9 @@
 import os
 import logging
 from kubernetes import client, config
+from config_operator.config_source import LocalDirConfig, RemoteGitConfig
 from kubernetes.client.rest import ApiException
+from typing import Union
 
 from config_operator.config_source.exceptions import UnreadableFileException
 
@@ -10,11 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 class K8sConfigMap:
-    def __init__(self, configmap_name, namespace, git_remote_config):
-        self._git_remote_config = git_remote_config
+    def __init__(self, configmap_name: str,
+                 namespace: str,
+                 external_config: Union[LocalDirConfig, RemoteGitConfig]):
+        self._git_remote_config = external_config
         self._namespace = namespace
         self._configmap_name = configmap_name
 
+        # test is this runs inside kubernetes cluster
         if os.getenv('KUBERNETES_SERVICE_HOST'):
             config.load_incluster_config()
         else:
@@ -93,6 +98,8 @@ class K8sConfigMap:
         try:
             self._create()
         except ApiException as e:
-            logger.error("Exception when calling Kubernetes CoreV1Api ,create failed, try to replace %s\n" % e)
+            logger.error("Exception when calling Kubernetes CoreV1Api ,create failed, try to patch %s\n" % e)
             self._patch()
+
+        return None
 

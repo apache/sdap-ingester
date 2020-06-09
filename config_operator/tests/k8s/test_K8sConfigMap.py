@@ -5,7 +5,7 @@ from config_operator.k8s import K8sConfigMap
 from config_operator.config_source import RemoteGitConfig, LocalDirConfig
 
 
-class ConfigMapTest(unittest.TestCase):
+class K8sConfigMapTest(unittest.TestCase):
     def test_createconfigmapfromgit(self):
 
         remote_git_config = RemoteGitConfig("https://github.com/tloubrieu-jpl/sdap-ingester-config")
