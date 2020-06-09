@@ -15,8 +15,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--refresh",
                         help="refresh interval in seconds to check for new or updated granules",
                         default=300)
-    parser.add_argument("--local-ingestion-orders",
-                        help="path to local ingestion orders file",
+    parser.add_argument("--collections",
+                        help="path to collections configuration file",
                         required=True)
     parser.add_argument('--rabbitmq_host',
                         default='localhost',
@@ -53,13 +53,13 @@ def main():
                                  password=options.rabbitmq_password,
                                  queue=options.rabbitmq_queue)
     publisher.connect()
-    order_executor = CollectionProcessor(message_publisher=publisher,
-                                         history_manager_builder=history_manager_builder)
-    collections_watcher = CollectionWatcher(collections_path=options.local_ingestion_orders,
-                                            collection_updated_callback=order_executor.process_collection,
-                                            granule_updated_callback=order_executor.process_granule)
+    collection_processor = CollectionProcessor(message_publisher=publisher,
+                                               history_manager_builder=history_manager_builder)
+    collection_watcher = CollectionWatcher(collections_path=options.collections,
+                                           collection_updated_callback=collection_processor.process_collection,
+                                           granule_updated_callback=collection_processor.process_granule)
 
-    collections_watcher.start_watching()
+    collection_watcher.start_watching()
     while True:
         time.sleep(1)
 

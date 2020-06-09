@@ -19,15 +19,15 @@ class Collection(NamedTuple):
         date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
         date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
-        new_order = Collection(dataset_id=properties['id'],
-                               variable=properties['variable'],
-                               path=properties['path'],
-                               historical_priority=properties['priority'],
-                               forward_processing_priority=properties.get('forward_processing_priority',
-                                                                          properties['priority']),
-                               date_to=date_to,
-                               date_from=date_from)
-        return new_order
+        collection = Collection(dataset_id=properties['id'],
+                                variable=properties['variable'],
+                                path=properties['path'],
+                                historical_priority=properties['priority'],
+                                forward_processing_priority=properties.get('forward_processing_priority',
+                                                                           properties['priority']),
+                                date_to=date_to,
+                                date_from=date_from)
+        return collection
 
     def directory(self):
         if os.path.isdir(self.path):
