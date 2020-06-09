@@ -141,7 +141,7 @@ Change version in file setup.py
     $ git tag <version>
     $ git push origin <version>
     
-The release will be automatically pushed to pypi though github action.
+The release will be automatically pushed to pypi through github action.
 
 
 
