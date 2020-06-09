@@ -1,8 +1,6 @@
 import argparse
 import logging
-
-from flask import Flask
-from flask_restplus import Api
+import time
 
 from collection_manager.services import CollectionProcessor, CollectionWatcher, MessagePublisher
 from collection_manager.services.history_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
@@ -10,11 +8,6 @@ from collection_manager.services.history_manager import SolrIngestionHistoryBuil
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
-
-flask_app = Flask(__name__)
-app = Api(app=flask_app)
-
-name_space = app.namespace('ingestion-orders', description='SDAP Nexus ingestion order configuration')
 
 
 def get_args() -> argparse.Namespace:
@@ -67,8 +60,8 @@ def main():
                                             granule_updated_callback=order_executor.process_granule)
 
     collections_watcher.start_watching()
-
-    flask_app.run()
+    while True:
+        time.sleep(1)
 
 
 if __name__ == "__main__":
