@@ -25,6 +25,8 @@ spec:
           type: string
         git-token:
           type: string
+        update-every-seconds:
+          type: int
         local-dir:
           type: string
         namespace:
