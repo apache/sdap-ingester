@@ -1,3 +1,4 @@
 GitPython==3.1.2
 kubernetes==11.0
+kopf==0.26
 

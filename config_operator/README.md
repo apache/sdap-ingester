@@ -35,4 +35,20 @@ To publish the docker image on dockerhub do (step necessary for kubernetes deplo
     
 ## Kubernetes
     
-     kubectl apply -f containers/k8s/deployment-git-src.yml -n sdap 
+Deploy the gitbasedconfig operator:
+
+     kubectl apply -f containers/k8s/config-operator-crd.yml -n sdap
+     
+Deploy the git custom resource which will be synchronize with a k8s configmap
+
+     kubectl apply -f containers/k8s/git-repo-test.yml -n sdap
+     
+Check that the custom resource is deployed:
+
+    kubectl get gitbasedconfigs -n sdap
+    
+Check that the configMap has been generated:
+
+    kubectl get configmaps -n sdap
+    
+    
