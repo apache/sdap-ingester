@@ -6,5 +6,6 @@ COPY /requirements.txt /config_operator/requirements.txt
 COPY /README.md /config_operator/README.md
 
 RUN cd /config_operator && pip install .
+COPY /config_operator/k8_config_operator.py /k8_config_operator.py
 
-CMD bash
+CMD ["kopf",  "run",  "/k8_config_operator.py",  "--verbose"]

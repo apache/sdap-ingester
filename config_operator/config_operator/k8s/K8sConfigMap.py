@@ -22,6 +22,7 @@ class K8sConfigMap:
         configuration = client.Configuration()
         self._api_instance = client.ApiClient(configuration)
         self._api_core_v1_instance = client.CoreV1Api(self._api_instance)
+        self.publish()
 
     def __del__(self):
         self._api_instance.close()
