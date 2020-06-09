@@ -1,1 +1,2 @@
 
+from .Collection import Collection

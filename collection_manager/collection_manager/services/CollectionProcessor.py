@@ -4,11 +4,10 @@ from typing import Dict
 
 import pystache
 
-from collection_manager import Collection
-from collection_manager import MessagePublisher
-from collection_manager import IngestionHistory, GranuleStatus
-from collection_manager import IngestionHistoryBuilder
-from collection_manager import nfs_mount_parse
+from collection_manager.entities import Collection
+from collection_manager.services import MessagePublisher
+from collection_manager.services.history_manager import IngestionHistory, GranuleStatus
+from collection_manager.services.history_manager.IngestionHistory import IngestionHistoryBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +17,9 @@ MESSAGE_TEMPLATE = os.path.join(os.path.dirname(__file__), '../resources/dataset
 
 class CollectionProcessor:
 
-    def __init__(self,
-                 message_publisher: MessagePublisher,
-                 history_manager_builder: IngestionHistoryBuilder,
-                 deconstruct_nfs=False):
+    def __init__(self, message_publisher: MessagePublisher, history_manager_builder: IngestionHistoryBuilder):
         self._publisher = message_publisher
         self._history_manager_builder = history_manager_builder
-        self._nfs_mount_points = nfs_mount_parse.get_nfs_mount_points() if deconstruct_nfs else None
         self._history_manager_cache: Dict[str, IngestionHistory] = {}
 
         with open(MESSAGE_TEMPLATE, 'r') as config_template_file:
@@ -63,9 +58,7 @@ class CollectionProcessor:
                         f"Skipping.")
             return
 
-        dataset_config = self._fill_template(collection,
-                                             config_template=self._config_template,
-                                             nfs_mount_points=self._nfs_mount_points)
+        dataset_config = self._fill_template(collection, config_template=self._config_template)
         self._publisher.publish_message(dataset_config, use_priority)
         history_manager.push(granule)
 
@@ -80,18 +73,11 @@ class CollectionProcessor:
         return self._history_manager_cache[dataset_id]
 
     @staticmethod
-    def _fill_template(collection: Collection,
-                       config_template: str,
-                       nfs_mount_points=None) -> str:
-        if nfs_mount_points:
-            granule = nfs_mount_parse.replace_mount_point_with_service_path(collection.path, nfs_mount_points)
-        else:
-            granule = collection.path
-
+    def _fill_template(collection: Collection, config_template: str) -> str:
         renderer = pystache.Renderer()
         config_content = renderer.render(config_template,
                                          {
-                                             'granule': granule,
+                                             'granule': collection.path,
                                              'dataset_id': collection.dataset_id,
                                              'variable': collection.variable
                                          })

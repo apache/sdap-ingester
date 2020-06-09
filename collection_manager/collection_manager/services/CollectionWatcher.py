@@ -7,7 +7,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from yaml.scanner import ScannerError
 
-from collection_manager import Collection
+from collection_manager.entities import Collection
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -98,6 +98,7 @@ class _CollectionEventHandler(FileSystemEventHandler):
     """
     EventHandler that watches for changes to the Collections config file.
     """
+
     def __init__(self, file_path: str, callback: Callable[[], any]):
         self._callback = callback
         self._file_path = file_path
@@ -112,6 +113,7 @@ class _GranuleEventHandler(FileSystemEventHandler):
     """
     EventHandler that watches for new or modified granule files.
     """
+
     def __init__(self, granule_updated: Callable[[str, Collection], any], ingestion_order: Collection):
         self._granule_updated = granule_updated
         self._ingestion_order = ingestion_order

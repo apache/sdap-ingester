@@ -4,8 +4,8 @@ import logging
 from flask import Flask
 from flask_restplus import Api
 
-from collection_manager import CollectionProcessor, CollectionWatcher, MessagePublisher
-from collection_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
+from collection_manager.services import CollectionProcessor, CollectionWatcher, MessagePublisher
+from collection_manager.services.history_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)

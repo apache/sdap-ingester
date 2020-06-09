@@ -1,5 +1,12 @@
+import hashlib
+import logging
+
 import pysolr
 import requests
+
+from collection_manager.services.history_manager.IngestionHistory import IngestionHistory
+from collection_manager.services.history_manager.IngestionHistory import IngestionHistoryBuilder
+from collection_manager.services.history_manager.IngestionHistory import md5sum_from_filepath
 
 logger = logging.getLogger(__name__)
 
