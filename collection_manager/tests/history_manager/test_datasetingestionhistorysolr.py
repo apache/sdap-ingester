@@ -1,5 +1,5 @@
 import unittest
-from collection_manager.collection_manager.services.history_manager import SolrIngestionHistory
+from collection_manager.services.history_manager import SolrIngestionHistory
 
 SOLR_URL = "http://localhost:8984/solr"
 DATASET_ID = "zobi_la_mouche"

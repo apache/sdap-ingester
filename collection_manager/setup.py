@@ -6,7 +6,7 @@ import re
 
 PACKAGE_NAME = "sdap_collection_manager"
 
-with open("./sdap_ingest_manager/__init__.py") as fi:
+with open("./collection_manager/__init__.py") as fi:
     result = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fi.read())
 version = result.group(1)
 

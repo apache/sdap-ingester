@@ -24,81 +24,6 @@ For development purpose, you might want to expose solr port outside kubernetes
 
    kubectl port-forward solr-set-0 8983:8983 -n sdap 
 
-## Install, Configure and run
-
-### Install
-
-Stay logged in as user
-
-    $ pip install sdap-ingest-manager
-
-
-### Configure the ingestion system
-                            
-Catch the message at the end of the installation output
-
-    --------------------------------------------------------------
-    Now, create configuration files in
-    ***/<some path>>/.sdap_ingest_manager***
-     Use templates and examples provided there
-    --------------------------------------------------------------
-
-If the path does not show in the installation stdout, you can find it with the command:
-
-    python -c "import sys; print(f'{sys.prefix}/.sdap_ingest_manager')"
-
-
-Use the path shown in the message and create your own configuration files:
-
-    $ cd /<some path>>/.sdap_ingest_manager
-    $ cp sdap_ingest_manager.ini.default sdap_ingest_manager.ini
-    
-Edit and update the newly created files by following instructions in the comments.
-
-Note that the `.ini.default` file will be used if no value is configured in the `.ini` file. So you can have a simplified `.ini` file with only your specific configuration.
-Don't put your specific configuration in the `.ini.default` file, it will be replaced when you upgrade the package.
-
-Example of a simplified `.ini` file:
-
-```yaml
-[COLLECTIONS_YAML_CONFIG]
-yaml_file = collections.yml
-
-[OPTIONS]
-# set to False to actually call the ingestion command for each granule
-dry_run = False
-# set to True to automatically list the granules as seen on the nfs server when they are mounted on the local file system.
-deconstruct_nfs = True
-# number of parallel ingestion pods on kubernetes (1 per granule)
-parallel_pods = 2
-
-[INGEST]
-# kubernetes namespace where the sdap cluster is deployed
-kubernetes_namespace = nexus-dev
-
-```
-
-
-### Configure the collections
-
-You can configure it in a local yaml file referenced in the `sdap_ingest_manager.ini` file.
-
-It can also be in a google spreadsheet.
-
-If both are configured, the local yaml file will be used.
-
-
-
-### Run the ingestion 
-
-On the list of the configured collections:
-
-    $ run_collections
-
-The number of parallel jobs can be updated during the process in the `sdap_ingest_manager.ini` file.
-
-If interrupted (killed) the process will restart where it was.
-
  
 ## For developers
 
@@ -110,14 +35,15 @@ If interrupted (killed) the process will restart where it was.
     $ python -m venv venv
     $ source ./venv/bin/activate
     $ pip install .
+    $ pytest -s
     
 Note the command pip install -e . does not work as it does not deploy the configuration files.
 
-## Update the project
+### Update the project
 
 Update the code and the test with your favorite IDE (e.g. pyCharm).
 
-## Launch for development/tests
+### Launch for development/tests
 
 ### Prerequisite
 
@@ -133,26 +59,13 @@ The service reads the collection configuration and submit granule ingestion mess
 For each collection, 2 ingestion priority levels are proposed: the nominal priority, the priority for forward processing (newer files), usually higher. 
 An history of the ingested granules is managed so that the ingestion can stop and re-start anytime.
 
-    collection-ingester -h
-    collection-ingester  --local-ingestion-orders=tests/resources/data/collections.yml  --history-path=/tmp
-
-
-### Test and create the package
-
-A package based on the dev branch is automatically published at github release when a push is made. 
-
-
-Change version in file setup.py 
-
-    $ python setup.py test
-    $ git tag <version>
-    $ git push origin <version>
-    
-The release will be automatically pushed to pypi through github action.
-
-
+    cd collection_manager
+    python main.py -h
+    python main.py --collections ../tests/resources/data/collections.yml --history-path=/tmp
 
 # Containerization
+
+TO BE UPDATED
 
 ## Docker
 

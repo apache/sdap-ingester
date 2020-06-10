@@ -2,9 +2,9 @@ import tempfile
 from unittest import mock
 import unittest
 
-from collection_manager.collection_manager.entities import Collection
-from collection_manager.collection_manager.services import CollectionProcessor
-from collection_manager.collection_manager.services.history_manager import FileIngestionHistoryBuilder, FileIngestionHistory
+from collection_manager.entities import Collection
+from collection_manager.services import CollectionProcessor
+from collection_manager.services.history_manager import FileIngestionHistoryBuilder, FileIngestionHistory
 
 
 class TestCollectionProcessor(unittest.TestCase):

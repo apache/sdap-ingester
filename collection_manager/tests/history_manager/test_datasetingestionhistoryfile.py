@@ -2,8 +2,8 @@ import unittest
 import os
 import sys
 import pathlib
-from collection_manager.collection_manager.services.history_manager import FileIngestionHistory
-from collection_manager.collection_manager.services.history_manager import md5sum_from_filepath
+from collection_manager.services.history_manager import FileIngestionHistory
+from collection_manager.services.history_manager import md5sum_from_filepath
 
 HISTORY_ROOT_PATH = os.path.join(sys.prefix,
                                  ".collection_manager",
