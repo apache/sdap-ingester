@@ -48,14 +48,16 @@ class CollectionProcessor:
         granule_status = history_manager.get_granule_status(granule, collection.date_from, collection.date_to)
 
         if granule_status is GranuleStatus.DESIRED_FORWARD_PROCESSING:
-            logger.info(f"New granule '{granule}' detected for forward-processing ingestion.")
+            logger.info(f"New granule '{granule}' detected for forward-processing ingestion "
+                        f"in collection '{collection.dataset_id}'.")
             use_priority = collection.forward_processing_priority
         elif granule_status is GranuleStatus.DESIRED_HISTORICAL:
-            logger.info(f"New granule '{granule}' detected for historical ingestion.")
+            logger.info(f"New granule '{granule}' detected for historical ingestion in collection "
+                        f"'{collection.dataset_id}'.")
             use_priority = collection.historical_priority
         else:
-            logger.info(f"Granule '{granule}' detected but has already been ingested or is not in desired time range. "
-                        f"Skipping.")
+            logger.info(f"Granule '{granule}' detected but has already been ingested or is not in desired "
+                        f"time range for collection '{collection.dataset_id}'. Skipping.")
             return
 
         dataset_config = self._fill_template(collection, config_template=self._config_template)
