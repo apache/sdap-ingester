@@ -40,20 +40,17 @@ class FileIngestionHistory(IngestionHistory):
 
         self._latest_ingested_file_update_file_path = os.path.join(history_path, f'{dataset_id}.ts')
         if os.path.exists(self._latest_ingested_file_update_file_path):
-            logger.info(f"read latest ingested file update date from {self._latest_ingested_file_update_file_path}")
             with open(self._latest_ingested_file_update_file_path, 'r') as f_ts:
                 self._latest_ingested_file_update = float(f_ts.readline())
 
     def _load_history_dict(self):
-        logger.info(f"loading history file {self._history_file_path}")
         try:
             with open(self._history_file_path, 'r') as f_history:
                 for line in f_history:
                     filename, md5sum = line.strip().split(',')
-                    logger.info(f"add to history file {filename} with md5sum {md5sum}")
                     self._history_dict[filename] = md5sum
         except FileNotFoundError:
-            logger.info("no history file created yet")
+            logger.info("No history file created yet")
 
     def __del__(self):
         self._history_file.close()
