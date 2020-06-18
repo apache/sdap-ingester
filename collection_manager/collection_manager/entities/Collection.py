@@ -1,33 +1,39 @@
 import os
+from dataclasses import dataclass
 from datetime import datetime
 from fnmatch import fnmatch
 from glob import glob
-from typing import NamedTuple, List
+from typing import List, Optional
+
+from collection_manager.entities.exceptions import MissingValueCollectionError
 
 
-class Collection(NamedTuple):
+@dataclass(frozen=True)
+class Collection:
     dataset_id: str
     variable: str
     path: str
     historical_priority: int
-    forward_processing_priority: int
-    date_from: datetime
-    date_to: datetime
+    forward_processing_priority: Optional[int] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
 
     @staticmethod
     def from_dict(properties: dict):
-        date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
-        date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
+        try:
+            date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
+            date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
-        collection = Collection(dataset_id=properties['id'],
-                                variable=properties['variable'],
-                                path=properties['path'],
-                                historical_priority=properties['priority'],
-                                forward_processing_priority=properties.get('forward_processing_priority',
-                                                                           properties['priority']),
-                                date_to=date_to,
-                                date_from=date_from)
-        return collection
+            collection = Collection(dataset_id=properties['id'],
+                                    variable=properties['variable'],
+                                    path=properties['path'],
+                                    historical_priority=properties['priority'],
+                                    forward_processing_priority=properties.get('forward-processing-priority', None),
+                                    date_to=date_to,
+                                    date_from=date_from)
+            return collection
+        except KeyError as e:
+            raise MissingValueCollectionError(missing_value=e.args[0])
 
     def directory(self):
         if os.path.isdir(self.path):

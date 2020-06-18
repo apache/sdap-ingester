@@ -1,7 +1,7 @@
 import logging
 import os
 from collections import defaultdict
-from typing import List, Dict, Callable, Set
+from typing import Dict, Callable, Set
 
 import yaml
 from watchdog.events import FileSystemEventHandler
@@ -9,6 +9,9 @@ from watchdog.observers import Observer
 from yaml.scanner import ScannerError
 
 from collection_manager.entities import Collection
+from collection_manager.entities.exceptions import RelativePathError, YamlParsingError, \
+    CollectionConfigFileNotFoundError, MissingValueCollectionError, ConflictingPathCollectionError, \
+    RelativePathCollectionError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,12 +22,17 @@ class CollectionWatcher:
                  collections_path: str,
                  collection_updated_callback: Callable[[Collection], any],
                  granule_updated_callback: Callable[[str, Collection], any]):
+        if not os.path.isabs(collections_path):
+            raise RelativePathError("Collections config  path must be an absolute path.")
+
         self._collections_path = collections_path
         self._collection_updated_callback = collection_updated_callback
         self._granule_updated_callback = granule_updated_callback
-        
+
         self._collections_by_dir: Dict[str, Set[Collection]] = defaultdict(set)
         self._observer = Observer()
+
+        self._granule_watches = set()
 
     def start_watching(self):
         """
@@ -32,58 +40,78 @@ class CollectionWatcher:
         When an event occurs, call the appropriate callback that was passed in during instantiation.
         :return: None
         """
-        self._observer.schedule(_CollectionEventHandler(file_path=self._collections_path, callback=self._refresh),
-                                os.path.dirname(self._collections_path))
+        self._observer.schedule(
+            _CollectionEventHandler(file_path=self._collections_path, callback=self._reload_and_reschedule),
+            os.path.dirname(self._collections_path))
         self._observer.start()
-        self._refresh()
+        self._reload_and_reschedule()
 
-    def collections(self) -> List[Collection]:
+    def collections(self) -> Set[Collection]:
         """
-        Return a list of all Collections being watched.
-        :return: A list of Collections
+        Return a set of all Collections being watched.
+        :return: A set of Collections
         """
-        return [collection for collections in self._collections_by_dir.values() for collection in collections]
+        return {collection for collections in self._collections_by_dir.values() for collection in collections}
+
+    def _validate_collection(self, collection: Collection):
+        directory = collection.directory()
+        if not os.path.isabs(directory):
+            raise RelativePathCollectionError(collection=collection)
+        if directory == os.path.dirname(self._collections_path):
+            raise ConflictingPathCollectionError(collection=collection)
 
     def _load_collections(self):
         try:
             with open(self._collections_path, 'r') as f:
                 collections_yaml = yaml.load(f, Loader=yaml.FullLoader)
             self._collections_by_dir.clear()
-            for _, collection_dict in collections_yaml.items():
-                collection = Collection.from_dict(collection_dict)
-                directory = collection.directory()
-                if directory == os.path.dirname(self._collections_path):
-                    logger.error(f"Collection {collection.dataset_id} uses granule directory {collection.path} "
-                                 f"which is the same directory as the collection configuration file, "
-                                 f"{self._collections_path}. The granules need to be in their own directory. "
-                                 f"Ignoring collection {collection.dataset_id} for now.")
-                else:
-                    self._collections_by_dir[directory].add(collection)
-
+            for collection_dict in collections_yaml['collections']:
+                try:
+                    collection = Collection.from_dict(collection_dict)
+                    self._validate_collection(collection)
+                    self._collections_by_dir[collection.directory()].add(collection)
+                except MissingValueCollectionError as e:
+                    logger.error(f"A collection is missing '{e.missing_value}'. Ignoring this collection for now.")
+                except RelativePathCollectionError as e:
+                    logger.error(f"Relative paths are not allowed for the 'path' property of a collection. "
+                                 f"Ignoring collection '{e.collection.dataset_id}' until its path is fixed.")
+                except ConflictingPathCollectionError as e:
+                    logger.error(f"Collection '{e.collection.dataset_id}' has granule path '{e.collection.path}' "
+                                 f"which uses same directory as the collection configuration file, "
+                                 f"'{self._collections_path}'. The granules need to be in their own directory. "
+                                 f"Ignoring collection '{e.collection.dataset_id}' for now.")
         except FileNotFoundError:
-            logger.error(f"Collection configuration file not found at {self._collections_path}.")
+            raise CollectionConfigFileNotFoundError("The collection config file could not be found at "
+                                                    f"{self._collections_path}")
         except yaml.scanner.ScannerError:
-            logger.error(f"Bad YAML syntax in collection configuration file. Will attempt to reload collections "
-                         f"after the next configuration change.")
+            raise YamlParsingError("Bad YAML syntax in collection configuration file. Will attempt to reload "
+                                   "collections after the next configuration change.")
 
-    def _refresh(self):
-        for collection in self._get_updated_collections():
-            self._collection_updated_callback(collection)
-
-        self._observer.unschedule_all()
-        self._schedule_watches()
-
-    def _get_updated_collections(self) -> List[Collection]:
+    def _get_updated_collections(self) -> Set[Collection]:
         old_collections = self.collections()
         self._load_collections()
-        return list(set(self.collections()) - set(old_collections))
+        return self.collections() - old_collections
+
+    def _reload_and_reschedule(self):
+        try:
+            for collection in self._get_updated_collections():
+                self._collection_updated_callback(collection)
+            self._unschedule_watches()
+            self._schedule_watches()
+        except YamlParsingError as e:
+            logger.error(e)
+
+    def _unschedule_watches(self):
+        for watch in self._granule_watches:
+            self._observer.unschedule(watch)
+        self._granule_watches.clear()
 
     def _schedule_watches(self):
         for directory, collections in self._collections_by_dir.items():
             granule_event_handler = _GranuleEventHandler(self._granule_updated_callback, collections)
             # Note: the Watchdog library does not schedule a new watch
             # if one is already scheduled for the same directory
-            self._observer.schedule(granule_event_handler, directory)
+            self._granule_watches.add(self._observer.schedule(granule_event_handler, directory))
 
 
 class _CollectionEventHandler(FileSystemEventHandler):
@@ -112,6 +140,15 @@ class _GranuleEventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         super().on_created(event)
+        for collection in self._collections_for_dir:
+            if collection.owns_file(event.src_path):
+                self._callback(event.src_path, collection)
+
+    def on_modified(self, event):
+        super().on_modified(event)
+        if os.path.isdir(event.src_path):
+            return
+
         for collection in self._collections_for_dir:
             if collection.owns_file(event.src_path):
                 self._callback(event.src_path, collection)
