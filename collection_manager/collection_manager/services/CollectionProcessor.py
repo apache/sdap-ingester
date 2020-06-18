@@ -50,7 +50,10 @@ class CollectionProcessor:
         if granule_status is GranuleStatus.DESIRED_FORWARD_PROCESSING:
             logger.info(f"New granule '{granule}' detected for forward-processing ingestion "
                         f"in collection '{collection.dataset_id}'.")
-            use_priority = collection.forward_processing_priority
+            if collection.forward_processing_priority is not None:
+                use_priority = collection.forward_processing_priority
+            else:
+                use_priority = collection.historical_priority
         elif granule_status is GranuleStatus.DESIRED_HISTORICAL:
             logger.info(f"New granule '{granule}' detected for historical ingestion in collection "
                         f"'{collection.dataset_id}'.")
@@ -61,7 +64,7 @@ class CollectionProcessor:
             return
 
         dataset_config = self._fill_template(collection, config_template=self._config_template)
-        self._publisher.publish_message(dataset_config, use_priority)
+        self._publisher.publish_message(body=dataset_config, priority=use_priority)
         history_manager.push(granule)
 
     @staticmethod

@@ -5,7 +5,8 @@ SOLR_URL = "http://localhost:8984/solr"
 DATASET_ID = "zobi_la_mouche"
 
 
-class DatasetIngestionHistorySolrTestCase(unittest.TestCase):
+# TODO: mock solr and fix these tests
+class TestSolrIngestionHistory(unittest.TestCase):
     @unittest.skip("does not work without a solr server for history_manager")
     def test_get(self):
         ingestion_history = SolrIngestionHistory(SOLR_URL, DATASET_ID)

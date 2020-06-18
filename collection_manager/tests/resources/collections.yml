@@ -1,0 +1,17 @@
+collections:
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
+    path: /opt/data/grace/*land*.nc
+    variable: lwe_thickness
+    priority: 1
+    forward-processing-priority: 5
+
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_OCEAN
+    path: /opt/data/grace/*ocean*.nc
+    variable: lwe_thickness
+    priority: 2
+    forward-processing-priority: 6
+
+  - id: AVHRR_OI-NCEI-L4-GLOB-v2.0
+    path: /opt/data/avhrr/*.nc
+    variable: analysed_sst
+    priority: 1
