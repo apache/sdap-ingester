@@ -53,6 +53,8 @@ class IngestionHistory(ABC):
         else:
             self._latest_ingested_file_update = max(self._latest_ingested_file_update, os.path.getmtime(file_path))
 
+        self._save_latest_timestamp()
+
     def latest_ingested_mtime(self) -> Optional[datetime]:
         """
         Return the modified time of the most recently modified file that was ingested.
@@ -98,6 +100,10 @@ class IngestionHistory(ABC):
             return GranuleStatus.DESIRED_HISTORICAL
         else:
             return GranuleStatus.UNDESIRED
+
+    @abstractmethod
+    def _save_latest_timestamp(self):
+        pass
 
     @abstractmethod
     def _push_record(self, file_name, signature):

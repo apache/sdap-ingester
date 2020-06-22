@@ -70,8 +70,12 @@ def main():
                                                granule_updated_callback=collection_processor.process_granule)
 
         collection_watcher.start_watching()
+
         while True:
-            time.sleep(1)
+            try:
+                time.sleep(1)
+            except KeyboardInterrupt:
+                return
 
     except Exception as e:
         logger.error(e)

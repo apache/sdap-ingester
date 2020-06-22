@@ -20,6 +20,7 @@ class FileIngestionHistoryBuilder(IngestionHistoryBuilder):
                                     signature_fun=self._signature_fun)
 
 
+# TODO: clean this up, better tests
 class FileIngestionHistory(IngestionHistory):
 
     def __init__(self, history_path: str, dataset_id: str, signature_fun=None):
@@ -55,7 +56,6 @@ class FileIngestionHistory(IngestionHistory):
     def __del__(self):
         self._history_file.close()
         self._purge()
-        self._save_latest_timestamp()
         del self._history_dict
 
     def reset_cache(self):
@@ -91,8 +91,8 @@ class FileIngestionHistory(IngestionHistory):
 
     def _push_record(self, file_name, signature):
         self._history_dict[file_name] = signature
+
         self._history_file.write(f'{file_name},{signature}\n')
-        return None
 
     def _get_signature(self, file_name):
         return self._history_dict.get(file_name, None)

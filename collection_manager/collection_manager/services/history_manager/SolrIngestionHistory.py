@@ -44,7 +44,6 @@ class SolrIngestionHistory(IngestionHistory):
             raise DatasetIngestionHistorySolrException(f"solr instance unreachable {solr_url}")
 
     def __del__(self):
-        self._push_latest_ingested_date()
         self._req_session.close()
 
     def _push_record(self, file_name, signature):
@@ -58,7 +57,7 @@ class SolrIngestionHistory(IngestionHistory):
         self._solr_granules.commit()
         return None
 
-    def _push_latest_ingested_date(self):
+    def _save_latest_timestamp(self):
         if self._solr_datasets:
             self._solr_datasets.delete(q=f"id:{self._dataset_id}")
             self._solr_datasets.add([{
