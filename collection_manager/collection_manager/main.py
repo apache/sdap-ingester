@@ -8,7 +8,7 @@ from collection_manager.services.history_manager import SolrIngestionHistoryBuil
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
-logger = logging.getLogger("collection_manager")
+logger = logging.getLogger()
 
 
 def check_path(path) -> str:
@@ -19,25 +19,23 @@ def check_path(path) -> str:
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run ingestion for a list of collection ingestion streams")
-    parser.add_argument("--refresh",
-                        help="refresh interval in seconds to check for new or updated granules",
-                        default=300)
-    parser.add_argument("--collections",
+    parser.add_argument("--collections-path",
                         help="Absolute path to collections configuration file",
+                        metavar="PATH",
                         required=True)
-    parser.add_argument('--rabbitmq_host',
+    parser.add_argument('--rabbitmq-host',
                         default='localhost',
                         metavar='HOST',
                         help='RabbitMQ hostname to connect to. (Default: "localhost")')
-    parser.add_argument('--rabbitmq_username',
+    parser.add_argument('--rabbitmq-username',
                         default='guest',
                         metavar='USERNAME',
                         help='RabbitMQ username. (Default: "guest")')
-    parser.add_argument('--rabbitmq_password',
+    parser.add_argument('--rabbitmq-password',
                         default='guest',
                         metavar='PASSWORD',
                         help='RabbitMQ password. (Default: "guest")')
-    parser.add_argument('--rabbitmq_queue',
+    parser.add_argument('--rabbitmq-queue',
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
@@ -65,7 +63,7 @@ def main():
         publisher.connect()
         collection_processor = CollectionProcessor(message_publisher=publisher,
                                                    history_manager_builder=history_manager_builder)
-        collection_watcher = CollectionWatcher(collections_path=options.collections,
+        collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                collection_updated_callback=collection_processor.process_collection,
                                                granule_updated_callback=collection_processor.process_granule)
 
