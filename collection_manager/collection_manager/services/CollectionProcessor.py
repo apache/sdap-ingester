@@ -63,7 +63,7 @@ class CollectionProcessor:
                         f"time range for collection '{collection.dataset_id}'. Skipping.")
             return
 
-        dataset_config = self._fill_template(collection, config_template=self._config_template)
+        dataset_config = self._fill_template(granule, collection, config_template=self._config_template)
         self._publisher.publish_message(body=dataset_config, priority=use_priority)
         history_manager.push(granule)
 
@@ -78,11 +78,11 @@ class CollectionProcessor:
         return self._history_manager_cache[dataset_id]
 
     @staticmethod
-    def _fill_template(collection: Collection, config_template: str) -> str:
+    def _fill_template(granule_path: str, collection: Collection, config_template: str) -> str:
         renderer = pystache.Renderer()
         config_content = renderer.render(config_template,
                                          {
-                                             'granule': collection.path,
+                                             'granule': granule_path,
                                              'dataset_id': collection.dataset_id,
                                              'variable': collection.variable
                                          })

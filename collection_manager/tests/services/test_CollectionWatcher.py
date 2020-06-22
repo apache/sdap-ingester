@@ -6,7 +6,7 @@ from datetime import datetime
 from unittest.mock import Mock
 
 from collection_manager.entities import Collection
-from collection_manager.entities.exceptions import YamlParsingError, CollectionConfigFileNotFoundError, \
+from collection_manager.entities.exceptions import CollectionConfigParsingError, CollectionConfigFileNotFoundError, \
     RelativePathCollectionError, ConflictingPathCollectionError
 from collection_manager.services import CollectionWatcher
 
@@ -38,10 +38,16 @@ class TestCollectionWatcher(unittest.TestCase):
         self.assertEqual(len(collection_watcher._collections_by_dir['/opt/data/avhrr']), 1)
 
     def test_load_collections_with_bad_yaml_syntax(self):
-        collections_path = os.path.join(os.path.dirname(__file__), '../resources/collections_bad.yml')
+        collections_path = os.path.join(os.path.dirname(__file__), '../resources/collections_bad_syntax.yml')
         collection_watcher = CollectionWatcher(collections_path, Mock(), Mock())
 
-        self.assertRaises(YamlParsingError, collection_watcher._load_collections)
+        self.assertRaises(CollectionConfigParsingError, collection_watcher._load_collections)
+
+    def test_load_collections_with_bad_schema(self):
+        collections_path = os.path.join(os.path.dirname(__file__), '../resources/collections_bad_schema.yml')
+        collection_watcher = CollectionWatcher(collections_path, Mock(), Mock())
+
+        self.assertRaises(CollectionConfigParsingError, collection_watcher._load_collections)
 
     def test_load_collections_with_file_not_found(self):
         collections_path = os.path.join(os.path.dirname(__file__), '../resources/does_not_exist.yml')

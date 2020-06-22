@@ -46,7 +46,7 @@ class TestCollectionProcessor(unittest.TestCase):
 
         expected = """
         granule:
-          resource: test_path
+          resource: /granules/test_granule.nc
         processors:
           - name: GridReadingProcessor
             variable_to_read: test_variable
@@ -54,13 +54,13 @@ class TestCollectionProcessor(unittest.TestCase):
             dataset_name: test_dataset
             """
         collection = Collection(dataset_id="test_dataset",
-                                path="test_path",
+                                path="/granules/test*.nc",
                                 variable="test_variable",
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
                                 date_to=None)
-        filled = CollectionProcessor._fill_template(collection, template)
+        filled = CollectionProcessor._fill_template("/granules/test_granule.nc", collection, template)
         self.assertEqual(filled, expected)
 
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)

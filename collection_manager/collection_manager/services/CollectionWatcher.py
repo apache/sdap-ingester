@@ -9,7 +9,7 @@ from watchdog.observers import Observer
 from yaml.scanner import ScannerError
 
 from collection_manager.entities import Collection
-from collection_manager.entities.exceptions import RelativePathError, YamlParsingError, \
+from collection_manager.entities.exceptions import RelativePathError, CollectionConfigParsingError, \
     CollectionConfigFileNotFoundError, MissingValueCollectionError, ConflictingPathCollectionError, \
     RelativePathCollectionError
 
@@ -84,8 +84,12 @@ class CollectionWatcher:
             raise CollectionConfigFileNotFoundError("The collection config file could not be found at "
                                                     f"{self._collections_path}")
         except yaml.scanner.ScannerError:
-            raise YamlParsingError("Bad YAML syntax in collection configuration file. Will attempt to reload "
-                                   "collections after the next configuration change.")
+            raise CollectionConfigParsingError("Bad YAML syntax in collection configuration file. Will attempt "
+                                               "to reload collections after the next configuration change.")
+        except KeyError:
+            raise CollectionConfigParsingError("The collections configuration YAML file does not conform to the "
+                                               "proper schema. Will attempt to reload collections config after the "
+                                               "next file modification.")
 
     def _get_updated_collections(self) -> Set[Collection]:
         old_collections = self.collections()
@@ -98,7 +102,7 @@ class CollectionWatcher:
                 self._collection_updated_callback(collection)
             self._unschedule_watches()
             self._schedule_watches()
-        except YamlParsingError as e:
+        except CollectionConfigParsingError as e:
             logger.error(e)
 
     def _unschedule_watches(self):
@@ -111,7 +115,11 @@ class CollectionWatcher:
             granule_event_handler = _GranuleEventHandler(self._granule_updated_callback, collections)
             # Note: the Watchdog library does not schedule a new watch
             # if one is already scheduled for the same directory
-            self._granule_watches.add(self._observer.schedule(granule_event_handler, directory))
+            try:
+                self._granule_watches.add(self._observer.schedule(granule_event_handler, directory))
+            except (FileNotFoundError, NotADirectoryError):
+                bad_collection_names = ' and '.join([col.dataset_id for col in collections])
+                logger.error(f"Granule directory {directory} does not exist. Ignoring {bad_collection_names}.")
 
 
 class _CollectionEventHandler(FileSystemEventHandler):
