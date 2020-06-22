@@ -2,7 +2,7 @@ class RelativePathError(Exception):
     pass
 
 
-class YamlParsingError(Exception):
+class CollectionConfigParsingError(Exception):
     pass
 
 
