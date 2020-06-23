@@ -1,0 +1,3 @@
+cassandra-driver==3.23.0
+aiomultiprocess
+aioboto3
