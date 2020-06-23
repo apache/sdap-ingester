@@ -1,0 +1,17 @@
+granule:
+  resource: ../foo/bar.nc
+slicer:
+  name: sliceFileByStepSize
+  dimension_step_sizes:
+    time: 1
+    lat: 33
+    lon: 26
+processors:
+  - name: EccoReadingProcessor
+    latitude: YC
+    longitude: XC
+    time: time
+    depth: Z
+    tile: tile
+    variable_to_read: THETA
+  - name: generateTileId
