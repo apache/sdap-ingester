@@ -1,0 +1,16 @@
+slicer:
+  name: sliceFileByStepSize
+  dimension_step_sizes:
+    time: 1
+    lon: 10
+    lat: 10
+processors:
+  - name: GridReadingProcessor
+    latitude: lat
+    longitude: lon
+    time: time
+    variable_to_read: analysed_sst
+  - name: emptyTileFilter
+  - name: tileSummary
+    dataset_name: AVHRR_sst
+  - name: generateTileId
