@@ -1,7 +1,7 @@
 # SDAP Collection Manager
 
-The SDAP Collection Manager is a service that watches a YAML file (the Collections
-Configuration file) stored on the filesystem, and all the directories listed in that
+The SDAP Collection Manager is a service that watches a YAML file (the [Collections
+Configuration](#the-collections-configuration-file) file) stored on the filesystem, and all the directories listed in that
 file. Any time new granules are added to any of the watched directories, the Collection
 Manager service will publish a message to RabbitMQ to be picked up by the Granule Ingester
 (`/granule_ingester` in this repository), which will then ingest the new granules.
