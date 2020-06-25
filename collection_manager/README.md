@@ -39,13 +39,13 @@ collections:
     # The local path to watch for NetCDF granule files to be associated with this dataset. Supports glob-style patterns.
     path: /opt/data/grace/*land*.nc 
 
-    # The name of the NetCDF variable in the granules to be ingested into NEXUS
+    # The name of the NetCDF variable to read when ingesting granules into NEXUS for this dataset
     variable: lwe_thickness 
 
-    # An integer priority level to be used when publishing messages to RabbitMQ for historical data. Higher number = higher priority.
+    # An integer priority level to use when publishing messages to RabbitMQ for historical data. Higher number = higher priority.
     priority: 1 
 
-    # An integer priority level to be used when publishing messages to RabbitMQ for forward-processing data.
+    # An integer priority level to use when publishing messages to RabbitMQ for forward-processing data
     forward-processing-priority: 5 
 
   - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_OCEAN
