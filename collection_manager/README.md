@@ -2,7 +2,7 @@
 
 The SDAP Collection Manager is a service that watches a YAML file (the [Collections
 Configuration](#the-collections-configuration-file) file) stored on the filesystem, and all the directories listed in that
-file. Any time new granules are added to any of the watched directories, the Collection
+file. Whenever new granules are added to any of the watched directories, the Collection
 Manager service will publish a message to RabbitMQ to be picked up by the Granule Ingester
 (`/granule_ingester` in this repository), which will then ingest the new granules.
 
@@ -25,18 +25,18 @@ From `incubator-sdap-ingester/collection_manager`, run:
 ### The Collections Configuration File
 
 A path to a collections configuration file must be passed in to the Collection Manager
-on startup via the `--collections-path` parameter. Below is an example of what the 
+at startup via the `--collections-path` parameter. Below is an example of what the 
 collections configuration file should look like:
 
 ```yaml
 # collections.yaml
 
 collections:
-  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
-    path: /opt/data/grace/*land*.nc
-    variable: lwe_thickness
-    priority: 1
-    forward-processing-priority: 5
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND # The identifier for the dataset as it will appear in NEXUS
+    path: /opt/data/grace/*land*.nc # The local path to watch for NetCDF granule files to be associated with this dafiles to be associated with this dataset. Accepts glob-style patterns.
+    variable: lwe_thickness # The name of the NetCDF variable in the granules to be ingested into NEXUS
+    priority: 1 # An integer priority level to be used when publishing messages to RabbitMQ for historical data. Higher number = higher priority.
+    forward-processing-priority: 5 # An integer priority level to be used when publishing messages to RabbitMQ for forward-processing data.
 
   - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_OCEAN
     path: /opt/data/grace/*ocean*.nc
