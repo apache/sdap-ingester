@@ -18,11 +18,19 @@ def check_path(path) -> str:
 
 
 def get_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run ingestion for a list of collection ingestion streams")
+    parser = argparse.ArgumentParser(description="Watch the filesystem for new granules, and publish messages to "
+                                                 "RabbitMQ whenever they become available.")
     parser.add_argument("--collections-path",
                         help="Absolute path to collections configuration file",
                         metavar="PATH",
                         required=True)
+    history_group = parser.add_mutually_exclusive_group(required=True)
+    history_group.add_argument("--history-path",
+                               metavar="PATH",
+                               help="Absolute path to ingestion history local directory")
+    history_group.add_argument("--history-url",
+                               metavar="URL",
+                               help="URL to ingestion history solr database")
     parser.add_argument('--rabbitmq-host',
                         default='localhost',
                         metavar='HOST',
@@ -39,11 +47,6 @@ def get_args() -> argparse.Namespace:
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
-    history_group = parser.add_mutually_exclusive_group(required=True)
-    history_group.add_argument("--history-path",
-                               help="Absolute path to ingestion history local directory")
-    history_group.add_argument("--history-url",
-                               help="URL to ingestion history solr database")
 
     return parser.parse_args()
 
