@@ -32,11 +32,21 @@ collections configuration file should look like:
 # collections.yaml
 
 collections:
-  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND # The identifier for the dataset as it will appear in NEXUS
-    path: /opt/data/grace/*land*.nc # The local path to watch for NetCDF granule files to be associated with this dafiles to be associated with this dataset. Accepts glob-style patterns.
-    variable: lwe_thickness # The name of the NetCDF variable in the granules to be ingested into NEXUS
-    priority: 1 # An integer priority level to be used when publishing messages to RabbitMQ for historical data. Higher number = higher priority.
-    forward-processing-priority: 5 # An integer priority level to be used when publishing messages to RabbitMQ for forward-processing data.
+
+    # The identifier for the dataset as it will appear in NEXUS
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND 
+
+    # The local path to watch for NetCDF granule files to be associated with this dafiles to be associated with this dataset. Accepts glob-style patterns.
+    path: /opt/data/grace/*land*.nc 
+
+    # The name of the NetCDF variable in the granules to be ingested into NEXUS
+    variable: lwe_thickness 
+
+    # An integer priority level to be used when publishing messages to RabbitMQ for historical data. Higher number = higher priority.
+    priority: 1 
+
+    # An integer priority level to be used when publishing messages to RabbitMQ for forward-processing data.
+    forward-processing-priority: 5 
 
   - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_OCEAN
     path: /opt/data/grace/*ocean*.nc
