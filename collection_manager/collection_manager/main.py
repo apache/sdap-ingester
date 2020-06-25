@@ -8,7 +8,7 @@ from collection_manager.services.history_manager import SolrIngestionHistoryBuil
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
-logger = logging.getLogger("collection_manager")
+logger = logging.getLogger(__name__)
 
 
 def check_path(path) -> str:
@@ -18,34 +18,35 @@ def check_path(path) -> str:
 
 
 def get_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run ingestion for a list of collection ingestion streams")
-    parser.add_argument("--refresh",
-                        help="refresh interval in seconds to check for new or updated granules",
-                        default=300)
-    parser.add_argument("--collections",
+    parser = argparse.ArgumentParser(description="Watch the filesystem for new granules, and publish messages to "
+                                                 "RabbitMQ whenever they become available.")
+    parser.add_argument("--collections-path",
                         help="Absolute path to collections configuration file",
+                        metavar="PATH",
                         required=True)
-    parser.add_argument('--rabbitmq_host',
+    history_group = parser.add_mutually_exclusive_group(required=True)
+    history_group.add_argument("--history-path",
+                               metavar="PATH",
+                               help="Absolute path to ingestion history local directory")
+    history_group.add_argument("--history-url",
+                               metavar="URL",
+                               help="URL to ingestion history solr database")
+    parser.add_argument('--rabbitmq-host',
                         default='localhost',
                         metavar='HOST',
                         help='RabbitMQ hostname to connect to. (Default: "localhost")')
-    parser.add_argument('--rabbitmq_username',
+    parser.add_argument('--rabbitmq-username',
                         default='guest',
                         metavar='USERNAME',
                         help='RabbitMQ username. (Default: "guest")')
-    parser.add_argument('--rabbitmq_password',
+    parser.add_argument('--rabbitmq-password',
                         default='guest',
                         metavar='PASSWORD',
                         help='RabbitMQ password. (Default: "guest")')
-    parser.add_argument('--rabbitmq_queue',
+    parser.add_argument('--rabbitmq-queue',
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
-    history_group = parser.add_mutually_exclusive_group(required=True)
-    history_group.add_argument("--history-path",
-                               help="Absolute path to ingestion history local directory")
-    history_group.add_argument("--history-url",
-                               help="URL to ingestion history solr database")
 
     return parser.parse_args()
 
@@ -65,7 +66,7 @@ def main():
         publisher.connect()
         collection_processor = CollectionProcessor(message_publisher=publisher,
                                                    history_manager_builder=history_manager_builder)
-        collection_watcher = CollectionWatcher(collections_path=options.collections,
+        collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                collection_updated_callback=collection_processor.process_collection,
                                                granule_updated_callback=collection_processor.process_granule)
 
