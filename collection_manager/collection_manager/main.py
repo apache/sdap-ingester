@@ -8,7 +8,7 @@ from collection_manager.services.history_manager import SolrIngestionHistoryBuil
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def check_path(path) -> str:
