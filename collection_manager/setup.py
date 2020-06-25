@@ -1,8 +1,6 @@
-import setuptools
-import os
-import subprocess
-import sys
 import re
+
+import setuptools
 
 PACKAGE_NAME = "sdap_collection_manager"
 
@@ -24,7 +22,7 @@ setuptools.setup(
     description="a helper to ingest data in sdap",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/tloubrieu-jpl/incubator-sdap-nexus-ingestion-manager",
+    url="https://github.com/apache/incubator-sdap-ingester",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

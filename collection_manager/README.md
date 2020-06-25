@@ -1,103 +1,75 @@
-# SDAP manager for ingestion of datasets
+# SDAP Collection Manager
+
+The SDAP Collection Manager is a service that watches a YAML file (the [Collections
+Configuration](#the-collections-configuration-file) file) stored on the filesystem, and all the directories listed in that
+file. Whenever new granules are added to any of the watched directories, the Collection
+Manager service will publish a message to RabbitMQ to be picked up by the Granule Ingester
+(`/granule_ingester` in this repository), which will then ingest the new granules.
+
 
 ## Prerequisites
 
-### python 3
+Python 3.7
 
-Install anaconda for python 3. From the graphic install for example for macos:
+## Building the service
+From `incubator-sdap-ingester/collection_manager`, run:
 
-https://www.anaconda.com/distribution/#macos
-
-### git lfs (for development)
-
-Git lfs for the deployment from git, see https://git-lfs.github.com/
-
-If not available you have to get netcdf files for test, if you do need the tests.
-
-### Deployed nexus on kubernetes cluster
-
-See project https://github.com/apache/incubator-sdap-nexus
-
-    $ helm install nexus .  --namespace=sdap --dependency-update -f ~/overridden-nexus-values.yml 
-
-For development purpose, you might want to expose solr port outside kubernetes
-
-   kubectl port-forward solr-set-0 8983:8983 -n sdap 
-
- 
-## For developers
-
-### deploy project
-
-    $ bash
-    $ git clone ...
-    $ cd sdap_ingest_manager
-    $ python -m venv venv
-    $ source ./venv/bin/activate
-    $ pip install .
-    $ pytest -s
-    
-Note the command pip install -e . does not work as it does not deploy the configuration files.
-
-### Update the project
-
-Update the code and the test with your favorite IDE (e.g. pyCharm).
-
-### Launch for development/tests
-
-### Prerequisite
-
-Deploy a local rabbitmq service, for example with docker.
-
-    docker run -d --hostname localhost -p 5672:5672 --name rabbitmq rabbitmq:3
-   
-   
-### Launch the service
-
-
-The service reads the collection configuration and submit granule ingestion messages to the message broker (rabbitmq).
-For each collection, 2 ingestion priority levels are proposed: the nominal priority, the priority for forward processing (newer files), usually higher. 
-An history of the ingested granules is managed so that the ingestion can stop and re-start anytime.
-
-    cd collection_manager
-    python main.py -h
-    python main.py --collections ../tests/resources/data/collections.yml --history-path=/tmp
-
-# Containerization
-
-TO BE UPDATED
-
-## Docker
-
-    docker build . -f containers/docker/config-operator/Dockerfile --no-cache --tag tloubrieu/sdap-ingest-manager:latest
-        
-To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
-
-    docker login
-    docker push tloubrieu/sdap-ingest-manager:latest
-    
-## Kubernetes
-    
-### Launch the service
-
-    kubectl apply -f containers/kubernetes/job.yml -n sdap
-    
-Delete the service: 
-
-    kubectl delete jobs --all -n sdap
-    
+    $ python setup.py install
     
 
-    
+## Running the service
+From `incubator-sdap-ingester/collection_manager`, run:
 
+    $ python collection_manager/main.py -h
     
+### The Collections Configuration File
+
+A path to a collections configuration file must be passed in to the Collection Manager
+at startup via the `--collections-path` parameter. Below is an example of what the 
+collections configuration file should look like:
+
+```yaml
+# collections.yaml
+
+collections:
+
+    # The identifier for the dataset as it will appear in NEXUS.
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND 
+
+    # The local path to watch for NetCDF granule files to be associated with this dataset. 
+    # Supports glob-style patterns.
+    path: /opt/data/grace/*land*.nc 
+
+    # The name of the NetCDF variable to read when ingesting granules into NEXUS for this dataset.
+    variable: lwe_thickness 
+
+    # An integer priority level to use when publishing messages to RabbitMQ for historical data. 
+    # Higher number = higher priority.
+    priority: 1 
+
+    # An integer priority level to use when publishing messages to RabbitMQ for forward-processing data.
+    # Higher number = higher priority.
+    forward-processing-priority: 5 
+
+  - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_OCEAN
+    path: /opt/data/grace/*ocean*.nc
+    variable: lwe_thickness
+    priority: 2
+    forward-processing-priority: 6
+
+  - id: AVHRR_OI-NCEI-L4-GLOB-v2.0
+    path: /opt/data/avhrr/*.nc
+    variable: analysed_sst
+    priority: 1
+
+```
+## Running the tests
+From `incubator-sdap-ingester/collection_manager`, run:
+
+    $ pip install pytest
+    $ pytest
     
-    
- 
-    
-    
+## Building the Docker image
+From `incubator-sdap-ingester/collection_manager`, run:
 
-
-
-
-
+    $ docker build . -f docker/Dockerfile -t nexusjpl/collection-manager

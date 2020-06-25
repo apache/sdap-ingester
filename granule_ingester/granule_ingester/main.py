@@ -45,7 +45,8 @@ async def run_health_checks(dependencies: List[HealthCheck]):
 
 
 async def main():
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Listen to RabbitMQ for granule ingestion instructions, and process '
+                                                 'and ingest a granule for each message that comes through.')
     parser.add_argument('--rabbitmq_host',
                         default='localhost',
                         metavar='HOST',
