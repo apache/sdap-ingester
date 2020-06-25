@@ -36,7 +36,7 @@ collections:
     # The identifier for the dataset as it will appear in NEXUS
   - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND 
 
-    # The local path to watch for NetCDF granule files to be associated with this dafiles to be associated with this dataset. Accepts glob-style patterns.
+    # The local path to watch for NetCDF granule files to be associated with this dataset. Supports glob-style patterns.
     path: /opt/data/grace/*land*.nc 
 
     # The name of the NetCDF variable in the granules to be ingested into NEXUS
