@@ -9,7 +9,7 @@ COPY /collection_manager /collection_manager/collection_manager
 COPY /setup.py /collection_manager/setup.py
 COPY /requirements.txt /collection_manager/requirements.txt
 COPY /README.md /collection_manager/README.md
-COPY /containers/docker/entrypoint.sh /entrypoint.sh
+COPY /docker/entrypoint.sh /entrypoint.sh
 
 RUN cd /collection_manager && python setup.py install
 
