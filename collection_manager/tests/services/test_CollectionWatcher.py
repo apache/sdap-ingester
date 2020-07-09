@@ -1,6 +1,6 @@
+import asyncio
 import os
 import tempfile
-import time
 import unittest
 from datetime import datetime
 from unittest.mock import Mock
@@ -132,8 +132,13 @@ class TestCollectionWatcher(unittest.TestCase):
         collections_config.write(collections_str.encode("utf-8"))
 
         collection_callback = Mock()
-        collection_watcher = CollectionWatcher(collections_config.name, collection_callback, Mock())
-        collection_watcher.start_watching()
+        collection_watcher = CollectionWatcher(collections_path=collections_config.name,
+                                               collection_updated_callback=collection_callback,
+                                               granule_updated_callback=Mock(),
+                                               collections_refresh_interval=0.1)
+
+        loop = asyncio.new_event_loop()
+        collection_watcher.start_watching(loop)
 
         collections_str = f"""
 - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
@@ -143,9 +148,11 @@ class TestCollectionWatcher(unittest.TestCase):
   forward-processing-priority: 5
         """
         collections_config.write(collections_str.encode("utf-8"))
-        collections_config.close()
 
-        self.assert_called_within_timeout(collection_callback, timeout_sec=1, call_count=2)
+        loop.run_until_complete(self.assert_called_within_timeout(collection_callback, call_count=2))
+
+        loop.close()
+        collections_config.close()
         granule_dir.cleanup()
         os.remove(collections_config.name)
 
@@ -164,12 +171,15 @@ collections:
 
             granule_callback = Mock()
             collection_watcher = CollectionWatcher(collections_config.name, Mock(), granule_callback)
-            collection_watcher.start_watching()
+
+            loop = asyncio.new_event_loop()
+            collection_watcher.start_watching(loop)
 
             new_granule = open(os.path.join(granule_dir.name, 'test.nc'), "w+")
 
-            self.assert_called_within_timeout(granule_callback)
+            loop.run_until_complete(self.assert_called_within_timeout(granule_callback))
 
+            loop.close()
             new_granule.close()
             granule_dir.cleanup()
 
@@ -189,21 +199,31 @@ collections:
 
             granule_callback = Mock()
             collection_watcher = CollectionWatcher(collections_config.name, Mock(), granule_callback)
-            collection_watcher.start_watching()
+
+            loop = asyncio.new_event_loop()
+            collection_watcher.start_watching(loop)
 
             new_granule.write("hello world")
             new_granule.close()
 
-            self.assert_called_within_timeout(granule_callback)
-
+            loop.run_until_complete(self.assert_called_within_timeout(granule_callback))
+            loop.close()
             granule_dir.cleanup()
 
+    def test_run_periodically(self):
+        callback = Mock()
+        loop = asyncio.new_event_loop()
+        CollectionWatcher._run_periodically(loop, 0.1, callback)
+        loop.run_until_complete(self.assert_called_within_timeout(callback, timeout_sec=0.3, call_count=2))
+        loop.close()
+
     @staticmethod
-    def assert_called_within_timeout(mock_func, timeout_sec=1.0, call_count=1):
+    async def assert_called_within_timeout(mock_func, timeout_sec=1.0, call_count=1):
         start = datetime.now()
 
         while (datetime.now() - start).total_seconds() < timeout_sec:
-            time.sleep(0.01)
+            await asyncio.sleep(0.01)
             if mock_func.call_count >= call_count:
                 return
         raise AssertionError(f"{mock_func} did not reach {call_count} calls called within {timeout_sec} sec")
+
