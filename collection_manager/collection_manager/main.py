@@ -1,7 +1,7 @@
 import argparse
+import asyncio
 import logging
 import os
-import time
 
 from collection_manager.services import CollectionProcessor, CollectionWatcher, MessagePublisher
 from collection_manager.services.history_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
@@ -47,11 +47,15 @@ def get_args() -> argparse.Namespace:
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
+    parser.add_argument('--refresh',
+                        default='30',
+                        metavar="INTERVAL",
+                        help='Number of seconds after which to reload the collections config file. (Default: 30)')
 
     return parser.parse_args()
 
 
-def main():
+async def main():
     try:
         options = get_args()
 
@@ -68,13 +72,14 @@ def main():
                                                    history_manager_builder=history_manager_builder)
         collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                collection_updated_callback=collection_processor.process_collection,
-                                               granule_updated_callback=collection_processor.process_granule)
+                                               granule_updated_callback=collection_processor.process_granule,
+                                               collections_refresh_interval=int(options.refresh))
 
         collection_watcher.start_watching()
 
         while True:
             try:
-                time.sleep(1)
+                await asyncio.sleep(1)
             except KeyboardInterrupt:
                 return
 
@@ -84,4 +89,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
