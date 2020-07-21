@@ -25,7 +25,7 @@ The component runs as a kubernetes operator (see containerization section)
 To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
 
     docker login
-    docker push tloubrieu/sdap-ingest-manager:latest
+    docker push tloubrieu/config-operator:latest
     
 ## Kubernetes
     

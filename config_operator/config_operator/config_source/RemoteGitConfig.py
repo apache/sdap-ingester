@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-import time
+import asyncio
+from functools import partial
 from git import Repo
 from typing import Callable
 from .LocalDirConfig import LocalDirConfig
@@ -16,10 +17,11 @@ DEFAULT_LOCAL_REPO_DIR = os.path.join(sys.prefix, 'sdap', 'conf')
 class RemoteGitConfig(LocalDirConfig):
     def __init__(self, git_url: str,
                  git_branch: str = 'master',
+                 git_username: str = None,
                  git_token: str = None,
                  update_every_seconds: int = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
-                 local_dir: str = DEFAULT_LOCAL_REPO_DIR
-                 ):
+                 local_dir: str = DEFAULT_LOCAL_REPO_DIR,
+                 repo: Repo = None):
         """
 
         :param git_url:
@@ -27,14 +29,23 @@ class RemoteGitConfig(LocalDirConfig):
         :param git_token:
         """
         self._git_url = git_url if git_url.endswith(".git") else git_url + '.git'
+        if git_username and git_token:
+            self._git_url.replace('https://', f'https://{git_username}:{git_token}')
+            self._git_url.replace('http://', f'http://{git_username}:{git_token}')
+
         self._git_branch = git_branch
         self._git_token = git_token
         if local_dir is None:
             local_dir = DEFAULT_LOCAL_REPO_DIR
         self._update_every_seconds = update_every_seconds
         super().__init__(local_dir, update_every_seconds=self._update_every_seconds)
-        self._repo = None
-        self._init_local_config_repo()
+
+        if repo:
+            self._repo = repo
+        else:
+            self._repo = None
+            self._init_local_config_repo()
+
         self._latest_commit_key = self._pull_remote()
 
     def _pull_remote(self):
@@ -49,19 +60,22 @@ class RemoteGitConfig(LocalDirConfig):
         self._repo.git.fetch()
         self._repo.git.checkout(self._git_branch)
 
-    def when_updated(self, callback: Callable[[], None]):
+    async def when_updated(self, callback: Callable[[], None], loop=None):
         """
         call function callback when the remote git repository is updated.
         """
-        while True:
-            time.sleep(self._update_every_seconds)
-            remote_commit_key = self._pull_remote()
-            if remote_commit_key != self._latest_commit_key:
-                logger.info("remote git repository has been updated")
-                callback()
-                self._latest_commit_key = remote_commit_key
-            else:
-                logger.debug("remote git repository has not been updated")
+        if loop is None:
+            loop = asyncio.get_running_loop()
+
+        remote_commit_key = self._pull_remote()
+        if remote_commit_key != self._latest_commit_key:
+            logger.info("remote git repository has been updated")
+            callback()
+            self._latest_commit_key = remote_commit_key
+        else:
+            logger.debug("remote git repository has not been updated")
+
+        loop.call_later(self._update_every_seconds, partial(self.when_updated, callback, loop))
 
         return None
 
