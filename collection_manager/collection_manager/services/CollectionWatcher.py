@@ -2,8 +2,7 @@ import asyncio
 import logging
 import os
 from collections import defaultdict
-from typing import Dict, Callable, Set, Optional
-
+from typing import Dict, Callable, Set, Optional, Awaitable
 import yaml
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -21,8 +20,8 @@ logger.setLevel(logging.DEBUG)
 class CollectionWatcher:
     def __init__(self,
                  collections_path: str,
-                 collection_updated_callback: Callable[[Collection], any],
-                 granule_updated_callback: Callable[[str, Collection], any],
+                 collection_updated_callback: Callable[[Collection], Awaitable],
+                 granule_updated_callback: Callable[[str, Collection], Awaitable],
                  collections_refresh_interval: float = 30):
         if not os.path.isabs(collections_path):
             raise RelativePathError("Collections config  path must be an absolute path.")
@@ -45,7 +44,9 @@ class CollectionWatcher:
         :return: None
         """
 
-        await self._run_periodically(loop, self._collections_refresh_interval, self._reload_and_reschedule)
+        await self._run_periodically(loop=loop,
+                                     wait_time=self._collections_refresh_interval,
+                                     coro=self._reload_and_reschedule())
         self._observer.start()
 
     def collections(self) -> Set[Collection]:
@@ -131,8 +132,7 @@ class CollectionWatcher:
     async def _run_periodically(cls,
                                 loop: Optional[asyncio.AbstractEventLoop],
                                 wait_time: float,
-                                coro,
-                                *args):
+                                coro: Awaitable):
         """
         Call a function periodically. This uses asyncio, and is non-blocking.
         :param loop: An optional event loop to use. If None, the current running event loop will be used.
@@ -142,7 +142,7 @@ class CollectionWatcher:
         """
         if loop is None:
             loop = asyncio.get_running_loop()
-        await coro(*args)
+        await coro
         loop.call_later(wait_time, asyncio.create_task, cls._run_periodically(loop, wait_time, coro))
 
 
@@ -151,16 +151,19 @@ class _GranuleEventHandler(FileSystemEventHandler):
     EventHandler that watches for new or modified granule files.
     """
 
-    def __init__(self, loop: asyncio.AbstractEventLoop, callback_coro, collections_for_dir: Set[Collection]):
+    def __init__(self,
+                 loop: asyncio.AbstractEventLoop,
+                 callback: Callable[[str, Collection], Awaitable],
+                 collections_for_dir: Set[Collection]):
         self._loop = loop
-        self._callback_coro = callback_coro
+        self._callback = callback
         self._collections_for_dir = collections_for_dir
 
     def on_created(self, event):
         super().on_created(event)
         for collection in self._collections_for_dir:
             if collection.owns_file(event.src_path):
-                self._loop.create_task(self._callback_coro(event.src_path, collection))
+                self._loop.create_task(self._callback(event.src_path, collection))
 
     def on_modified(self, event):
         super().on_modified(event)
@@ -169,4 +172,4 @@ class _GranuleEventHandler(FileSystemEventHandler):
 
         for collection in self._collections_for_dir:
             if collection.owns_file(event.src_path):
-                self._loop.create_task(self._callback_coro(event.src_path, collection))
+                self._loop.create_task(self._callback(event.src_path, collection))
