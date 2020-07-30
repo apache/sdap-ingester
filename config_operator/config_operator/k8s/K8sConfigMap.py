@@ -4,7 +4,8 @@ from kubernetes import client, config
 from config_operator.config_source import LocalDirConfig, RemoteGitConfig
 from kubernetes.client.rest import ApiException
 from typing import Union
-
+from kubernetes.client.api.core_v1_api import CoreV1Api
+from kubernetes.client import ApiClient
 from config_operator.config_source.exceptions import UnreadableFileException
 
 logging.basicConfig(level=logging.INFO)
@@ -14,19 +15,24 @@ logger = logging.getLogger(__name__)
 class K8sConfigMap:
     def __init__(self, configmap_name: str,
                  namespace: str,
-                 external_config: Union[LocalDirConfig, RemoteGitConfig]):
+                 external_config: Union[LocalDirConfig, RemoteGitConfig],
+                 api_instance: ApiClient = None,
+                 api_core_v1_instance: CoreV1Api = None):
         self._git_remote_config = external_config
         self._namespace = namespace
         self._configmap_name = configmap_name
 
-        # test is this runs inside kubernetes cluster
-        if os.getenv('KUBERNETES_SERVICE_HOST'):
-            config.load_incluster_config()
-        else:
-            config.load_kube_config()
-        configuration = client.Configuration()
-        self._api_instance = client.ApiClient(configuration)
-        self._api_core_v1_instance = client.CoreV1Api(self._api_instance)
+        if api_core_v1_instance is None:
+            # test is this runs inside kubernetes cluster
+            if os.getenv('KUBERNETES_SERVICE_HOST'):
+                config.load_incluster_config()
+            else:
+                config.load_kube_config()
+            configuration = client.Configuration()
+            api_instance = client.ApiClient(configuration)
+            api_core_v1_instance = client.CoreV1Api(api_instance)
+        self._api_instance = api_instance
+        self._api_core_v1_instance = api_core_v1_instance
         self.publish()
 
     def __del__(self):
