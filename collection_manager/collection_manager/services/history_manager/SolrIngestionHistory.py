@@ -35,8 +35,8 @@ class SolrIngestionHistory(IngestionHistory):
         try:
             self._solr_url = solr_url
             self._create_collection_if_needed()
-            self._solr_granules = pysolr.Solr('/'.join([solr_url.strip('/'), self._granule_collection_name]))
-            self._solr_datasets = pysolr.Solr('/'.join([solr_url.strip('/'), self._dataset_collection_name]))
+            self._solr_granules = pysolr.Solr(f"{solr_url.strip('/')}/solr/{self._granule_collection_name}")
+            self._solr_datasets = pysolr.Solr(f"{solr_url.strip('/')}/solr/{self._dataset_collection_name}")
             self._dataset_id = dataset_id
             self._signature_fun = md5sum_from_filepath if signature_fun is None else signature_fun
             self._latest_ingested_file_update = self._get_latest_file_update()
@@ -63,7 +63,7 @@ class SolrIngestionHistory(IngestionHistory):
             self._solr_datasets.add([{
                 'id': self._dataset_id,
                 'dataset_s': self._dataset_id,
-                'latest_update_l': self._latest_ingested_file_update}])
+                'latest_update_l': int(self._latest_ingested_file_update)}])
             self._solr_datasets.commit()
 
     def _get_latest_file_update(self):
@@ -87,8 +87,7 @@ class SolrIngestionHistory(IngestionHistory):
                 self._req_session = requests.session()
 
             payload = {'action': 'CLUSTERSTATUS'}
-            result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']),
-                                           params=payload)
+            result = self._req_session.get(f"{self._solr_url.strip('/')}/solr/admin/collections", params=payload)
             response = result.json()
             node_number = len(response['cluster']['live_nodes'])
 
@@ -100,12 +99,11 @@ class SolrIngestionHistory(IngestionHistory):
                            'name': self._granule_collection_name,
                            'numShards': node_number
                            }
-                result = self._req_session.get('/'.join([self._solr_url.strip("/"), 'admin', 'collections']),
-                                               params=payload)
+                result = self._req_session.get(f"{self._solr_url.strip('/')}/solr/admin/collections", params=payload)
                 response = result.json()
                 logger.info(f"solr collection created {response}")
                 # Update schema
-                schema_url = '/'.join([self._solr_url.strip('/'), self._granule_collection_name, 'schema'])
+                schema_url = f"{self._solr_url.strip('/')}/{self._granule_collection_name}/schema"
                 # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
                 # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
                 self._add_field(schema_url, "dataset_s", "StrField")
@@ -121,13 +119,12 @@ class SolrIngestionHistory(IngestionHistory):
                            'name': self._dataset_collection_name,
                            'numShards': node_number
                            }
-                result = self._req_session.get('/'.join([self._solr_url.strip('/'), 'admin', 'collections']),
-                                               params=payload)
+                result = self._req_session.get(f"{self._solr_url.strip('/')}/solr/admin/collections", params=payload)
                 response = result.json()
                 logger.info(f"solr collection created {response}")
                 # Update schema
                 # http://localhost:8983/solr/nexusdatasets/schema?_=1588555874864&wt=json
-                schema_url = '/'.join([self._solr_url.strip('/'), self._dataset_collection_name, 'schema'])
+                schema_url = f"{self._solr_url.strip('/')}/{self._granule_collection_name}/schema"
                 # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
                 self._add_field(schema_url, "dataset_s", "StrField")
                 self._add_field(schema_url, "latest_update_l", "TrieLongField")
