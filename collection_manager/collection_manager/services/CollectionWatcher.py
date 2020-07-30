@@ -143,7 +143,7 @@ class CollectionWatcher:
         if loop is None:
             loop = asyncio.get_running_loop()
         await coro
-        loop.call_later(wait_time, asyncio.create_task, cls._run_periodically(loop, wait_time, coro))
+        loop.call_later(wait_time, loop.create_task, cls._run_periodically(loop, wait_time, coro))
 
 
 class _GranuleEventHandler(FileSystemEventHandler):
