@@ -16,16 +16,16 @@ The component runs as a kubernetes operator (see containerization section)
     pip install -e .
     pytest -d
 
-# Containerizaion
+# Containerization
 
 ## Docker
 
-    docker build . -f containers/docker/Dockerfile --no-cache --tag tloubrieu/config-operator:latest
+    docker build . -f containers/docker/Dockerfile -t nexusjpl/config-operator:latest
         
 To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
 
     docker login
-    docker push tloubrieu/config-operator:latest
+    docker push nexusjpl/config-operator:latest
     
 ## Kubernetes
     

@@ -6,7 +6,6 @@ from functools import partial
 import yaml
 from typing import Callable
 
-
 from config_operator.config_source.exceptions import UnreadableFileException
 
 logging.basicConfig(level=logging.DEBUG)
@@ -18,15 +17,14 @@ LISTEN_FOR_UPDATE_INTERVAL_SECONDS = 1
 class LocalDirConfig:
 
     def __init__(self, local_dir: str,
-                 update_every_seconds: int = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
+                 update_every_seconds: float = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
                  update_date_fun=os.path.getmtime):
         logger.info(f'create config on local dir {local_dir}')
         self._local_dir = local_dir
         self._update_date_fun = update_date_fun
-        self._update_every_seconds=update_every_seconds
+        self._update_every_seconds = update_every_seconds
         self._latest_update = self._get_latest_update()
 
-        
     def get_files(self):
         files = []
         for f in os.listdir(self._local_dir):
@@ -80,4 +78,3 @@ class LocalDirConfig:
         loop.call_later(self._update_every_seconds, partial(self.when_updated, callback, loop))
 
         return None
-

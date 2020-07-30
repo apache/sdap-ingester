@@ -1,16 +1,15 @@
 import asyncio
-import unittest
-from unittest.mock import Mock
-from unittest.mock import patch
 import os
 import time
+import unittest
 from datetime import datetime
+from unittest.mock import Mock
+
 from config_operator.config_source import LocalDirConfig
 from config_operator.config_source.exceptions import UnreadableFileException
 
 
-
-class MyTestCase(unittest.TestCase):
+class TestLocalDirConfig(unittest.TestCase):
     def test_get_files(self):
         local_dir = os.path.join(os.path.dirname(__file__), "../resources/localDirTest")
         local_dir_config = LocalDirConfig(local_dir)
@@ -38,12 +37,14 @@ class MyTestCase(unittest.TestCase):
         finally:
             self.assertTrue(unreadable_file)
 
-    def test_when_udated(self):
+    def test_when_updated(self):
 
         callback = Mock()
         local_dir = os.path.join(os.path.dirname(__file__), "../resources/localDirTest")
 
-        local_dir_config = LocalDirConfig(local_dir, update_every_seconds=0.25, update_date_fun=lambda x: datetime.now().timestamp())
+        local_dir_config = LocalDirConfig(local_dir,
+                                          update_every_seconds=0.25,
+                                          update_date_fun=lambda x: datetime.now().timestamp())
 
         asyncio.run(local_dir_config.when_updated(callback))
 
@@ -51,12 +52,13 @@ class MyTestCase(unittest.TestCase):
 
         assert callback.called
 
-    def test_when_not_udated(self):
+    def test_when_not_updated(self):
 
         callback = Mock()
         local_dir = os.path.join(os.path.dirname(__file__), "../resources/localDirTest")
 
-        local_dir_config = LocalDirConfig(local_dir, update_every_seconds=0.25,
+        local_dir_config = LocalDirConfig(local_dir,
+                                          update_every_seconds=0.25,
                                           update_date_fun=lambda x: 0)
 
         asyncio.run(local_dir_config.when_updated(callback))

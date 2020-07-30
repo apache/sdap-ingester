@@ -1,14 +1,14 @@
-import unittest
-from unittest.mock import MagicMock, Mock, patch
 import asyncio
 import os
 import tempfile
 import time
-from git import Repo
+import unittest
+from unittest.mock import Mock
+
 from config_operator.config_source import RemoteGitConfig
 
-class MyTestCase(unittest.TestCase):
 
+class TestRemoteDirConfig(unittest.TestCase):
     _latest_commit = 0
 
     def _get_origin(self):
@@ -21,9 +21,7 @@ class MyTestCase(unittest.TestCase):
 
         return [pull_result]
 
-
     def test_when_updated(self):
-
         origin_branch = Mock()
         origin_branch.pull = self._get_origin
 
@@ -45,7 +43,6 @@ class MyTestCase(unittest.TestCase):
         time.sleep(2)
 
         assert callback.called
-
 
 
 if __name__ == '__main__':

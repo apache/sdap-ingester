@@ -1,10 +1,12 @@
+import asyncio
 import logging
 import os
 import sys
-import asyncio
 from functools import partial
-from git import Repo
 from typing import Callable
+
+from git import Repo
+
 from .LocalDirConfig import LocalDirConfig
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +21,7 @@ class RemoteGitConfig(LocalDirConfig):
                  git_branch: str = 'master',
                  git_username: str = None,
                  git_token: str = None,
-                 update_every_seconds: int = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
+                 update_every_seconds: float = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
                  local_dir: str = DEFAULT_LOCAL_REPO_DIR,
                  repo: Repo = None):
         """
@@ -78,4 +80,3 @@ class RemoteGitConfig(LocalDirConfig):
         loop.call_later(self._update_every_seconds, partial(self.when_updated, callback, loop))
 
         return None
-
