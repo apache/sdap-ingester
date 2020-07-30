@@ -1,9 +1,10 @@
+import asyncio
 import os
 import time
 import logging
+from functools import partial
 import yaml
 from typing import Callable
-
 
 from config_operator.config_source.exceptions import UnreadableFileException
 
@@ -16,12 +17,14 @@ LISTEN_FOR_UPDATE_INTERVAL_SECONDS = 1
 class LocalDirConfig:
 
     def __init__(self, local_dir: str,
-                 update_every_seconds: int = LISTEN_FOR_UPDATE_INTERVAL_SECONDS):
+                 update_every_seconds: float = LISTEN_FOR_UPDATE_INTERVAL_SECONDS,
+                 update_date_fun=os.path.getmtime):
         logger.info(f'create config on local dir {local_dir}')
         self._local_dir = local_dir
+        self._update_date_fun = update_date_fun
+        self._update_every_seconds = update_every_seconds
         self._latest_update = self._get_latest_update()
-        self._update_every_seconds=update_every_seconds
-        
+
     def get_files(self):
         files = []
         for f in os.listdir(self._local_dir):
@@ -49,28 +52,29 @@ class LocalDirConfig:
             raise UnreadableFileException(e)
         except yaml.parser.ParserError as e:
             raise UnreadableFileException(e)
-
+        except yaml.scanner.ScannerError as e:
+            raise UnreadableFileException(e)
 
     def _get_latest_update(self):
-        m_times = [os.path.getmtime(root) for root, _, _ in os.walk(self._local_dir)]
+        m_times = [self._update_date_fun(root) for root, _, _ in os.walk(self._local_dir)]
         if m_times:
-            return time.ctime(max(m_times))
+            return max(m_times)
         else:
             return None
 
-    def when_updated(self, callback: Callable[[], None]):
+    async def when_updated(self, callback: Callable[[], None], loop=None):
         """
           call function callback when the local directory is updated.
         """
-        while True:
-            time.sleep(self._update_every_seconds)
-            latest_update = self._get_latest_update()
-            if latest_update is None or (latest_update > self._latest_update):
-                logger.info("local config dir has been updated")
-                callback()
-                self._latest_update = latest_update
-            else:
-                logger.debug("local config dir has not been updated")
+        if loop is None:
+            loop = asyncio.get_running_loop()
+
+        latest_update = self._get_latest_update()
+        if latest_update is None or (latest_update > self._latest_update):
+            logger.info("local config dir has been updated")
+            callback()
+        else:
+            logger.debug("local config dir has not been updated")
+        loop.call_later(self._update_every_seconds, partial(self.when_updated, callback, loop))
 
         return None
-
