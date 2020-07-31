@@ -133,6 +133,7 @@ class CollectionWatcher:
                                 loop: Optional[asyncio.AbstractEventLoop],
                                 wait_time: float,
                                 func: Callable[[any], Awaitable],
+                                *args,
                                 **kwargs):
         """
         Call a function periodically. This uses asyncio, and is non-blocking.
@@ -143,8 +144,8 @@ class CollectionWatcher:
         """
         if loop is None:
             loop = asyncio.get_running_loop()
-        await func(**kwargs)
-        loop.call_later(wait_time, loop.create_task, cls._run_periodically(loop, wait_time, func, **kwargs))
+        await func(*args, **kwargs)
+        loop.call_later(wait_time, loop.create_task, cls._run_periodically(loop, wait_time, func, *args, **kwargs))
 
 
 class _GranuleEventHandler(FileSystemEventHandler):
