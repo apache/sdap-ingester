@@ -1,4 +1,3 @@
-import asyncio
 import unittest
 
 from nexusproto import DataTile_pb2 as nexusproto
@@ -43,8 +42,8 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_variable', solr_doc['tile_var_name_s'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
-        self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'])
-        self.assertAlmostEqual(180.2, solr_doc['tile_max_lat'])
+        self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
+        self.assertAlmostEqual(180.2, solr_doc['tile_max_lat'], delta=1E-5)
         self.assertEqual('1992-01-01T00:00:00Z', solr_doc['tile_min_time_dt'])
         self.assertEqual('1992-01-02T00:00:00Z', solr_doc['tile_max_time_dt'])
         self.assertAlmostEqual(-10.0, solr_doc['tile_min_val_d'])

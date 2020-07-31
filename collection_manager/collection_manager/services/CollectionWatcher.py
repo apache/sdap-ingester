@@ -46,7 +46,7 @@ class CollectionWatcher:
 
         await self._run_periodically(loop=loop,
                                      wait_time=self._collections_refresh_interval,
-                                     coro=self._reload_and_reschedule())
+                                     func=self._reload_and_reschedule)
         self._observer.start()
 
     def collections(self) -> Set[Collection]:
@@ -132,18 +132,19 @@ class CollectionWatcher:
     async def _run_periodically(cls,
                                 loop: Optional[asyncio.AbstractEventLoop],
                                 wait_time: float,
-                                coro: Awaitable):
+                                func: Callable[[any], Awaitable],
+                                **kwargs):
         """
         Call a function periodically. This uses asyncio, and is non-blocking.
         :param loop: An optional event loop to use. If None, the current running event loop will be used.
         :param wait_time: seconds to wait between iterations of func
-        :param coro: the coroutine that will be awaited
+        :param func: the async function that will be awaited
         :param args: any args that need to be provided to func
         """
         if loop is None:
             loop = asyncio.get_running_loop()
-        await coro
-        loop.call_later(wait_time, loop.create_task, cls._run_periodically(loop, wait_time, coro))
+        await func(**kwargs)
+        loop.call_later(wait_time, loop.create_task, cls._run_periodically(loop, wait_time, func, **kwargs))
 
 
 class _GranuleEventHandler(FileSystemEventHandler):
