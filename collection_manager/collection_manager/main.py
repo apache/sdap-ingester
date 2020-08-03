@@ -63,28 +63,26 @@ async def main():
             history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path)
         else:
             history_manager_builder = SolrIngestionHistoryBuilder(solr_url=options.history_url)
-        publisher = MessagePublisher(host=options.rabbitmq_host,
-                                     username=options.rabbitmq_username,
-                                     password=options.rabbitmq_password,
-                                     queue=options.rabbitmq_queue)
-        publisher.connect()
-        collection_processor = CollectionProcessor(message_publisher=publisher,
-                                                   history_manager_builder=history_manager_builder)
-        collection_watcher = CollectionWatcher(collections_path=options.collections_path,
-                                               collection_updated_callback=collection_processor.process_collection,
-                                               granule_updated_callback=collection_processor.process_granule,
-                                               collections_refresh_interval=int(options.refresh))
+        async with MessagePublisher(host=options.rabbitmq_host,
+                                    username=options.rabbitmq_username,
+                                    password=options.rabbitmq_password,
+                                    queue=options.rabbitmq_queue) as publisher:
+            collection_processor = CollectionProcessor(message_publisher=publisher,
+                                                       history_manager_builder=history_manager_builder)
+            collection_watcher = CollectionWatcher(collections_path=options.collections_path,
+                                                   collection_updated_callback=collection_processor.process_collection,
+                                                   granule_updated_callback=collection_processor.process_granule,
+                                                   collections_refresh_interval=int(options.refresh))
 
-        collection_watcher.start_watching()
-
-        while True:
-            try:
-                await asyncio.sleep(1)
-            except KeyboardInterrupt:
-                return
+            await collection_watcher.start_watching()
+            while True:
+                try:
+                    await asyncio.sleep(1)
+                except KeyboardInterrupt:
+                    return
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         return
 
 

@@ -6,6 +6,7 @@ from collection_manager.entities import Collection
 from collection_manager.services import CollectionProcessor
 from collection_manager.services.history_manager import FileIngestionHistoryBuilder
 from collection_manager.services.history_manager import GranuleStatus
+from common.async_test_utils import AsyncMock, async_test
 
 
 class TestCollectionProcessor(unittest.TestCase):
@@ -63,10 +64,11 @@ class TestCollectionProcessor(unittest.TestCase):
         filled = CollectionProcessor._fill_template("/granules/test_granule.nc", collection, template)
         self.assertEqual(filled, expected)
 
+    @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
-    @mock.patch('collection_manager.services.MessagePublisher', autospec=True)
-    def test_process_granule_with_historical_granule(self, mock_publisher, mock_history_builder, mock_history):
+    @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
+    async def test_process_granule_with_historical_granule(self, mock_publisher, mock_history_builder, mock_history):
         mock_history.get_granule_status.return_value = GranuleStatus.DESIRED_HISTORICAL
         mock_history_builder.build.return_value = mock_history
 
@@ -79,15 +81,17 @@ class TestCollectionProcessor(unittest.TestCase):
                                 date_from=None,
                                 date_to=None)
 
-        collection_processor.process_granule("test.nc", collection)
+        await collection_processor.process_granule("test.nc", collection)
 
         mock_publisher.publish_message.assert_called_with(body=mock.ANY, priority=1)
         mock_history.push.assert_called()
 
+    @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
-    @mock.patch('collection_manager.services.MessagePublisher', autospec=True)
-    def test_process_granule_with_forward_processing_granule(self, mock_publisher, mock_history_builder, mock_history):
+    @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
+    async def test_process_granule_with_forward_processing_granule(self, mock_publisher, mock_history_builder,
+                                                                   mock_history):
         mock_history.get_granule_status.return_value = GranuleStatus.DESIRED_FORWARD_PROCESSING
         mock_history_builder.build.return_value = mock_history
 
@@ -100,15 +104,16 @@ class TestCollectionProcessor(unittest.TestCase):
                                 date_from=None,
                                 date_to=None)
 
-        collection_processor.process_granule("test.h5", collection)
+        await collection_processor.process_granule("test.h5", collection)
 
         mock_publisher.publish_message.assert_called_with(body=mock.ANY, priority=2)
         mock_history.push.assert_called()
 
+    @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
-    @mock.patch('collection_manager.services.MessagePublisher', autospec=True)
-    def test_process_granule_with_forward_processing_granule_and_no_priority(self, mock_publisher,
+    @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
+    async def test_process_granule_with_forward_processing_granule_and_no_priority(self, mock_publisher,
                                                                              mock_history_builder, mock_history):
         mock_history.get_granule_status.return_value = GranuleStatus.DESIRED_FORWARD_PROCESSING
         mock_history_builder.build.return_value = mock_history
@@ -121,15 +126,16 @@ class TestCollectionProcessor(unittest.TestCase):
                                 date_from=None,
                                 date_to=None)
 
-        collection_processor.process_granule("test.h5", collection)
+        await collection_processor.process_granule("test.h5", collection)
 
         mock_publisher.publish_message.assert_called_with(body=mock.ANY, priority=1)
         mock_history.push.assert_called()
 
+    @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
-    @mock.patch('collection_manager.services.MessagePublisher', autospec=True)
-    def test_process_granule_with_undesired_granule(self, mock_publisher, mock_history_builder, mock_history):
+    @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
+    async def test_process_granule_with_undesired_granule(self, mock_publisher, mock_history_builder, mock_history):
         mock_history.get_granule_status.return_value = GranuleStatus.UNDESIRED
         mock_history_builder.build.return_value = mock_history
 
@@ -142,15 +148,16 @@ class TestCollectionProcessor(unittest.TestCase):
                                 date_from=None,
                                 date_to=None)
 
-        collection_processor.process_granule("test.nc", collection)
+        await collection_processor.process_granule("test.nc", collection)
 
         mock_publisher.publish_message.assert_not_called()
         mock_history.push.assert_not_called()
 
+    @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', autospec=True)
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
-    @mock.patch('collection_manager.services.MessagePublisher', autospec=True)
-    def test_process_granule_with_unsupported_file_type(self, mock_publisher, mock_history_builder, mock_history):
+    @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
+    async def test_process_granule_with_unsupported_file_type(self, mock_publisher, mock_history_builder, mock_history):
         mock_history_builder.build.return_value = mock_history
 
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
@@ -162,7 +169,7 @@ class TestCollectionProcessor(unittest.TestCase):
                                 date_from=None,
                                 date_to=None)
 
-        collection_processor.process_granule("test.foo", collection)
+        await collection_processor.process_granule("test.foo", collection)
 
         mock_publisher.publish_message.assert_not_called()
         mock_history.push.assert_not_called()

@@ -25,16 +25,16 @@ class CollectionProcessor:
         with open(MESSAGE_TEMPLATE, 'r') as config_template_file:
             self._config_template = config_template_file.read()
 
-    def process_collection(self, collection: Collection):
+    async def process_collection(self, collection: Collection):
         """
         Given a Collection, detect new granules that need to be ingested and publish RabbitMQ messages for each.
         :param collection: A Collection definition
         :return: None
         """
         for granule in collection.files_owned():
-            self.process_granule(granule, collection)
+            await self.process_granule(granule, collection)
 
-    def process_granule(self, granule: str, collection: Collection):
+    async def process_granule(self, granule: str, collection: Collection):
         """
         Determine whether a granule needs to be ingested, and if so publish a RabbitMQ message for it.
         :param granule: A path to a granule file
@@ -64,7 +64,7 @@ class CollectionProcessor:
             return
 
         dataset_config = self._fill_template(granule, collection, config_template=self._config_template)
-        self._publisher.publish_message(body=dataset_config, priority=use_priority)
+        await self._publisher.publish_message(body=dataset_config, priority=use_priority)
         history_manager.push(granule)
 
     @staticmethod
