@@ -8,7 +8,7 @@ setuptools.setup(
     name=PACKAGE_NAME,
     author="Apache - SDAP",
     author_email="dev@sdap.apache.org",
-    description="a helper to ingest data in sdap",
+    description="a module of common functions for the sdap ingester components",
     url="https://github.com/apache/incubator-sdap-ingester",
     packages=setuptools.find_packages(),
     classifiers=[
