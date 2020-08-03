@@ -1,9 +1,0 @@
-.vscode
-.idea
-*.egg-info
-*__pycache__
-*.pytest_cache
-*.code-workspace
-.DS_STORE
-build
-dist

@@ -64,10 +64,11 @@ collections:
 
 ```
 ## Running the tests
-From `incubator-sdap-ingester/collection_manager`, run:
+From `incubator-sdap-ingester/`, run:
 
-    $ pip install pytest
-    $ pytest
+    $ cd common && python setup.py install
+    $ cd ../collection_manager && python setup.py install
+    $ pip install pytest && pytest
     
 ## Building the Docker image
 From `incubator-sdap-ingester/collection_manager`, run:
