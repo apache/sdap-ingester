@@ -165,6 +165,11 @@ class _GranuleEventHandler(FileSystemEventHandler):
         self._callback = callback
         self._collections_for_dir = collections_for_dir
 
+    def on_any_event(self, event):
+        super().on_created(event)
+
+        logger.info(f"Collection Watcher received event: {event}")
+
     def on_created(self, event):
         super().on_created(event)
         for collection in self._collections_for_dir:
