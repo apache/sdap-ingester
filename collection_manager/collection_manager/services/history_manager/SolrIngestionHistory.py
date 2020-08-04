@@ -105,7 +105,7 @@ class SolrIngestionHistory(IngestionHistory):
                 logger.info(f"solr collection created {response}")
 
                 # Update schema
-                schema_endpoint = f"{self._solr_url.strip('/')}/solr/{self._granule_collection_name}/schema"
+                schema_endpoint = f"{self._url_prefix/{self._granule_collection_name}/schema"
                 self._add_field(schema_endpoint, "dataset_s", "string")
                 self._add_field(schema_endpoint, "granule_s", "string")
                 self._add_field(schema_endpoint, "granule_signature_s", "string")
@@ -124,7 +124,7 @@ class SolrIngestionHistory(IngestionHistory):
                 logger.info(f"solr collection created {response}")
 
                 # Update schema
-                schema_endpoint = f"{self._solr_url.strip('/')}/solr/{self._dataset_collection_name}/schema"
+                schema_endpoint = f"{self._url_prefix}/{self._dataset_collection_name}/schema"
                 self._add_field(schema_endpoint, "dataset_s", "string")
                 self._add_field(schema_endpoint, "latest_update_l", "TrieLongField")
 
