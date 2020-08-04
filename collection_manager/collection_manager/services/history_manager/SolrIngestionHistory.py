@@ -93,6 +93,7 @@ class SolrIngestionHistory(IngestionHistory):
 
             existing_collections = response['cluster']['collections'].keys()
 
+            logger.info("create_collection_if_needed")
             if self._granule_collection_name not in existing_collections:
                 # Create collection
                 payload = {'action': 'CREATE',
@@ -103,12 +104,13 @@ class SolrIngestionHistory(IngestionHistory):
                 response = result.json()
                 logger.info(f"solr collection created {response}")
                 # Update schema
-                schema_url = f"{self._solr_url.strip('/')}/{self._granule_collection_name}/schema"
+                schema_url = f"{self._solr_url.strip('/')}/solr/{self._granule_collection_name}/schema"
                 # granule_s # dataset_s so that all the granule of a dataset are less likely to be on the same shard
-                # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
-                self._add_field(schema_url, "dataset_s", "StrField")
-                self._add_field(schema_url, "granule_s", "StrField")
-                self._add_field(schema_url, "granule_signature_s", "StrField")
+                # self.add_unique_key_field(schema_url, "uniqueKey_s", "string")
+                logger.info("calling _add_field")
+                self._add_field(schema_url, "dataset_s", "string")
+                self._add_field(schema_url, "granule_s", "string")
+                self._add_field(schema_url, "granule_signature_s", "string")
 
             else:
                 logger.info(f"collection {self._granule_collection_name} already exists")
@@ -124,9 +126,9 @@ class SolrIngestionHistory(IngestionHistory):
                 logger.info(f"solr collection created {response}")
                 # Update schema
                 # http://localhost:8983/solr/nexusdatasets/schema?_=1588555874864&wt=json
-                schema_url = f"{self._solr_url.strip('/')}/{self._granule_collection_name}/schema"
-                # self.add_unique_key_field(schema_url, "uniqueKey_s", "StrField")
-                self._add_field(schema_url, "dataset_s", "StrField")
+                schema_url = f"{self._solr_url.strip('/')}/solr/{self._granule_collection_name}/schema"
+                # self.add_unique_key_field(schema_url, "uniqueKey_s", "string")
+                self._add_field(schema_url, "dataset_s", "string")
                 self._add_field(schema_url, "latest_update_l", "TrieLongField")
 
             else:
@@ -151,7 +153,7 @@ class SolrIngestionHistory(IngestionHistory):
                 "stored": False
             }
         }
-        result = self._req_session.post(schema_url, data=add_field_payload.__str__())
+        return self._req_session.post(schema_url, data=str(add_field_payload).encode('utf-8'))
 
 
 class DatasetIngestionHistorySolrException(Exception):
