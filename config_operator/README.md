@@ -28,7 +28,11 @@ To publish the docker image on dockerhub do (step necessary for kubernetes deplo
     docker push nexusjpl/config-operator:latest
     
 ## Kubernetes
-    
+
+Delete pre-existing operator definitions:
+
+    kubectl delete deployment.apps/git-repo-config-operator  -n sdap
+   
 Deploy the gitbasedconfig operator:
 
      kubectl apply -f containers/k8s/config-operator-crd.yml -n sdap
@@ -44,6 +48,10 @@ Check that the custom resource is deployed:
 Check that the configMap has been generated:
 
     kubectl get configmaps -n sdap
+    
+Test an update of the config operator configuration:
+
+    kubectl set image gitbasedconfig/nginx-deployment nginx=nginx:1.16.1 --record
     
 
     
