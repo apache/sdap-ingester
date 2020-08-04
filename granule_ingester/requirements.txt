@@ -1,3 +1,5 @@
 cassandra-driver==3.23.0
+pysolr==3.9.0
+kazoo==2.8.0
 aiomultiprocess
 aioboto3
