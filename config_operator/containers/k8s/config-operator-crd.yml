@@ -12,7 +12,7 @@ spec:
   names:
     plural: gitbasedconfigs
     singular: gitbasedconfig
-    kind: gitBasedConfig
+    kind: GitBasedConfig
     shortNames:
     - gitcfg
   validation:

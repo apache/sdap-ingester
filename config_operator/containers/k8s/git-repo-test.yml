@@ -1,9 +1,9 @@
 apiVersion: sdap.apache.org/v1
-kind: gitBasedConfig
+kind: GitBasedConfig
 metadata:
   name: collections-config-gitcfg
 spec:
   git-url: https://github.com/tloubrieu-jpl/sdap-ingester-config.git
-  git-branch: master
+  git-branch: bigdata
   git-token: whatever
   config-map: my-configmap

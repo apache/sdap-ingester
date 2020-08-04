@@ -39,8 +39,8 @@ class RemoteGitConfig(LocalDirConfig):
         self._git_token = git_token
         if local_dir is None:
             local_dir = DEFAULT_LOCAL_REPO_DIR
-        self._update_every_seconds = update_every_seconds
-        super().__init__(local_dir, update_every_seconds=self._update_every_seconds)
+        super().__init__(local_dir, update_every_seconds=update_every_seconds)
+
 
         if repo:
             self._repo = repo
