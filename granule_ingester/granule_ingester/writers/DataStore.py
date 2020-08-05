@@ -7,7 +7,6 @@ from granule_ingester.healthcheck import HealthCheck
 
 class DataStore(HealthCheck, ABC):
 
-
     @abstractmethod
     def save_data(self, nexus_tile: nexusproto.NexusTile) -> None:
         pass
