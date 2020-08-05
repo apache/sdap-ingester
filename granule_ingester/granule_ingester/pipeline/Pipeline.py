@@ -15,19 +15,20 @@
 
 
 import logging
+import os
 import time
 from typing import List
 
-import aiomultiprocess
 import xarray as xr
 import yaml
-from nexusproto import DataTile_pb2 as nexusproto
 
+import aiomultiprocess
 from granule_ingester.granule_loaders import GranuleLoader
 from granule_ingester.pipeline.Modules import modules as processor_module_mappings
 from granule_ingester.processors.TileProcessor import TileProcessor
 from granule_ingester.slicers import TileSlicer
 from granule_ingester.writers import DataStore, MetadataStore
+from nexusproto import DataTile_pb2 as nexusproto
 
 logger = logging.getLogger(__name__)
 
@@ -81,36 +82,41 @@ class Pipeline:
                  slicer: TileSlicer,
                  data_store_factory,
                  metadata_store_factory,
-                 tile_processors: List[TileProcessor]):
+                 tile_processors: List[TileProcessor],
+                 max_concurrency: int):
         self._granule_loader = granule_loader
         self._tile_processors = tile_processors
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
+        self._max_concurrency = max_concurrency
 
     @classmethod
-    def from_string(cls, config_str: str, data_store_factory, metadata_store_factory):
+    def from_string(cls, config_str: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
         config = yaml.load(config_str, yaml.FullLoader)
         return cls._build_pipeline(config,
                                    data_store_factory,
                                    metadata_store_factory,
-                                   processor_module_mappings)
+                                   processor_module_mappings,
+                                   max_concurrency)
 
     @classmethod
-    def from_file(cls, config_path: str, data_store_factory, metadata_store_factory):
+    def from_file(cls, config_path: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
         with open(config_path) as config_file:
             config = yaml.load(config_file, yaml.FullLoader)
             return cls._build_pipeline(config,
                                        data_store_factory,
                                        metadata_store_factory,
-                                       processor_module_mappings)
+                                       processor_module_mappings,
+                                       max_concurrency)
 
     @classmethod
     def _build_pipeline(cls,
                         config: dict,
                         data_store_factory,
                         metadata_store_factory,
-                        module_mappings: dict):
+                        module_mappings: dict,
+                        max_concurrency: int):
         granule_loader = GranuleLoader(**config['granule'])
 
         slicer_config = config['slicer']
@@ -121,7 +127,7 @@ class Pipeline:
             module = cls._parse_module(processor_config, module_mappings)
             tile_processors.append(module)
 
-        return cls(granule_loader, slicer, data_store_factory, metadata_store_factory, tile_processors)
+        return cls(granule_loader, slicer, data_store_factory, metadata_store_factory, tile_processors, max_concurrency)
 
     @classmethod
     def _parse_module(cls, module_config: dict, module_mappings: dict):
@@ -142,7 +148,9 @@ class Pipeline:
                                             initargs=(self._tile_processors,
                                                       dataset,
                                                       self._data_store_factory,
-                                                      self._metadata_store_factory)) as pool:
+                                                      self._metadata_store_factory),
+                                            maxtasksperchild=self._max_concurrency,
+                                            childconcurrency=self._max_concurrency) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
                                     self._slicer.generate_tiles(dataset, granule_name)]
                 # aiomultiprocess is built on top of the stdlib multiprocessing library, which has the limitation that
