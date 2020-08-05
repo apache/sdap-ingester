@@ -25,7 +25,7 @@ from typing import Dict
 import pysolr
 from kazoo.handlers.threading import KazooTimeoutError
 from kazoo.exceptions import NoNodeError
-from nexusproto.DataTile_pb2 import *
+from nexusproto.DataTile_pb2 import TileSummary, NexusTile
 
 from granule_ingester.exceptions import SolrFailedHealthCheckError, SolrLostConnectionError
 from granule_ingester.writers.MetadataStore import MetadataStore
