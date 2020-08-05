@@ -82,38 +82,41 @@ class Pipeline:
                  slicer: TileSlicer,
                  data_store_factory,
                  metadata_store_factory,
-                 tile_processors: List[TileProcessor]):
+                 tile_processors: List[TileProcessor],
+                 max_concurrency: int):
         self._granule_loader = granule_loader
         self._tile_processors = tile_processors
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
-
-        self._max_concurrency = int(os.getenv('MAX_CONCURRENCY', 16))
+        self._max_concurrency = max_concurrency
 
     @classmethod
-    def from_string(cls, config_str: str, data_store_factory, metadata_store_factory):
+    def from_string(cls, config_str: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
         config = yaml.load(config_str, yaml.FullLoader)
         return cls._build_pipeline(config,
                                    data_store_factory,
                                    metadata_store_factory,
-                                   processor_module_mappings)
+                                   processor_module_mappings,
+                                   max_concurrency)
 
     @classmethod
-    def from_file(cls, config_path: str, data_store_factory, metadata_store_factory):
+    def from_file(cls, config_path: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
         with open(config_path) as config_file:
             config = yaml.load(config_file, yaml.FullLoader)
             return cls._build_pipeline(config,
                                        data_store_factory,
                                        metadata_store_factory,
-                                       processor_module_mappings)
+                                       processor_module_mappings,
+                                       max_concurrency)
 
     @classmethod
     def _build_pipeline(cls,
                         config: dict,
                         data_store_factory,
                         metadata_store_factory,
-                        module_mappings: dict):
+                        module_mappings: dict,
+                        max_concurrency: int):
         granule_loader = GranuleLoader(**config['granule'])
 
         slicer_config = config['slicer']
@@ -124,7 +127,7 @@ class Pipeline:
             module = cls._parse_module(processor_config, module_mappings)
             tile_processors.append(module)
 
-        return cls(granule_loader, slicer, data_store_factory, metadata_store_factory, tile_processors)
+        return cls(granule_loader, slicer, data_store_factory, metadata_store_factory, tile_processors, max_concurrency)
 
     @classmethod
     def _parse_module(cls, module_config: dict, module_mappings: dict):
