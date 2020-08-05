@@ -46,7 +46,7 @@ class Consumer(HealthCheck):
             connection = await self._get_connection()
             await connection.close()
             return True
-        except:
+        except Exception:
             logger.error("Cannot connect to RabbitMQ! Connection string was {}".format(self._connection_string))
             return False
 
@@ -64,25 +64,30 @@ class Consumer(HealthCheck):
     @staticmethod
     async def _received_message(message: aio_pika.IncomingMessage,
                                 data_store_factory,
-                                metadata_store_factory):
+                                metadata_store_factory,
+                                pipeline_max_concurrency: int):
         logger.info("Received a job from the queue. Starting pipeline.")
         try:
             config_str = message.body.decode("utf-8")
             logger.debug(config_str)
             pipeline = Pipeline.from_string(config_str=config_str,
                                             data_store_factory=data_store_factory,
-                                            metadata_store_factory=metadata_store_factory)
+                                            metadata_store_factory=metadata_store_factory,
+                                            max_concurrency=pipeline_max_concurrency)
             await pipeline.run()
             message.ack()
         except Exception as e:
             message.reject(requeue=True)
             logger.error("Processing message failed. Message will be re-queued. The exception was:\n{}".format(e))
 
-    async def start_consuming(self):
+    async def start_consuming(self, pipeline_max_concurrency=16):
         channel = await self._connection.channel()
         await channel.set_qos(prefetch_count=1)
         queue = await channel.declare_queue(self._rabbitmq_queue, durable=True)
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
-                await self._received_message(message, self._data_store_factory, self._metadata_store_factory)
+                await self._received_message(message,
+                                             self._data_store_factory,
+                                             self._metadata_store_factory,
+                                             pipeline_max_concurrency)

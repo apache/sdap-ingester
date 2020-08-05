@@ -47,43 +47,47 @@ async def run_health_checks(dependencies: List[HealthCheck]):
 async def main():
     parser = argparse.ArgumentParser(description='Listen to RabbitMQ for granule ingestion instructions, and process '
                                                  'and ingest a granule for each message that comes through.')
-    parser.add_argument('--rabbitmq_host',
+    parser.add_argument('--rabbitmq-host',
                         default='localhost',
                         metavar='HOST',
                         help='RabbitMQ hostname to connect to. (Default: "localhost")')
-    parser.add_argument('--rabbitmq_username',
+    parser.add_argument('--rabbitmq-username',
                         default='guest',
                         metavar='USERNAME',
                         help='RabbitMQ username. (Default: "guest")')
-    parser.add_argument('--rabbitmq_password',
+    parser.add_argument('--rabbitmq-password',
                         default='guest',
                         metavar='PASSWORD',
                         help='RabbitMQ password. (Default: "guest")')
-    parser.add_argument('--rabbitmq_queue',
+    parser.add_argument('--rabbitmq-queue',
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
-    parser.add_argument('--cassandra_contact_points',
+    parser.add_argument('--cassandra-contact-points',
                         default=['localhost'],
                         metavar="HOST",
                         nargs='+',
                         help='List of one or more Cassandra contact points, separated by spaces. (Default: "localhost")')
-    parser.add_argument('--cassandra_port',
+    parser.add_argument('--cassandra-port',
                         default=9042,
                         metavar="PORT",
                         help='Cassandra port. (Default: 9042)')
-    parser.add_argument('--cassandra_username',
+    parser.add_argument('--cassandra-username',
                         metavar="USERNAME",
                         default=None,
                         help='Cassandra username. Optional.')
-    parser.add_argument('--cassandra_password',
+    parser.add_argument('--cassandra-password',
                         metavar="PASSWORD",
                         default=None,
                         help='Cassandra password. Optional.')
-    parser.add_argument('--solr_host_and_port',
+    parser.add_argument('--solr-host-and-port',
                         default='http://localhost:8983',
                         metavar='HOST:PORT',
                         help='Solr host and port. (Default: http://localhost:8983)')
+    parser.add_argument('--max-threads',
+                        default=16,
+                        metavar='MAX_THREADS',
+                        help='Maximum number of threads to use when processing granules. (Default: 16)')
     parser.add_argument('-v',
                         '--verbose',
                         action='store_true',
@@ -126,7 +130,7 @@ async def main():
                                 consumer]):
         async with consumer:
             logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
-            await consumer.start_consuming()
+            await consumer.start_consuming(args.max_threads)
     else:
         logger.error("Quitting because not all dependencies passed the health checks.")
 
