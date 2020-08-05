@@ -2,12 +2,22 @@
 
 ## Purpose
 
-Component which synchonizes local configuration in a directory, on a file system, or configuration files managed in a git repository with kubernetes configMap.
-This helps to make a configuration managed by the operators in a single place (git, host file system) available in the kubernetes cluster.
+Component which synchonizes configuration in a remote **GIT** repository with kubernetes configMap.
+This helps to make a configuration managed by the operators in a single place (git) available in the kubernetes cluster.
 
 For SDAP, it is used to make the configuration of the collections to be ingested available to the ingester service pods.
 
 The component runs as a kubernetes operator (see containerization section)
+
+To synchronize a configuration from a **local directory** on kubernetes hosts, you should use the following commands:
+
+    kubectl create configmap collections-config --from-file=/opt/sdap-collection-config/  -n <namespace> 
+    
+To update the configmap from the same directory run:
+
+    kubectl create configmap collections-config --from-file=/opt/sdap-collection-config/ -o yaml --dry-run | kubectl replace -n <namespace> -f -
+    
+
 
 # Developers
 
