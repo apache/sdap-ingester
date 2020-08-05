@@ -170,8 +170,6 @@ class Pipeline:
         return processor_module
 
     async def run(self):
-
-        logger.info(f"Running pipeline with {self._max_concurrency} threads per process")
         async with self._granule_loader as (dataset, granule_name):
             start = time.perf_counter()
 
