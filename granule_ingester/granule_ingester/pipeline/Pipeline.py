@@ -126,7 +126,8 @@ class Pipeline:
     @staticmethod
     def _validate_config(config: dict):
         if type(config) is not dict:
-            raise PipelineBuildingError("Cannot build pipeline because the config is not valid YAML.")
+            raise PipelineBuildingError("Cannot build pipeline; the pipeline configuration that " +
+                                        "was received is not valid YAML.")
 
     @classmethod
     def _build_pipeline(cls,
