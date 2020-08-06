@@ -1,4 +1,5 @@
 import asyncio
+import time
 import logging
 import os
 import time
@@ -112,6 +113,8 @@ class CollectionWatcher:
 
                 self._unschedule_watches()
                 self._schedule_watches()
+            else:
+                logger.info("No updated collections, so no files to scan")
         except CollectionConfigParsingError as e:
             logger.error(e)
 
