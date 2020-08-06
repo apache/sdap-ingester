@@ -1,17 +1,18 @@
 import asyncio
-import time
 import logging
 import os
+import time
 from collections import defaultdict
-from typing import Dict, Callable, Set, Optional, Awaitable
+from typing import Awaitable, Callable, Dict, Optional, Set
+
 import yaml
+from collection_manager.entities import Collection
+from collection_manager.entities.exceptions import (
+    CollectionConfigFileNotFoundError, CollectionConfigParsingError,
+    ConflictingPathCollectionError, MissingValueCollectionError,
+    RelativePathCollectionError, RelativePathError)
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
-
-from collection_manager.entities import Collection
-from collection_manager.entities.exceptions import RelativePathError, CollectionConfigParsingError, \
-    CollectionConfigFileNotFoundError, MissingValueCollectionError, ConflictingPathCollectionError, \
-    RelativePathCollectionError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

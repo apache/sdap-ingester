@@ -4,6 +4,7 @@ import kopf
 from config_operator.config_source import RemoteGitConfig, LocalDirConfig
 from config_operator.k8s import K8sConfigMap
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
