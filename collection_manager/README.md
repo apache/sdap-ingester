@@ -12,15 +12,15 @@ Manager service will publish a message to RabbitMQ to be picked up by the Granul
 Python 3.7
 
 ## Building the service
-From `incubator-sdap-ingester/collection_manager`, run:
-
-    $ python setup.py install
+From `incubator-sdap-ingester`, run:
+    $ cd common && python setup.py install
+    $ cd ../collection_manager python setup.py install
     
 
 ## Running the service
-From `incubator-sdap-ingester/collection_manager`, run:
+From `incubator-sdap-ingester`, run:
 
-    $ python collection_manager/main.py -h
+    $ python collection_manager/collection_manager/main.py -h
     
 ### The Collections Configuration File
 
@@ -71,6 +71,6 @@ From `incubator-sdap-ingester/`, run:
     $ pip install pytest && pytest
     
 ## Building the Docker image
-From `incubator-sdap-ingester/collection_manager`, run:
+From `incubator-sdap-ingester`, run:
 
-    $ docker build . -f docker/Dockerfile -t nexusjpl/collection-manager
+    $ docker build . -f collection_manager/docker/Dockerfile -t nexusjpl/collection-manager

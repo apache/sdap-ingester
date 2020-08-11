@@ -210,4 +210,3 @@ collections:
         callback = AsyncMock()
         await CollectionWatcher._run_periodically(None, 0.1, callback)
         await AsyncAssert.assert_called_within_timeout(callback, timeout_sec=0.3, call_count=2)
-
