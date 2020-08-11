@@ -12,23 +12,24 @@ data to Cassandra and Solr.
 Python 3.7
 
 ## Building the service
-From `incubator-sdap-ingester/granule_ingester`, run:
-
-    $ python setup.py install
+From `incubator-sdap-ingester`, run:
+    $ cd common && python setup.py install
+    $ cd ../granule_ingester && python setup.py install
     
 
 ## Launching the service
-From `incubator-sdap-ingester/granule_ingester`, run:
+From `incubator-sdap-ingester`, run:
 
-    $ python granule_ingester/main.py -h
+    $ python granule_ingester/granule_ingester/main.py -h
     
 ## Running the tests
-From `incubator-sdap-ingester/granule_ingester`, run:
+From `incubator-sdap-ingester`, run:
 
-    $ pip install pytest
-    $ pytest
+    $ cd common && python setup.py install
+    $ cd ../granule_ingester && python setup.py install
+    $ pip install pytest && pytest
     
 ## Building the Docker image
-From `incubator-sdap-ingester/granule_ingester`, run:
+From `incubator-sdap-ingester`, run:
 
-    $ docker build . -f docker/Dockerfile -t nexusjpl/granule-ingester
+    $ docker build . -f granule_ingester/docker/Dockerfile -t nexusjpl/granule-ingester
