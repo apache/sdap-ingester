@@ -1,5 +1,4 @@
 import asyncio
-import time
 import logging
 import os
 import time
@@ -104,13 +103,9 @@ class CollectionWatcher:
     async def _reload_and_reschedule(self):
         try:
             updated_collections = self._get_updated_collections()
+            for collection in updated_collections:
+                await self._collection_updated_callback(collection)
             if len(updated_collections) > 0:
-                logger.info(f"Scanning files for {len(updated_collections)} collections...")
-                start = time.perf_counter()
-                for collection in updated_collections:
-                    await self._collection_updated_callback(collection)
-                logger.info(f"Finished scanning files in {time.perf_counter() - start} seconds.")
-
                 self._unschedule_watches()
                 self._schedule_watches()
         except CollectionConfigParsingError as e:
@@ -166,11 +161,6 @@ class _GranuleEventHandler(FileSystemEventHandler):
         self._loop = loop
         self._callback = callback
         self._collections_for_dir = collections_for_dir
-
-    def on_any_event(self, event):
-        super().on_created(event)
-
-        logger.info(f"Collection Watcher received event: {event}")
 
     def on_created(self, event):
         super().on_created(event)
