@@ -15,8 +15,9 @@
 
 import itertools
 import logging
-from typing import List, Dict
+from typing import Dict, List
 
+from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.slicers.TileSlicer import TileSlicer
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class SliceFileByStepSize(TileSlicer):
         # make sure all provided dimensions are in dataset
         for dim_name in self._dimension_step_sizes.keys():
             if dim_name not in list(dimension_specs.keys()):
-                raise KeyError('Provided dimension "{}" not found in dataset'.format(dim_name))
+                raise TileProcessingError('Provided dimension "{}" not found in dataset'.format(dim_name))
 
         slices = self._generate_chunk_boundary_slices(dimension_specs)
         logger.info("Sliced granule into {} slices.".format(len(slices)))
