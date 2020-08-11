@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 from collections import defaultdict
 from typing import Awaitable, Callable, Dict, Optional, Set
 
@@ -102,9 +103,13 @@ class CollectionWatcher:
     async def _reload_and_reschedule(self):
         try:
             updated_collections = self._get_updated_collections()
-            for collection in updated_collections:
-                await self._collection_updated_callback(collection)
             if len(updated_collections) > 0:
+                logger.info(f"Scanning files for {len(updated_collections)} collections...")
+                start = time.perf_counter()
+                for collection in updated_collections:
+                    await self._collection_updated_callback(collection)
+                logger.info(f"Finished scanning files in {time.perf_counter() - start} seconds.")
+
                 self._unschedule_watches()
                 self._schedule_watches()
         except CollectionConfigParsingError as e:
