@@ -66,7 +66,7 @@ class FileIngestionHistory(IngestionHistory):
         except FileNotFoundError:
             logger.info(f"history cache {self._history_file_path} does not exist, does not need to be removed")
 
-    def _save_latest_timestamp(self):
+    async def _save_latest_timestamp(self):
         if self._latest_ingested_file_update:
             with open(self._latest_ingested_file_update_file_path, 'w') as f_ts:
                 f_ts.write(f'{str(self._latest_ingested_file_update)}\n')
@@ -90,10 +90,10 @@ class FileIngestionHistory(IngestionHistory):
         except FileNotFoundError:
             logger.info(f"no history file {self._history_file_path} to purge")
 
-    def _push_record(self, file_name, signature):
+    async def _push_record(self, file_name, signature):
         self._history_dict[file_name] = signature
 
         self._history_file.write(f'{file_name},{signature}\n')
 
-    def _get_signature(self, file_name):
+    async def _get_signature(self, file_name):
         return self._history_dict.get(file_name, None)

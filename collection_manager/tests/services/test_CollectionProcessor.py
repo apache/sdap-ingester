@@ -114,7 +114,7 @@ class TestCollectionProcessor(unittest.TestCase):
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistoryBuilder', autospec=True)
     @mock.patch('collection_manager.services.MessagePublisher', new_callable=AsyncMock)
     async def test_process_granule_with_forward_processing_granule_and_no_priority(self, mock_publisher,
-                                                                             mock_history_builder, mock_history):
+                                                                                   mock_history_builder, mock_history):
         mock_history.get_granule_status.return_value = GranuleStatus.DESIRED_FORWARD_PROCESSING
         mock_history_builder.build.return_value = mock_history
 
