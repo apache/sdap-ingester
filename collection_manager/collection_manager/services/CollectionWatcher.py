@@ -5,8 +5,7 @@ from collections import defaultdict
 from typing import Dict, Callable, Set, Optional, Awaitable
 import yaml
 from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-from yaml.scanner import ScannerError
+from watchdog.observers.polling import PollingObserver as Observer
 
 from collection_manager.entities import Collection
 from collection_manager.entities.exceptions import RelativePathError, CollectionConfigParsingError, \
