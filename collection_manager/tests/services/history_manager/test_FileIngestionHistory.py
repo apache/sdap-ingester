@@ -29,23 +29,25 @@ class TestFileIngestionHistory(unittest.TestCase):
             result = await ingestion_history._get_signature("green")
             self.assertIsNone(result)
 
-    def test_already_ingested(self):
+    @async_test
+    async def test_already_ingested(self):
         with tempfile.TemporaryDirectory() as history_dir:
             ingestion_history = FileIngestionHistory(history_dir, DATASET_ID, md5sum_from_filepath)
             # history_manager with this file
             current_file_path = pathlib.Path(__file__)
-            ingestion_history.push(str(current_file_path))
-            self.assertTrue(ingestion_history.already_ingested(str(current_file_path)))
+            await ingestion_history.push(str(current_file_path))
+            self.assertTrue(await ingestion_history.already_ingested(str(current_file_path)))
 
             del ingestion_history
 
-    def test_already_ingested_with_latest_modifcation_signature(self):
+    @async_test
+    async def test_already_ingested_with_latest_modifcation_signature(self):
         with tempfile.TemporaryDirectory() as history_dir:
             ingestion_history = FileIngestionHistory(history_dir, DATASET_ID, os.path.getmtime)
             # history_manager with this file
             current_file_path = pathlib.Path(__file__)
-            ingestion_history.push(str(current_file_path))
-            self.assertTrue(ingestion_history.already_ingested(str(current_file_path)))
+            await ingestion_history.push(str(current_file_path))
+            self.assertTrue(await ingestion_history.already_ingested(str(current_file_path)))
 
             del ingestion_history
 
