@@ -23,6 +23,18 @@ class EccoReadingProcessor(TileReadingProcessor):
         self.time = time
         self.tile = tile
 
+    @staticmethod
+    def bid(dataset, variable, lat, lon, time):
+        bid = 0
+        if lat == 'YC' and lon == 'XC':
+            bid += 1
+        if lat not in dataset[variable].dims and lon not in dataset[variable].dims:
+            bid += 1
+        if 'tile' in dataset[variable].dims:
+            bid += 1
+
+        return bid / 3
+
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         new_tile = nexusproto.EccoTile()
 

@@ -56,6 +56,8 @@ class GranuleLoader:
         granule_name = os.path.basename(self._resource)
         try:
             return xr.open_dataset(file_path, lock=False), granule_name
+        except FileNotFoundError:
+            raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
         except Exception:
             raise GranuleLoadingError(f"The granule {self._resource} is not a valid NetCDF file.")
 

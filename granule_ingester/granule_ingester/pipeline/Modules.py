@@ -1,7 +1,10 @@
-from granule_ingester.processors import *
-from granule_ingester.processors.reading_processors import *
-from granule_ingester.slicers import *
-from granule_ingester.granule_loaders import *
+from granule_ingester.granule_loaders import GranuleLoader
+from granule_ingester.processors import (EmptyTileFilter, GenerateTileId,
+                                         KelvinToCelsius,
+                                         TileSummarizingProcessor)
+from granule_ingester.processors.reading_processors import (
+    EccoReadingProcessor, GridReadingProcessor)
+from granule_ingester.slicers import SliceFileByStepSize
 
 modules = {
     "granule": GranuleLoader,
@@ -11,5 +14,5 @@ modules = {
     "GridReadingProcessor": GridReadingProcessor,
     "tileSummary": TileSummarizingProcessor,
     "emptyTileFilter": EmptyTileFilter,
-    "kelvinToCelsius": KelvinToCelsius
+    "kelvinToCelsius": KelvinToCelsius,
 }

@@ -62,3 +62,14 @@ class TestEccoReadingProcessor(unittest.TestCase):
             self.assertEqual(output_tile.tile.ecco_tile.variable_data.shape, [15, 7])
             self.assertEqual(output_tile.tile.ecco_tile.latitude.shape, [15, 7])
             self.assertEqual(output_tile.tile.ecco_tile.longitude.shape, [15, 7])
+
+    def test_bid(self):
+        netcdf_path = path.join(path.dirname(__file__), '../granules/OBP_native_grid.nc')
+        with xr.open_dataset(netcdf_path, decode_cf=True) as dataset:
+            bid = EccoReadingProcessor.bid(
+                dataset=dataset,
+                variable='OBP',
+                lat='YC',
+                lon='XC',
+                time='time')
+            self.assertEqual(3, bid)

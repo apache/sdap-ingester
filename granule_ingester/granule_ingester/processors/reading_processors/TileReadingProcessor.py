@@ -32,6 +32,11 @@ class TileReadingProcessor(TileProcessor, ABC):
         self.latitude = latitude
         self.longitude = longitude
 
+    @staticmethod
+    @abstractmethod
+    def bid(dataset: xr.Dataset) -> bool:
+        pass
+
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):
         try:
             dimensions_to_slices = self._convert_spec_to_slices(tile.summary.section_spec)

@@ -26,6 +26,7 @@ from aiomultiprocess import Pool
 from aiomultiprocess.types import ProxyException
 from granule_ingester.exceptions import PipelineBuildingError
 from granule_ingester.granule_loaders import GranuleLoader
+from granule_ingester.processors import ReadingProcessorSelector
 from granule_ingester.pipeline.Modules import \
     modules as processor_module_mappings
 from granule_ingester.processors.TileProcessor import TileProcessor
@@ -141,6 +142,8 @@ class Pipeline:
 
             slicer_config = config['slicer']
             slicer = cls._parse_module(slicer_config, module_mappings)
+
+            reading_processor_selector = ReadingProcessorSelector(**config['readingProcessorSelector'])
 
             tile_processors = []
             for processor_config in config['processors']:
