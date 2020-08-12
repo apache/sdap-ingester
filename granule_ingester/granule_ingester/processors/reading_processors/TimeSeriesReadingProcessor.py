@@ -16,14 +16,11 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
         self.time = time
 
     @staticmethod
-    def bid(dataset, variable, lat, lon, time):
-        bid = 0
-        if len(dataset[variable].dims) == 2:
-            bid += 1
-        if time in dataset[variable].dims:
-            bid += 1
-
-        return bid / 2
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
+        return [
+            lambda: len(dataset[variable].dims) == 2,
+            lambda: time in dataset[variable].dims
+        ]
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         new_tile = nexusproto.TimeSeriesTile()

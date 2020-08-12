@@ -13,7 +13,7 @@ class EccoReadingProcessor(TileReadingProcessor):
                  variable_to_read,
                  latitude,
                  longitude,
-                 tile,
+                 tile='tile',
                  depth=None,
                  time=None,
                  **kwargs):
@@ -24,16 +24,12 @@ class EccoReadingProcessor(TileReadingProcessor):
         self.tile = tile
 
     @staticmethod
-    def bid(dataset, variable, lat, lon, time):
-        bid = 0
-        if lat == 'YC' and lon == 'XC':
-            bid += 1
-        if lat not in dataset[variable].dims and lon not in dataset[variable].dims:
-            bid += 1
-        if 'tile' in dataset[variable].dims:
-            bid += 1
-
-        return bid / 3
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
+        return [
+            lambda: lat == 'YC' and lon == 'XC',
+            lambda: lat not in dataset[variable].dims and lon not in dataset[variable].dims,
+            lambda: 'tile' in dataset[variable].dims
+        ]
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         new_tile = nexusproto.EccoTile()

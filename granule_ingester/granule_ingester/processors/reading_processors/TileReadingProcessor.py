@@ -32,9 +32,15 @@ class TileReadingProcessor(TileProcessor, ABC):
         self.latitude = latitude
         self.longitude = longitude
 
+    @classmethod
+    def bid(cls, dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str) -> bool:
+        criteria = cls.get_criteria(dataset, variable, lat, lon, time)
+        points = [1 if criterium() else 0 for criterium in criteria]
+        return sum(points) / len(criteria)
+
     @staticmethod
     @abstractmethod
-    def bid(dataset: xr.Dataset) -> bool:
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
         pass
 
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):

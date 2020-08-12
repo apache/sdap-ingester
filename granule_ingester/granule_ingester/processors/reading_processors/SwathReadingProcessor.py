@@ -15,12 +15,8 @@ class SwathReadingProcessor(TileReadingProcessor):
         self.time = time
 
     @staticmethod
-    def bid(dataset, variable, lat, lon, time):
-        bid = 0
-        if 2 in dataset[variable].sizes.values():
-            bid += 1
-
-        return bid / 1
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
+        return [lambda: 2 in dataset[variable].sizes.values()]
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         new_tile = nexusproto.SwathTile()

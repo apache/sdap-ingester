@@ -18,9 +18,15 @@ class ReadingProcessorSelector:
         self._variable = variable
 
     def get_reading_processor(self):
-        ...
+        lat, lon, time = self.detect_dimensions()
+        processor_class = self.detect_grid_type(lat=lat, lon=lon, time=time, processor_types=GRID_PROCESSORS)
+        return processor_class(variable_to_read=self._variable, latitude=lat, longitude=lon, time=time)
 
-    def detect_grid_type(self, lat: str, lon: str, time: str, processor_types: List[TileReadingProcessor]):
+    def detect_grid_type(self,
+                         lat: str,
+                         lon: str,
+                         time: str,
+                         processor_types: List[TileReadingProcessor]):
         bids = []
         for processor_type in processor_types:
             bid = processor_type.bid(dataset=self._dataset,
