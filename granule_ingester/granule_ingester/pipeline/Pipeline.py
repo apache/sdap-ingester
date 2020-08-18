@@ -26,6 +26,7 @@ from aiomultiprocess import Pool
 from aiomultiprocess.types import ProxyException
 from granule_ingester.exceptions import PipelineBuildingError
 from granule_ingester.granule_loaders import GranuleLoader
+from granule_ingester.processors import ReadingProcessorSelector
 from granule_ingester.pipeline.Modules import \
     modules as processor_module_mappings
 from granule_ingester.processors.TileProcessor import TileProcessor
@@ -90,6 +91,7 @@ class Pipeline:
     def __init__(self,
                  granule_loader: GranuleLoader,
                  slicer: TileSlicer,
+                 variable_name: str,
                  data_store_factory,
                  metadata_store_factory,
                  tile_processors: List[TileProcessor],
@@ -97,6 +99,7 @@ class Pipeline:
         self._granule_loader = granule_loader
         self._tile_processors = tile_processors
         self._slicer = slicer
+        self._variable_name = variable_name
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
         self._max_concurrency = max_concurrency
@@ -141,6 +144,7 @@ class Pipeline:
 
             slicer_config = config['slicer']
             slicer = cls._parse_module(slicer_config, module_mappings)
+            variable_name = config['variable']
 
             tile_processors = []
             for processor_config in config['processors']:
@@ -149,6 +153,7 @@ class Pipeline:
 
             return cls(granule_loader,
                        slicer,
+                       variable_name,
                        data_store_factory,
                        metadata_store_factory,
                        tile_processors,
@@ -174,9 +179,14 @@ class Pipeline:
         async with self._granule_loader as (dataset, granule_name):
             start = time.perf_counter()
 
+            reading_processor = ReadingProcessorSelector(dataset, self._variable_name).get_reading_processor()
+            tile_processors = [reading_processor, *self._tile_processors]
+            logger.info(f"Using {type(reading_processor)} to process granule {granule_name}.")
+
             shared_memory = self._manager.Namespace()
+
             async with Pool(initializer=_init_worker,
-                            initargs=(self._tile_processors,
+                            initargs=(tile_processors,
                                       dataset,
                                       self._data_store_factory,
                                       self._metadata_store_factory,
@@ -184,7 +194,7 @@ class Pipeline:
                             maxtasksperchild=self._max_concurrency,
                             childconcurrency=self._max_concurrency) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
-                                    self._slicer.generate_tiles(dataset, granule_name)]
+                                    self._slicer.generate_tiles(dataset, self._variable_name, granule_name)]
                 # aiomultiprocess is built on top of the stdlib multiprocessing library, which has the limitation that
                 # a queue can't have more than 2**15-1 tasks. So, we have to batch it.
                 for chunk in self._chunk_list(serialized_tiles, MAX_CHUNK_SIZE):

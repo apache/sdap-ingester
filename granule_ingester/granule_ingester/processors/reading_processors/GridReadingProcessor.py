@@ -14,6 +14,14 @@ class GridReadingProcessor(TileReadingProcessor):
         self.depth = depth
         self.time = time
 
+    @staticmethod
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
+        return [
+            lambda: all(dimension_size > 2 for dimension_size in dataset[variable].sizes.values()),
+            lambda: len(dataset[lat].dims) == 1 and len(dataset[lon].dims) == 1,
+            lambda: len(set(dataset[variable].dims) - {time}) >= 2
+        ]
+
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         new_tile = nexusproto.GridTile()
 

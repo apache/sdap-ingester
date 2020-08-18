@@ -18,6 +18,7 @@ from typing import List
 
 import xarray as xr
 from nexusproto.DataTile_pb2 import NexusTile
+import re
 
 
 class TileSlicer(ABC):
@@ -44,10 +45,11 @@ class TileSlicer(ABC):
         tile.summary.granule = self._granule_name
         return tile
 
-    def generate_tiles(self, dataset: xr.Dataset, granule_name: str = None):
+    def generate_tiles(self, dataset: xr.Dataset, variable_name: str, granule_name: str = None):
         self._granule_name = granule_name
         dimensions = dataset.dims
-        self._tile_spec_list = self._generate_slices(dimensions)
+        step_sizes = self._detect_step_sizes(dataset, variable_name)
+        self._tile_spec_list = self._generate_slices(dimensions, step_sizes)
 
         return self
 

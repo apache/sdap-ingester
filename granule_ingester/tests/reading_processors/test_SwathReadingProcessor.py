@@ -72,3 +72,14 @@ class TestReadSmapData(unittest.TestCase):
             self.assertEqual([38, 1], output_tile.tile.swath_tile.variable_data.shape)
             self.assertEqual([38, 1], output_tile.tile.swath_tile.latitude.shape)
             self.assertEqual([38, 1], output_tile.tile.swath_tile.longitude.shape)
+
+    def test_bid(self):
+        netcdf_path = path.join(path.dirname(__file__), '../granules/not_empty_ascatb.nc4')
+        with xr.open_dataset(netcdf_path, decode_cf=True) as dataset:
+            bid = SwathReadingProcessor.bid(
+                dataset=dataset,
+                variable='wind_speed',
+                lat='lat',
+                lon='lon',
+                time='time')
+            self.assertTrue(bid)

@@ -1,5 +1,6 @@
 granule:
   resource: {{granule}}
+variable: {{variable}}
 slicer:
   name: sliceFileByStepSize
   dimension_step_sizes:
@@ -7,11 +8,6 @@ slicer:
     lat: 30
     lon: 30
 processors:
-  - name: GridReadingProcessor
-    latitude: lat
-    longitude: lon
-    time: time
-    variable_to_read: {{variable}}
   - name: emptyTileFilter
   - name: kelvinToCelsius
   - name: tileSummary

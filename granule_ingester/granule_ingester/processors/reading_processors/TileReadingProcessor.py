@@ -23,7 +23,9 @@ from nexusproto import DataTile_pb2 as nexusproto
 
 from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.processors.TileProcessor import TileProcessor
+import logging
 
+logger = logging.getLogger(__name__)
 
 class TileReadingProcessor(TileProcessor, ABC):
 
@@ -31,6 +33,17 @@ class TileReadingProcessor(TileProcessor, ABC):
         self.variable_to_read = variable_to_read
         self.latitude = latitude
         self.longitude = longitude
+
+    @classmethod
+    def bid(cls, dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str) -> bool:
+        criteria = cls.get_criteria(dataset, variable, lat, lon, time)
+        points = [1 if criterium() else 0 for criterium in criteria]
+        return sum(points) / len(criteria)
+
+    @staticmethod
+    @abstractmethod
+    def get_criteria(dataset: xr.Dataset, variable: str, lat: str, lon: str, time: str):
+        pass
 
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):
         try:
@@ -41,7 +54,8 @@ class TileReadingProcessor(TileProcessor, ABC):
             output_tile.summary.data_var_name = self.variable_to_read
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             raise TileProcessingError("Could not generate tiles from the granule.")
 
     @abstractmethod
