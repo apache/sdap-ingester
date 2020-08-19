@@ -87,7 +87,9 @@ class TestCollectionWatcher(unittest.TestCase):
 
         collection = Collection(dataset_id="test_dataset",
                                 path="/absolute/path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -100,7 +102,9 @@ class TestCollectionWatcher(unittest.TestCase):
 
         collection = Collection(dataset_id="test_dataset",
                                 path="relative/path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -113,7 +117,9 @@ class TestCollectionWatcher(unittest.TestCase):
 
         collection = Collection(dataset_id="test_dataset",
                                 path="/resources/*.nc",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -127,9 +133,19 @@ class TestCollectionWatcher(unittest.TestCase):
         collections_str = f"""collections:
 - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
   path: {granule_dir.name}
-  variable: lwe_thickness
   priority: 1
-  forward-processing-priority: 5"""
+  forward-processing-priority: 5
+  projection: Grid
+  dimensionNames:
+      latitude: lat
+      longitude: lon
+      time: time
+      variable: lwe_thickness
+  slices:
+      time: 1
+      lat: 30
+      lon: 30
+  """
         collections_config.write(collections_str.encode("utf-8"))
 
         collection_callback = AsyncMock()
@@ -143,9 +159,18 @@ class TestCollectionWatcher(unittest.TestCase):
         collections_str = f"""
 - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
   path: {granule_dir.name}
-  variable: lwe_thickness
   priority: 10
   forward-processing-priority: 5
+  projection: Grid
+  dimensionNames:
+      latitude: lat
+      longitude: lon
+      time: time
+      variable: lwe_thickness
+  slices:
+      time: 1
+      lat: 30
+      lon: 30
         """
         collections_config.write(collections_str.encode("utf-8"))
 
@@ -163,9 +188,18 @@ class TestCollectionWatcher(unittest.TestCase):
 collections:
 - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
   path: {granule_dir.name}
-  variable: lwe_thickness
   priority: 1
   forward-processing-priority: 5
+  projection: Grid
+  dimensionNames:
+      latitude: lat
+      longitude: lon
+      time: time
+      variable: lwe_thickness
+  slices:
+      time: 1
+      lat: 30
+      lon: 30
             """
             collections_config.write(collections_str.encode("utf-8"))
 
@@ -187,9 +221,18 @@ collections:
 collections:
 - id: TELLUS_GRACE_MASCON_CRI_GRID_RL05_V2_LAND
   path: {granule_dir.name}
-  variable: lwe_thickness
   priority: 1
   forward-processing-priority: 5
+  projection: Grid
+  dimensionNames:
+      latitude: lat
+      longitude: lon
+      time: time
+      variable: lwe_thickness
+  slices:
+      time: 1
+      lat: 30
+      lon: 30
             """
             collections_config.write(collections_str.encode("utf-8"))
             new_granule = open(os.path.join(granule_dir.name, 'test.nc'), "w+")

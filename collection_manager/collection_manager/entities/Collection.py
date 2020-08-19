@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from fnmatch import fnmatch
 from glob import glob
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, FrozenSet
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
 
@@ -12,8 +12,8 @@ from collection_manager.entities.exceptions import MissingValueCollectionError
 class Collection:
     dataset_id: str
     projection: str
-    dimension_names: Dict[str, str]
-    slices: Dict[str, int]
+    dimension_names: frozenset
+    slices: frozenset
     path: str
     historical_priority: int
     forward_processing_priority: Optional[int] = None

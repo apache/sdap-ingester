@@ -62,7 +62,7 @@ class CollectionProcessor:
                          f"collection '{collection.dataset_id}'. Skipping.")
             return
 
-        dataset_config = self._fill_template(granule, collection, config_template=self._config_template)
+        dataset_config = self._fill_template(granule, collection)
         await self._publisher.publish_message(body=dataset_config, priority=use_priority)
         await history_manager.push(granule)
 
@@ -77,7 +77,7 @@ class CollectionProcessor:
         return self._history_manager_cache[dataset_id]
 
     @staticmethod
-    def _fill_template(granule_path: str, collection: Collection, config_template: str) -> str:
+    def _fill_template(granule_path: str, collection: Collection) -> str:
         config_dict = {
             'granule': {
                 'resource': granule_path
