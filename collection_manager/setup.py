@@ -31,6 +31,6 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    data_files=[('.collection_manager/resources/', ['collection_manager/resources/dataset_config_template.yml'])],
+    data_files=[('.collection_manager/resources/')],
     install_requires=pip_requirements
 )

@@ -74,7 +74,7 @@ class TestCollectionProcessor(unittest.TestCase):
                                 forward_processing_priority=2,
                                 date_from=None,
                                 date_to=None)
-        filled = CollectionProcessor._fill_template("/granules/test_granule.nc", collection)
+        filled = CollectionProcessor._generate_ingestion_message("/granules/test_granule.nc", collection)
         generated_yaml = yaml.load(filled, Loader=yaml.FullLoader)
 
         self.assertEqual(expected, generated_yaml)

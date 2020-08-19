@@ -10,8 +10,7 @@ from collection_manager.services.history_manager.IngestionHistory import Ingesti
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_FILE_EXTENSIONS = ['.nc', '.h5']
-MESSAGE_TEMPLATE = os.path.join(os.path.dirname(__file__), '../resources/dataset_config_template.yml')
+SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5']
 
 
 class CollectionProcessor:
@@ -20,9 +19,6 @@ class CollectionProcessor:
         self._publisher = message_publisher
         self._history_manager_builder = history_manager_builder
         self._history_manager_cache: Dict[str, IngestionHistory] = {}
-
-        with open(MESSAGE_TEMPLATE, 'r') as config_template_file:
-            self._config_template = config_template_file.read()
 
     async def process_collection(self, collection: Collection):
         """
@@ -62,7 +58,7 @@ class CollectionProcessor:
                          f"collection '{collection.dataset_id}'. Skipping.")
             return
 
-        dataset_config = self._fill_template(granule, collection)
+        dataset_config = self._generate_ingestion_message(granule, collection)
         await self._publisher.publish_message(body=dataset_config, priority=use_priority)
         await history_manager.push(granule)
 
@@ -77,7 +73,7 @@ class CollectionProcessor:
         return self._history_manager_cache[dataset_id]
 
     @staticmethod
-    def _fill_template(granule_path: str, collection: Collection) -> str:
+    def _generate_ingestion_message(granule_path: str, collection: Collection) -> str:
         config_dict = {
             'granule': {
                 'resource': granule_path
@@ -92,7 +88,6 @@ class CollectionProcessor:
                     **dict(collection.dimension_names),
                 },
                 {'name': 'emptyTileFilter'},
-                {'name': 'kelvinToCelsius'},
                 {
                     'name': 'tileSummary',
                     'dataset_name': collection.dataset_id
