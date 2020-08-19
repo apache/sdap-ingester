@@ -25,7 +25,7 @@ class TestCollectionWatcher(unittest.TestCase):
                 Collection("id4", "var4", "path4", 7, 8, datetime.now(), datetime.now()),
             }
         }
-        flattened_collections = collection_watcher.collections()
+        flattened_collections = collection_watcher._collections()
         self.assertEqual(len(flattened_collections), 4)
 
     def test_load_collections_loads_all_collections(self):
@@ -60,7 +60,7 @@ class TestCollectionWatcher(unittest.TestCase):
         collection_watcher = CollectionWatcher(collections_path, Mock(), Mock())
 
         updated_collections = collection_watcher._get_updated_collections()
-        self.assertSetEqual(updated_collections, collection_watcher.collections())
+        self.assertSetEqual(updated_collections, collection_watcher._collections())
 
     def test_get_updated_collections_returns_no_collections(self):
         collections_path = os.path.join(os.path.dirname(__file__), '../resources/collections.yml')

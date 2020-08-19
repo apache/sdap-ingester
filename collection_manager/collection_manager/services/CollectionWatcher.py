@@ -50,7 +50,7 @@ class CollectionWatcher:
                                      func=self._reload_and_reschedule)
         self._observer.start()
 
-    def collections(self) -> Set[Collection]:
+    def _collections(self) -> Set[Collection]:
         """
         Return a set of all Collections being watched.
         :return: A set of Collections
@@ -96,9 +96,9 @@ class CollectionWatcher:
                                                "next file modification.")
 
     def _get_updated_collections(self) -> Set[Collection]:
-        old_collections = self.collections()
+        old_collections = self._collections()
         self._load_collections()
-        return self.collections() - old_collections
+        return self._collections() - old_collections
 
     async def _reload_and_reschedule(self):
         try:

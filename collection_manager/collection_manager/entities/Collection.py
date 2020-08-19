@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from fnmatch import fnmatch
 from glob import glob
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
 
@@ -11,7 +11,9 @@ from collection_manager.entities.exceptions import MissingValueCollectionError
 @dataclass(frozen=True)
 class Collection:
     dataset_id: str
-    variable: str
+    projection: str
+    dimension_names: Dict[str, str]
+    slices: Dict[str, int]
     path: str
     historical_priority: int
     forward_processing_priority: Optional[int] = None
@@ -25,7 +27,9 @@ class Collection:
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
             collection = Collection(dataset_id=properties['id'],
-                                    variable=properties['variable'],
+                                    projection=properties['projection'],
+                                    dimension_names=frozenset(properties['dimensionNames'].items()),
+                                    slices=frozenset(properties['slices'].items()),
                                     path=properties['path'],
                                     historical_priority=properties['priority'],
                                     forward_processing_priority=properties.get('forward-processing-priority', None),

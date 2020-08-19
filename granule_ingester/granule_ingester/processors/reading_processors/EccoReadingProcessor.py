@@ -10,14 +10,14 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 
 class EccoReadingProcessor(TileReadingProcessor):
     def __init__(self,
-                 variable_to_read,
+                 variable,
                  latitude,
                  longitude,
                  tile,
                  depth=None,
                  time=None,
                  **kwargs):
-        super().__init__(variable_to_read, latitude, longitude, **kwargs)
+        super().__init__(variable, latitude, longitude, **kwargs)
 
         self.depth = depth
         self.time = time
@@ -31,8 +31,8 @@ class EccoReadingProcessor(TileReadingProcessor):
         lat_subset = np.ma.filled(np.squeeze(lat_subset), np.NaN)
         lon_subset = np.ma.filled(np.squeeze(lon_subset), np.NaN)
 
-        data_subset = ds[self.variable_to_read][
-            type(self)._slices_for_variable(ds[self.variable_to_read], dimensions_to_slices)]
+        data_subset = ds[self.variable][
+            type(self)._slices_for_variable(ds[self.variable], dimensions_to_slices)]
         data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
 
         new_tile.tile = ds[self.tile][dimensions_to_slices[self.tile].start].item()

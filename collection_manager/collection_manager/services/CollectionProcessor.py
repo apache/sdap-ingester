@@ -1,8 +1,7 @@
 import logging
 import os.path
 from typing import Dict
-
-import pystache
+import yaml
 
 from collection_manager.entities import Collection
 from collection_manager.services import MessagePublisher
@@ -79,12 +78,28 @@ class CollectionProcessor:
 
     @staticmethod
     def _fill_template(granule_path: str, collection: Collection, config_template: str) -> str:
-        renderer = pystache.Renderer()
-        config_content = renderer.render(config_template,
-                                         {
-                                             'granule': granule_path,
-                                             'dataset_id': collection.dataset_id,
-                                             'variable': collection.variable
-                                         })
-        logger.debug(f"Templated dataset config:\n{config_content}")
-        return config_content
+        config_dict = {
+            'granule': {
+                'resource': granule_path
+            },
+            'slicer': {
+                'name': 'sliceFileByStepSize',
+                'dimension_step_sizes': dict(collection.slices)
+            },
+            'processors': [
+                {
+                    'name': collection.projection,
+                    **dict(collection.dimension_names),
+                },
+                {'name': 'emptyTileFilter'},
+                {'name': 'kelvinToCelsius'},
+                {
+                    'name': 'tileSummary',
+                    'dataset_name': collection.dataset_id
+                },
+                {'name': 'generateTileId'}
+            ]
+        }
+        config_str = yaml.dump(config_dict)
+        logger.debug(f"Templated dataset config:\n{config_str}")
+        return config_str
