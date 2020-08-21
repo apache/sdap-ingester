@@ -41,8 +41,8 @@ class TileReadingProcessor(TileProcessor, ABC):
             output_tile.summary.data_var_name = self.variable
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
-        except Exception:
-            raise TileProcessingError("Could not generate tiles from the granule.")
+        except Exception as e:
+            raise TileProcessingError(f"Could not generate tiles from the granule because of the following error: {e}.")
 
     @abstractmethod
     def _generate_tile(self, dataset: xr.Dataset, dimensions_to_slices: Dict[str, slice], tile):

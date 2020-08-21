@@ -21,6 +21,8 @@ from urllib import parse
 import aioboto3
 import xarray as xr
 
+from granule_ingester.exceptions import GranuleLoadingError
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +54,12 @@ class GranuleLoader:
             raise RuntimeError("Granule path scheme '{}' is not supported.".format(resource_url.scheme))
 
         granule_name = os.path.basename(self._resource)
-        return xr.open_dataset(file_path, lock=False), granule_name
+        try:
+            return xr.open_dataset(file_path, lock=False), granule_name
+        except FileNotFoundError:
+            raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
+        except Exception:
+            raise GranuleLoadingError(f"The granule {self._resource} is not a valid NetCDF file.")
 
     @staticmethod
     async def _download_s3_file(url: str):

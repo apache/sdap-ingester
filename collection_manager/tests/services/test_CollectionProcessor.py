@@ -48,7 +48,6 @@ class TestCollectionProcessor(unittest.TestCase):
                     'variable': 'test_var'
                 },
                 {'name': 'emptyTileFilter'},
-                {'name': 'kelvinToCelsius'},
                 {'dataset_name': 'test_dataset', 'name': 'tileSummary'},
                 {'name': 'generateTileId'}
             ],
