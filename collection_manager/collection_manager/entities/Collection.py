@@ -55,4 +55,4 @@ class Collection:
             return fnmatch(file_path, self.path)
 
     def files_owned(self) -> List[str]:
-        return glob(self.path)
+        return glob(self.path, recursive=True)
