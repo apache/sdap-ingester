@@ -9,8 +9,8 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 
 
 class TimeSeriesReadingProcessor(TileReadingProcessor):
-    def __init__(self, variable_to_read, latitude, longitude, time, depth=None, **kwargs):
-        super().__init__(variable_to_read, latitude, longitude, **kwargs)
+    def __init__(self, variable, latitude, longitude, time, depth=None, **kwargs):
+        super().__init__(variable, latitude, longitude, **kwargs)
 
         self.depth = depth
         self.time = time
@@ -23,8 +23,8 @@ class TimeSeriesReadingProcessor(TileReadingProcessor):
         lat_subset = np.ma.filled(lat_subset, np.NaN)
         lon_subset = np.ma.filled(lon_subset, np.NaN)
 
-        data_subset = ds[self.variable_to_read][type(self)._slices_for_variable(ds[self.variable_to_read],
-                                                                                dimensions_to_slices)]
+        data_subset = ds[self.variable][type(self)._slices_for_variable(ds[self.variable],
+                                                                        dimensions_to_slices)]
         data_subset = np.ma.filled(data_subset, np.NaN)
 
         if self.depth:

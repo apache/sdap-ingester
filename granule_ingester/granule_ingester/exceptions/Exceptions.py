@@ -6,7 +6,11 @@ class PipelineRunningError(Exception):
     pass
 
 
-class TileProcessingError(Exception):
+class TileProcessingError(PipelineRunningError):
+    pass
+
+
+class GranuleLoadingError(PipelineRunningError):
     pass
 
 
@@ -20,6 +24,7 @@ class RabbitMQLostConnectionError(LostConnectionError):
 
 class CassandraLostConnectionError(LostConnectionError):
     pass
+
 
 class SolrLostConnectionError(LostConnectionError):
     pass

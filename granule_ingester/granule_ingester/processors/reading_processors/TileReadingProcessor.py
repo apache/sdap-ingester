@@ -27,8 +27,8 @@ from granule_ingester.processors.TileProcessor import TileProcessor
 
 class TileReadingProcessor(TileProcessor, ABC):
 
-    def __init__(self, variable_to_read: str, latitude: str, longitude: str, *args, **kwargs):
-        self.variable_to_read = variable_to_read
+    def __init__(self, variable: str, latitude: str, longitude: str, *args, **kwargs):
+        self.variable = variable
         self.latitude = latitude
         self.longitude = longitude
 
@@ -38,11 +38,11 @@ class TileReadingProcessor(TileProcessor, ABC):
 
             output_tile = nexusproto.NexusTile()
             output_tile.CopyFrom(tile)
-            output_tile.summary.data_var_name = self.variable_to_read
+            output_tile.summary.data_var_name = self.variable
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
-        except Exception:
-            raise TileProcessingError("Could not generate tiles from the granule.")
+        except Exception as e:
+            raise TileProcessingError(f"Could not generate tiles from the granule because of the following error: {e}.")
 
     @abstractmethod
     def _generate_tile(self, dataset: xr.Dataset, dimensions_to_slices: Dict[str, slice], tile):

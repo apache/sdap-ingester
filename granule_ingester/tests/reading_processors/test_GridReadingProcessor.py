@@ -209,7 +209,7 @@ class TestReadInterpEccoData(unittest.TestCase):
                                            time='time')
 
     def test_read_indexed_ecco(self):
-        reading_processor = GridReadingProcessor(variable_to_read='OBP',
+        reading_processor = GridReadingProcessor(variable='OBP',
                                                  latitude='latitude',
                                                  longitude='longitude',
                                                  time='time')

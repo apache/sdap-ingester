@@ -1,4 +1,5 @@
 import tempfile
+import yaml
 import unittest
 from unittest import mock
 
@@ -35,34 +36,47 @@ class TestCollectionProcessor(unittest.TestCase):
             self.assertIsNot(collection_processor._get_history_manager('bar'), history_manager)
 
     def test_fill_template(self):
-        template = """
-        granule:
-          resource: {{granule}}
-        processors:
-          - name: GridReadingProcessor
-            variable_to_read: {{variable}}
-          - name: tileSummary
-            dataset_name: {{dataset_id}}
-            """
-
-        expected = """
-        granule:
-          resource: /granules/test_granule.nc
-        processors:
-          - name: GridReadingProcessor
-            variable_to_read: test_variable
-          - name: tileSummary
-            dataset_name: test_dataset
-            """
+        expected = {
+            'granule': {
+                'resource': '/granules/test_granule.nc'
+            },
+            'processors': [
+                {
+                    'latitude': 'lat',
+                    'longitude': 'lon',
+                    'name': 'Grid',
+                    'variable': 'test_var'
+                },
+                {'name': 'emptyTileFilter'},
+                {'dataset_name': 'test_dataset', 'name': 'tileSummary'},
+                {'name': 'generateTileId'}
+            ],
+            'slicer': {
+                'dimension_step_sizes': {
+                    'lat': 30,
+                    'lon': 30,
+                    'time': 1
+                },
+                'name': 'sliceFileByStepSize'
+            }
+        }
         collection = Collection(dataset_id="test_dataset",
                                 path="/granules/test*.nc",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset([('lat', 30), ('lon', 30), ('time', 1)]),
+                                dimension_names=frozenset([
+                                    ('latitude', 'lat'),
+                                    ('longitude', 'lon'),
+                                    ('variable', 'test_var')
+                                ]),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
                                 date_to=None)
-        filled = CollectionProcessor._fill_template("/granules/test_granule.nc", collection, template)
-        self.assertEqual(filled, expected)
+        filled = CollectionProcessor._generate_ingestion_message("/granules/test_granule.nc", collection)
+        generated_yaml = yaml.load(filled, Loader=yaml.FullLoader)
+
+        self.assertEqual(expected, generated_yaml)
 
     @async_test
     @mock.patch('collection_manager.services.history_manager.FileIngestionHistory', new_callable=AsyncMock)
@@ -75,7 +89,9 @@ class TestCollectionProcessor(unittest.TestCase):
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
         collection = Collection(dataset_id="test_dataset",
                                 path="test_path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -100,7 +116,9 @@ class TestCollectionProcessor(unittest.TestCase):
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
         collection = Collection(dataset_id="test_dataset",
                                 path="test_path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -123,7 +141,9 @@ class TestCollectionProcessor(unittest.TestCase):
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
         collection = Collection(dataset_id="test_dataset",
                                 path="test_path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 date_from=None,
                                 date_to=None)
@@ -144,7 +164,9 @@ class TestCollectionProcessor(unittest.TestCase):
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
         collection = Collection(dataset_id="test_dataset",
                                 path="test_path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -165,7 +187,9 @@ class TestCollectionProcessor(unittest.TestCase):
         collection_processor = CollectionProcessor(mock_publisher, mock_history_builder)
         collection = Collection(dataset_id="test_dataset",
                                 path="test_path",
-                                variable="test_variable",
+                                projection="Grid",
+                                slices=frozenset(),
+                                dimension_names=frozenset(),
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
