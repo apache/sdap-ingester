@@ -12,7 +12,9 @@ class TestCollection(unittest.TestCase):
         directory = os.path.join(os.path.dirname(__file__), "../resources/data")
         collection = Collection(dataset_id="test_dataset",
                                 path=directory,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -23,7 +25,9 @@ class TestCollection(unittest.TestCase):
         pattern = os.path.join(os.path.dirname(__file__), "../resources/data/*.nc")
         collection = Collection(dataset_id="test_dataset",
                                 path=pattern,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -34,7 +38,9 @@ class TestCollection(unittest.TestCase):
         directory = os.path.join(os.path.dirname(__file__), "../resources/data")
         collection = Collection(dataset_id="test_dataset",
                                 path=directory,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -45,7 +51,9 @@ class TestCollection(unittest.TestCase):
         directory = os.path.join(os.path.dirname(__file__), "../resources/data")
         collection = Collection(dataset_id="test_dataset",
                                 path=directory,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -57,7 +65,9 @@ class TestCollection(unittest.TestCase):
         directory = os.path.join(os.path.dirname(__file__), "../resources/data")
         collection = Collection(dataset_id="test_dataset",
                                 path=directory,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -69,7 +79,9 @@ class TestCollection(unittest.TestCase):
         pattern = os.path.join(directory, "test_*.nc")
         collection = Collection(dataset_id="test_dataset",
                                 path=pattern,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -82,7 +94,9 @@ class TestCollection(unittest.TestCase):
         pattern = os.path.join(directory, "test_*.nc")
         collection = Collection(dataset_id="test_dataset",
                                 path=pattern,
-                                variable="test_variable",
+                                projection="Grid",
+                                slices={},
+                                dimension_names={},
                                 historical_priority=1,
                                 forward_processing_priority=2,
                                 date_from=None,
@@ -93,8 +107,14 @@ class TestCollection(unittest.TestCase):
     def test_from_dict(self):
         collection_dict = {
             'id': 'test_id',
-            'variable': 'test_var',
             'path': '/some/path',
+            'projection': 'Grid',
+            'dimensionNames': {
+                'latitude': 'lat',
+                'longitude': 'lon',
+                'variable': 'test_var'
+            },
+            'slices': {'lat': 30, 'lon': 30, 'time': 1},
             'priority': 1,
             'forward-processing-priority': 2,
             'from': '2020-01-01T00:00:00+00:00',
@@ -102,7 +122,13 @@ class TestCollection(unittest.TestCase):
         }
 
         expected_collection = Collection(dataset_id='test_id',
-                                         variable='test_var',
+                                         projection="Grid",
+                                         slices=frozenset([('lat', 30), ('lon', 30), ('time', 1)]),
+                                         dimension_names=frozenset([
+                                             ('latitude', 'lat'),
+                                             ('longitude', 'lon'),
+                                             ('variable', 'test_var')
+                                         ]),
                                          path='/some/path',
                                          historical_priority=1,
                                          forward_processing_priority=2,
@@ -114,13 +140,25 @@ class TestCollection(unittest.TestCase):
     def test_from_dict_missing_optional_values(self):
         collection_dict = {
             'id': 'test_id',
-            'variable': 'test_var',
+            'projection': 'Grid',
+            'dimensionNames': {
+                'latitude': 'lat',
+                'longitude': 'lon',
+                'variable': 'test_var'
+            },
+            'slices': {'lat': 30, 'lon': 30, 'time': 1},
             'path': '/some/path',
             'priority': 3
         }
 
         expected_collection = Collection(dataset_id='test_id',
-                                         variable='test_var',
+                                         projection="Grid",
+                                         slices=frozenset([('lat', 30), ('lon', 30), ('time', 1)]),
+                                         dimension_names=frozenset([
+                                             ('latitude', 'lat'),
+                                             ('longitude', 'lon'),
+                                             ('variable', 'test_var')
+                                         ]),
                                          path='/some/path',
                                          historical_priority=3,
                                          forward_processing_priority=None,

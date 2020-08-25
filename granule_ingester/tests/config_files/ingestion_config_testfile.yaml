@@ -7,11 +7,11 @@ slicer:
     lat: 33
     lon: 26
 processors:
-  - name: EccoReadingProcessor
+  - name: ECCO
     latitude: YC
     longitude: XC
     time: time
     depth: Z
     tile: tile
-    variable_to_read: THETA
+    variable: THETA
   - name: generateTileId

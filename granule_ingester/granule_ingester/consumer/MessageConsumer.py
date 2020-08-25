@@ -25,7 +25,7 @@ from granule_ingester.pipeline import Pipeline
 logger = logging.getLogger(__name__)
 
 
-class Consumer(HealthCheck):
+class MessageConsumer(HealthCheck):
 
     def __init__(self,
                  rabbitmq_host,
@@ -95,7 +95,7 @@ class Consumer(HealthCheck):
     async def start_consuming(self, pipeline_max_concurrency=16):
         channel = await self._connection.channel()
         await channel.set_qos(prefetch_count=1)
-        queue = await channel.declare_queue(self._rabbitmq_queue, durable=True)
+        queue = await channel.declare_queue(self._rabbitmq_queue, durable=True, arguments={'x-max-priority': 10})
         queue_iter = queue.iterator()
         async for message in queue_iter:
             try:

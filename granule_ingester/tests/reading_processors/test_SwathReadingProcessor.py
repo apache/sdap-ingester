@@ -24,7 +24,7 @@ from granule_ingester.processors.reading_processors import SwathReadingProcessor
 
 class TestReadAscatbData(unittest.TestCase):
     def test_read_not_empty_ascatb(self):
-        reading_processor = SwathReadingProcessor(variable_to_read='wind_speed',
+        reading_processor = SwathReadingProcessor(variable='wind_speed',
                                                   latitude='lat',
                                                   longitude='lon',
                                                   time='time')
@@ -50,7 +50,7 @@ class TestReadAscatbData(unittest.TestCase):
 class TestReadSmapData(unittest.TestCase):
     def test_read_not_empty_smap(self):
         reading_processor = SwathReadingProcessor(
-            variable_to_read='smap_sss',
+            variable='smap_sss',
             latitude='lat',
             longitude='lon',
             time='row_time')

@@ -6,8 +6,9 @@ from nexusproto import DataTile_pb2 as nexusproto
 from granule_ingester.pipeline.Pipeline import Pipeline
 from granule_ingester.processors import GenerateTileId
 from granule_ingester.processors.reading_processors import EccoReadingProcessor
-from granule_ingester.slicers.SliceFileByStepSize import *
+from granule_ingester.slicers.SliceFileByStepSize import SliceFileByStepSize
 from granule_ingester.writers import DataStore, MetadataStore
+from granule_ingester.exceptions import PipelineBuildingError
 
 
 class TestPipeline(unittest.TestCase):
@@ -70,7 +71,7 @@ class TestPipeline(unittest.TestCase):
             "name": "MockModule",
             "bogus_param": True
         }
-        self.assertRaises(TypeError, Pipeline._parse_module, module_config, module_mappings)
+        self.assertRaises(PipelineBuildingError, Pipeline._parse_module, module_config, module_mappings)
 
     def test_parse_module_with_missing_parameters(self):
         module_mappings = {"MockModule": TestPipeline.MockProcessorWithParams}
@@ -78,7 +79,7 @@ class TestPipeline(unittest.TestCase):
             "name": "MockModule"
         }
 
-        self.assertRaises(TypeError, Pipeline._parse_module, module_config, module_mappings)
+        self.assertRaises(PipelineBuildingError, Pipeline._parse_module, module_config, module_mappings)
 
     def test_process_tile(self):
         # class MockIdProcessor:

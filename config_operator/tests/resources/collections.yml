@@ -5,5 +5,14 @@ avhrr-oi-analysed-sst:
 
 avhrr-oi-analysed-sst2:
   path: resources/history_manager/data/avhrr_oi/*.nc
-  variable: analysed_sst
   priority: 1
+  projection: Grid
+  dimensionNames:
+    latitude: lat
+    longitude: lon
+    time: time
+    variable: analysed_sst
+  slices:
+    time: 1
+    lat: 30
+    lon: 30

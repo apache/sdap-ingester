@@ -11,7 +11,9 @@ from collection_manager.entities.exceptions import MissingValueCollectionError
 @dataclass(frozen=True)
 class Collection:
     dataset_id: str
-    variable: str
+    projection: str
+    dimension_names: frozenset
+    slices: frozenset
     path: str
     historical_priority: int
     forward_processing_priority: Optional[int] = None
@@ -25,7 +27,9 @@ class Collection:
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
             collection = Collection(dataset_id=properties['id'],
-                                    variable=properties['variable'],
+                                    projection=properties['projection'],
+                                    dimension_names=frozenset(properties['dimensionNames'].items()),
+                                    slices=frozenset(properties['slices'].items()),
                                     path=properties['path'],
                                     historical_priority=properties['priority'],
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
@@ -51,4 +55,4 @@ class Collection:
             return fnmatch(file_path, self.path)
 
     def files_owned(self) -> List[str]:
-        return glob(self.path)
+        return glob(self.path, recursive=True)

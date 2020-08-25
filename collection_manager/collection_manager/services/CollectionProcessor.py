@@ -1,8 +1,7 @@
 import logging
 import os.path
 from typing import Dict
-
-import pystache
+import yaml
 
 from collection_manager.entities import Collection
 from collection_manager.services import MessagePublisher
@@ -11,8 +10,7 @@ from collection_manager.services.history_manager.IngestionHistory import Ingesti
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_FILE_EXTENSIONS = ['.nc', '.h5']
-MESSAGE_TEMPLATE = os.path.join(os.path.dirname(__file__), '../resources/dataset_config_template.yml')
+SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5']
 
 
 class CollectionProcessor:
@@ -21,9 +19,6 @@ class CollectionProcessor:
         self._publisher = message_publisher
         self._history_manager_builder = history_manager_builder
         self._history_manager_cache: Dict[str, IngestionHistory] = {}
-
-        with open(MESSAGE_TEMPLATE, 'r') as config_template_file:
-            self._config_template = config_template_file.read()
 
     async def process_collection(self, collection: Collection):
         """
@@ -63,7 +58,7 @@ class CollectionProcessor:
                          f"collection '{collection.dataset_id}'. Skipping.")
             return
 
-        dataset_config = self._fill_template(granule, collection, config_template=self._config_template)
+        dataset_config = self._generate_ingestion_message(granule, collection)
         await self._publisher.publish_message(body=dataset_config, priority=use_priority)
         await history_manager.push(granule)
 
@@ -78,13 +73,28 @@ class CollectionProcessor:
         return self._history_manager_cache[dataset_id]
 
     @staticmethod
-    def _fill_template(granule_path: str, collection: Collection, config_template: str) -> str:
-        renderer = pystache.Renderer()
-        config_content = renderer.render(config_template,
-                                         {
-                                             'granule': granule_path,
-                                             'dataset_id': collection.dataset_id,
-                                             'variable': collection.variable
-                                         })
-        logger.debug(f"Templated dataset config:\n{config_content}")
-        return config_content
+    def _generate_ingestion_message(granule_path: str, collection: Collection) -> str:
+        config_dict = {
+            'granule': {
+                'resource': granule_path
+            },
+            'slicer': {
+                'name': 'sliceFileByStepSize',
+                'dimension_step_sizes': dict(collection.slices)
+            },
+            'processors': [
+                {
+                    'name': collection.projection,
+                    **dict(collection.dimension_names),
+                },
+                {'name': 'emptyTileFilter'},
+                {
+                    'name': 'tileSummary',
+                    'dataset_name': collection.dataset_id
+                },
+                {'name': 'generateTileId'}
+            ]
+        }
+        config_str = yaml.dump(config_dict)
+        logger.debug(f"Templated dataset config:\n{config_str}")
+        return config_str

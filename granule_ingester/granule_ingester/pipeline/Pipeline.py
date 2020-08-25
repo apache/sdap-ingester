@@ -153,10 +153,13 @@ class Pipeline:
                        metadata_store_factory,
                        tile_processors,
                        max_concurrency)
+        except PipelineBuildingError:
+            raise
         except KeyError as e:
             raise PipelineBuildingError(f"Cannot build pipeline because {e} is missing from the YAML.")
-        except Exception:
-            raise PipelineBuildingError("Cannot build pipeline.")
+        except Exception as e:
+            logger.exception(e)
+            raise PipelineBuildingError(f"Cannot build pipeline because of the following error: {e}")
 
     @classmethod
     def _parse_module(cls, module_config: dict, module_mappings: dict):
@@ -166,7 +169,9 @@ class Pipeline:
             logger.debug("Loaded processor {}.".format(module_class))
             processor_module = module_class(**module_config)
         except KeyError:
-            raise RuntimeError("'{}' is not a valid processor.".format(module_name))
+            raise PipelineBuildingError(f"'{module_name}' is not a valid processor.")
+        except Exception as e:
+            raise PipelineBuildingError(f"Parsing module '{module_name}' failed because of the following error: {e}")
 
         return processor_module
 

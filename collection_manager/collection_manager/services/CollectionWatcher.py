@@ -50,7 +50,7 @@ class CollectionWatcher:
                                      func=self._reload_and_reschedule)
         self._observer.start()
 
-    def collections(self) -> Set[Collection]:
+    def _collections(self) -> Set[Collection]:
         """
         Return a set of all Collections being watched.
         :return: A set of Collections
@@ -96,9 +96,9 @@ class CollectionWatcher:
                                                "next file modification.")
 
     def _get_updated_collections(self) -> Set[Collection]:
-        old_collections = self.collections()
+        old_collections = self._collections()
         self._load_collections()
-        return self.collections() - old_collections
+        return self._collections() - old_collections
 
     async def _reload_and_reschedule(self):
         try:
@@ -128,7 +128,7 @@ class CollectionWatcher:
             # Note: the Watchdog library does not schedule a new watch
             # if one is already scheduled for the same directory
             try:
-                self._granule_watches.add(self._observer.schedule(granule_event_handler, directory))
+                self._granule_watches.add(self._observer.schedule(granule_event_handler, directory, recursive=True))
             except (FileNotFoundError, NotADirectoryError):
                 bad_collection_names = ' and '.join([col.dataset_id for col in collections])
                 logger.error(f"Granule directory {directory} does not exist. Ignoring {bad_collection_names}.")
@@ -169,8 +169,11 @@ class _GranuleEventHandler(FileSystemEventHandler):
     def on_created(self, event):
         super().on_created(event)
         for collection in self._collections_for_dir:
-            if collection.owns_file(event.src_path):
-                self._loop.create_task(self._callback(event.src_path, collection))
+            try:
+                if collection.owns_file(event.src_path):
+                    self._loop.create_task(self._callback(event.src_path, collection))
+            except IsADirectoryError:
+                pass
 
     def on_modified(self, event):
         super().on_modified(event)

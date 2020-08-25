@@ -25,7 +25,7 @@ class MessagePublisher:
         """
         self._connection = await connect_robust(self._connection_string)
         self._channel = await self._connection.channel()
-        await self._channel.declare_queue(self._queue, durable=True)
+        await self._channel.declare_queue(self._queue, durable=True, arguments={'x-max-priority': 10})
 
     @retry(wait=wait_fixed(5), reraise=True, stop=stop_after_attempt(4))
     async def publish_message(self, body: str, priority: int = None):
