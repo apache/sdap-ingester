@@ -48,10 +48,11 @@ class IngestionHistory(ABC):
         signature = self._signature_fun(file_path)
         await self._push_record(file_name, signature)
 
+        file_modified_date = os.path.getmtime(file_path)
         if not self._latest_ingested_file_update:
-            self._latest_ingested_file_update = os.path.getmtime(file_path)
+            self._latest_ingested_file_update = file_modified_date
         else:
-            self._latest_ingested_file_update = max(self._latest_ingested_file_update, os.path.getmtime(file_path))
+            self._latest_ingested_file_update = max(self._latest_ingested_file_update, file_modified_date)
 
         await self._save_latest_timestamp()
 
@@ -73,9 +74,10 @@ class IngestionHistory(ABC):
                         should fall in order to be "desired".
         :return: A GranuleStatus enum.
         """
-        if self._in_time_range(file_path, date_from=self._latest_ingested_mtime()):
+        file_modified_date = os.path.getmtime(file_path)
+        if self._in_time_range(file_modified_date, start_date=self._latest_ingested_mtime()):
             return GranuleStatus.DESIRED_FORWARD_PROCESSING
-        elif self._in_time_range(file_path, date_from, date_to) and not await self._already_ingested(file_path):
+        elif self._in_time_range(file_modified_date, date_from, date_to) and not await self._already_ingested(file_path):
             return GranuleStatus.DESIRED_HISTORICAL
         else:
             return GranuleStatus.UNDESIRED
@@ -114,15 +116,14 @@ class IngestionHistory(ABC):
         pass
 
     @staticmethod
-    def _in_time_range(file, date_from: datetime = None, date_to: datetime = None):
+    def _in_time_range(date: datetime, start_date: datetime = None, end_date: datetime = None):
         """
         :param file: file path as a string
         :param date_from: timestamp, can be None
         :param date_to: timestamp, can be None
         :return: True is the update time of the file is between ts_from and ts_to. False otherwise
         """
-        file_modified_time = os.path.getmtime(file)
-        is_after_from = date_from.timestamp() < file_modified_time if date_from else True
-        is_before_to = date_to.timestamp() > file_modified_time if date_to else True
+        is_after_from = start_date.timestamp() < date if start_date else True
+        is_before_to = end_date.timestamp() > date if end_date else True
 
         return is_after_from and is_before_to

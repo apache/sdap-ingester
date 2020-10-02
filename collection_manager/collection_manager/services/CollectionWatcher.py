@@ -3,6 +3,7 @@ import logging
 import os
 import time
 from collections import defaultdict
+from glob import glob
 from typing import Awaitable, Callable, Dict, Optional, Set
 
 import yaml
@@ -21,14 +22,12 @@ logger.setLevel(logging.DEBUG)
 class CollectionWatcher:
     def __init__(self,
                  collections_path: str,
-                 collection_updated_callback: Callable[[Collection], Awaitable],
                  granule_updated_callback: Callable[[str, Collection], Awaitable],
                  collections_refresh_interval: float = 30):
         if not os.path.isabs(collections_path):
             raise RelativePathError("Collections config  path must be an absolute path.")
 
         self._collections_path = collections_path
-        self._collection_updated_callback = collection_updated_callback
         self._granule_updated_callback = granule_updated_callback
         self._collections_refresh_interval = collections_refresh_interval
 
@@ -107,7 +106,10 @@ class CollectionWatcher:
                 logger.info(f"Scanning files for {len(updated_collections)} collections...")
                 start = time.perf_counter()
                 for collection in updated_collections:
-                    await self._collection_updated_callback(collection)
+                    files_owned = glob(collection.path, recursive=True)
+                    for granule in files_owned:
+                        await self._granule_updated_callback(granule, collection)
+
                 logger.info(f"Finished scanning files in {time.perf_counter() - start} seconds.")
 
                 self._unschedule_watches()

@@ -53,6 +53,3 @@ class Collection:
             return os.path.dirname(file_path) == self.path
         else:
             return fnmatch(file_path, self.path)
-
-    def files_owned(self) -> List[str]:
-        return glob(self.path, recursive=True)
