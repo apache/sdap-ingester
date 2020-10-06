@@ -12,7 +12,7 @@ from collection_manager.entities.exceptions import (
     CollectionConfigFileNotFoundError, CollectionConfigParsingError,
     ConflictingPathCollectionError, MissingValueCollectionError,
     RelativePathCollectionError, RelativePathError)
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileCreatedEvent, FileModifiedEvent, FileSystemEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
 
 logger = logging.getLogger(__name__)
@@ -179,9 +179,9 @@ class _GranuleEventHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         super().on_modified(event)
-        if os.path.isdir(event.src_path):
-            return
-
-        for collection in self._collections_for_dir:
-            if collection.owns_file(event.src_path):
-                self._loop.create_task(self._callback(event.src_path, collection))
+        # if os.path.isdir(event.src_path):
+        #     return
+        if type(event) == FileModifiedEvent:
+            for collection in self._collections_for_dir:
+                if collection.owns_file(event.src_path):
+                    self._loop.create_task(self._callback(event.src_path, collection))
