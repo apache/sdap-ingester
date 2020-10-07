@@ -1,4 +1,5 @@
 import asyncio
+from collection_manager.services.S3Observer import S3Observer
 import logging
 import os
 import time
@@ -8,10 +9,12 @@ from typing import Awaitable, Callable, Dict, Optional, Set
 
 import yaml
 from collection_manager.entities import Collection
-from collection_manager.entities.exceptions import (
-    CollectionConfigFileNotFoundError, CollectionConfigParsingError,
-    ConflictingPathCollectionError, MissingValueCollectionError,
-    RelativePathCollectionError, RelativePathError)
+from collection_manager.entities.exceptions import (CollectionConfigFileNotFoundError,
+                                                    CollectionConfigParsingError,
+                                                    ConflictingPathCollectionError,
+                                                    MissingValueCollectionError,
+                                                    RelativePathCollectionError,
+                                                    RelativePathError)
 from watchdog.events import FileCreatedEvent, FileModifiedEvent, FileSystemEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
 
@@ -23,6 +26,7 @@ class CollectionWatcher:
     def __init__(self,
                  collections_path: str,
                  granule_updated_callback: Callable[[str, Collection], Awaitable],
+                 s3: bool = False,
                  collections_refresh_interval: float = 30):
         if not os.path.isabs(collections_path):
             raise RelativePathError("Collections config  path must be an absolute path.")
@@ -32,7 +36,11 @@ class CollectionWatcher:
         self._collections_refresh_interval = collections_refresh_interval
 
         self._collections_by_dir: Dict[str, Set[Collection]] = defaultdict(set)
-        self._observer = Observer()
+
+        if s3:
+            self._observer = S3Observer('nexus-ingest')
+        else:
+            self._observer = Observer()
 
         self._granule_watches = set()
 
@@ -47,7 +55,11 @@ class CollectionWatcher:
         await self._run_periodically(loop=loop,
                                      wait_time=self._collections_refresh_interval,
                                      func=self._reload_and_reschedule)
-        self._observer.start()
+
+        if type(self._observer) == S3Observer:
+            await self._observer.start()
+        else:
+            self._observer.start()
 
     def _collections(self) -> Set[Collection]:
         """
@@ -130,7 +142,10 @@ class CollectionWatcher:
             # Note: the Watchdog library does not schedule a new watch
             # if one is already scheduled for the same directory
             try:
-                self._granule_watches.add(self._observer.schedule(granule_event_handler, directory, recursive=True))
+                if type(self._observer) == S3Observer:
+                    self._granule_watches.add(self._observer.schedule(granule_event_handler, directory))
+                else:
+                    self._granule_watches.add(self._observer.schedule(granule_event_handler, directory, recursive=True))
             except (FileNotFoundError, NotADirectoryError):
                 bad_collection_names = ' and '.join([col.dataset_id for col in collections])
                 logger.error(f"Granule directory {directory} does not exist. Ignoring {bad_collection_names}.")

@@ -48,7 +48,7 @@ class S3Observer:
     def unschedule(self, watch: S3Watch):
         self._watches.remove(watch)
 
-    def schedule(self, path: str, event_handler):
+    def schedule(self,event_handler, path: str):
         watch = S3Watch(path=path, event_handler=event_handler)
         self._watches.add(watch)
         return watch
@@ -116,8 +116,8 @@ class S3Observer:
 async def test():
     observer = S3Observer(bucket="nexus-ingest", initial_scan=False)
     handler = Handler()
-    observer.schedule('avhrr/2012', handler)
-    observer.schedule('avhrr/2013', handler)
+    observer.schedule(handler, 'avhrr/2012')
+    observer.schedule(handler, 'avhrr/2013')
 
     await observer.start()
 
