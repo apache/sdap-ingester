@@ -41,7 +41,9 @@ class Collection:
             raise MissingValueCollectionError(missing_value=e.args[0])
 
     def directory(self):
-        if os.path.isdir(self.path):
+        if urlparse(self.path).scheme == 's3':
+            return self.path
+        elif os.path.isdir(self.path):
             return self.path
         else:
             return os.path.dirname(self.path)
