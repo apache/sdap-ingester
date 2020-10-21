@@ -1,7 +1,7 @@
 numpy==1.15.4
 scipy
 netcdf4==1.5.3
-pandas=1.0.4
+pandas==1.0.4
 pytz==2019.3
 xarray
 pyyaml==5.3.1
