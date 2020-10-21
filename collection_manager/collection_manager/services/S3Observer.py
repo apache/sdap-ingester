@@ -103,6 +103,8 @@ class S3Observer:
         start = time.perf_counter()
         async with aioboto3.resource("s3") as s3:
             bucket = await s3.Bucket(self._bucket)
+
+            # we need the key without the bucket name
             async for file in bucket.objects.filter(Prefix=path):
                 new_cache[file.key] = await file.last_modified
         end = time.perf_counter()

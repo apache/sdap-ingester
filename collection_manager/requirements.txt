@@ -6,3 +6,4 @@ requests==2.23.0
 aio-pika==6.6.1
 tenacity==6.2.0
 aioboto3==8.0.5
+aiohttp==3.6.2

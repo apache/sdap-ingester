@@ -1,4 +1,5 @@
 import asyncio
+from collection_manager.entities.Collection import CollectionStorageType
 from collection_manager.services.S3Observer import S3Observer
 import logging
 import os
@@ -69,11 +70,15 @@ class CollectionWatcher:
         return {collection for collections in self._collections_by_dir.values() for collection in collections}
 
     def _validate_collection(self, collection: Collection):
-        directory = collection.directory()
-        if not os.path.isabs(directory):
-            raise RelativePathCollectionError(collection=collection)
-        if directory == os.path.dirname(self._collections_path):
-            raise ConflictingPathCollectionError(collection=collection)
+        if collection.storage_type() == CollectionStorageType.S3:
+            # do some S3 path validation here
+            return
+        else:
+            directory = collection.directory()
+            if not os.path.isabs(directory):
+                raise RelativePathCollectionError(collection=collection)
+            if directory == os.path.dirname(self._collections_path):
+                raise ConflictingPathCollectionError(collection=collection)
 
     def _load_collections(self):
         try:
@@ -185,18 +190,16 @@ class _GranuleEventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         super().on_created(event)
+        self._handle_event(event)
+
+    def on_modified(self, event):
+        super().on_modified(event)
+        self._handle_event(event)
+
+    def _handle_event(self, event):
         for collection in self._collections_for_dir:
             try:
                 if collection.owns_file(event.src_path):
                     self._loop.create_task(self._callback(event.src_path, collection))
             except IsADirectoryError:
-                pass
-
-    def on_modified(self, event):
-        super().on_modified(event)
-        # if os.path.isdir(event.src_path):
-        #     return
-        if type(event) == FileModifiedEvent:
-            for collection in self._collections_for_dir:
-                if collection.owns_file(event.src_path):
-                    self._loop.create_task(self._callback(event.src_path, collection))
+                return

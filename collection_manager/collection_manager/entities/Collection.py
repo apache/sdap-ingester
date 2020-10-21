@@ -5,8 +5,14 @@ from datetime import datetime
 from fnmatch import fnmatch
 from glob import glob
 from typing import List, Optional
+from enum import Enum
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
+
+
+class CollectionStorageType(Enum):
+    LOCAL = 1
+    S3 = 2
 
 
 @dataclass(frozen=True)
@@ -39,6 +45,12 @@ class Collection:
             return collection
         except KeyError as e:
             raise MissingValueCollectionError(missing_value=e.args[0])
+
+    def storage_type(self):
+        if urlparse(self.path).scheme == 's3':
+            return CollectionStorageType.S3
+        else:
+            return CollectionStorageType.LOCAL
 
     def directory(self):
         if urlparse(self.path).scheme == 's3':
