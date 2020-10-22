@@ -1,6 +1,7 @@
 import asyncio
+from datetime import datetime
 from collection_manager.entities.Collection import CollectionStorageType
-from collection_manager.services.S3Observer import S3Observer
+from collection_manager.services.S3Observer import S3Event, S3Observer
 import logging
 import os
 import time
@@ -39,7 +40,7 @@ class CollectionWatcher:
         self._collections_by_dir: Dict[str, Set[Collection]] = defaultdict(set)
 
         if s3:
-            self._observer = S3Observer('nexus-ingest')
+            self._observer = S3Observer('nexus-ingest', initial_scan=True)
         else:
             self._observer = Observer()
 
@@ -197,9 +198,14 @@ class _GranuleEventHandler(FileSystemEventHandler):
         self._handle_event(event)
 
     def _handle_event(self, event):
+        path = event.src_path
         for collection in self._collections_for_dir:
             try:
-                if collection.owns_file(event.src_path):
-                    self._loop.create_task(self._callback(event.src_path, collection))
+                if collection.owns_file(path):
+                    if isinstance(event, S3Event):
+                        modified_time = event.modified_time
+                    else:
+                        modified_time = os.path.getmtime(path)
+                    self._loop.create_task(self._callback(path, modified_time, collection))
             except IsADirectoryError:
                 return

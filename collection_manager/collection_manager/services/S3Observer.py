@@ -1,4 +1,5 @@
 import asyncio
+from urllib.parse import urlparse
 import datetime
 import os
 import time
@@ -14,6 +15,7 @@ os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
 @dataclass
 class S3Event:
     src_path: str
+    modified_time: datetime.datetime
 
 
 class S3FileModifiedEvent(S3Event):
@@ -48,7 +50,7 @@ class S3Observer:
     def unschedule(self, watch: S3Watch):
         self._watches.remove(watch)
 
-    def schedule(self,event_handler, path: str):
+    def schedule(self, event_handler, path: str):
         watch = S3Watch(path=path, event_handler=event_handler)
         self._watches.add(watch)
         return watch
@@ -90,9 +92,9 @@ class S3Observer:
                 file_is_new = file not in self._cache
 
                 if file_is_new:
-                    watch.event_handler.on_created(S3FileCreatedEvent(src_path=file))
+                    watch.event_handler.on_created(S3FileCreatedEvent(src_path=file, modified_time=modified_date))
                 else:
-                    watch.event_handler.on_modified(S3FileModifiedEvent(src_path=file))
+                    watch.event_handler.on_modified(S3FileModifiedEvent(src_path=file, modified_time=modified_date))
 
         self._cache = new_cache
         self._has_polled = True
@@ -104,15 +106,19 @@ class S3Observer:
         async with aioboto3.resource("s3") as s3:
             bucket = await s3.Bucket(self._bucket)
 
-            # we need the key without the bucket name
-            async for file in bucket.objects.filter(Prefix=path):
-                new_cache[file.key] = await file.last_modified
+            object_key = S3Observer._get_object_key(path)
+            async for file in bucket.objects.filter(Prefix=object_key):
+                new_cache[f"s3://{file.bucket_name}/{file.key}"] = await file.last_modified
         end = time.perf_counter()
         duration = end - start
 
         print(f"Retrieved {len(new_cache)} objects in {duration}")
 
         return new_cache
+
+    def _get_object_key(full_path: str):
+        key = urlparse(full_path).path.strip("/")
+        return key
 
 
 async def test():
