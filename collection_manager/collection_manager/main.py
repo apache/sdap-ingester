@@ -3,8 +3,11 @@ import asyncio
 import logging
 import os
 
-from collection_manager.services import CollectionProcessor, CollectionWatcher, MessagePublisher
-from collection_manager.services.history_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
+from collection_manager.services import (CollectionProcessor,
+                                         CollectionWatcher, MessagePublisher)
+from collection_manager.services.history_manager import (
+    FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
+    md5sum_from_filepath)
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
@@ -58,11 +61,19 @@ def get_args() -> argparse.Namespace:
 async def main():
     try:
         options = get_args()
+        ENABLE_S3 = False
+
+        if ENABLE_S3:
+            signature_fun = None
+        else:
+            signature_fun = md5sum_from_filepath
 
         if options.history_path:
-            history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path)
+            history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path,
+                                                                  signature_fun=signature_fun)
         else:
-            history_manager_builder = SolrIngestionHistoryBuilder(solr_url=options.history_url)
+            history_manager_builder = SolrIngestionHistoryBuilder(solr_url=options.history_url,
+                                                                  signature_fun=signature_fun)
         async with MessagePublisher(host=options.rabbitmq_host,
                                     username=options.rabbitmq_username,
                                     password=options.rabbitmq_password,
@@ -72,7 +83,7 @@ async def main():
             collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                    granule_updated_callback=collection_processor.process_granule,
                                                    collections_refresh_interval=int(options.refresh),
-                                                   s3=True)
+                                                   s3=ENABLE_S3)
 
             await collection_watcher.start_watching()
             while True:

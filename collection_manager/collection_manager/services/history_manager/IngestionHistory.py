@@ -38,28 +38,29 @@ class GranuleStatus(Enum):
 
 class IngestionHistory(ABC):
     _signature_fun = None
-    _latest_ingested_file_update = None
+    _latest_ingested_file_update: float = None
 
-    async def push(self, file_path: str, modified_time: datetime):
+    async def push(self, file_path: str, modified_datetime: datetime):
         """
         Record a file as having been ingested.
         :param file_path: The full path to the file to record.
         :return: None
         """
+        modified_timestamp = int(modified_datetime.timestamp())
         file_name = IngestionHistory._get_standardized_path(file_path)
-        signature = self._signature_fun(file_path)
+        signature = self._signature_fun(file_path) if self._signature_fun else self._signature_from_timestamp(modified_timestamp)
         await self._push_record(file_name, signature)
 
         if not self._latest_ingested_file_update:
-            self._latest_ingested_file_update = modified_time 
+            self._latest_ingested_file_update = modified_timestamp
         else:
-            self._latest_ingested_file_update = max(self._latest_ingested_file_update, modified_time)
+            self._latest_ingested_file_update = max(self._latest_ingested_file_update, modified_timestamp)
 
         await self._save_latest_timestamp()
 
     async def get_granule_status(self,
                                  file_path: str,
-                                 modified_time: datetime,
+                                 modified_datetime: datetime,
                                  date_from: datetime = None,
                                  date_to: datetime = None) -> GranuleStatus:
         """
@@ -76,9 +77,11 @@ class IngestionHistory(ABC):
                         should fall in order to be "desired".
         :return: A GranuleStatus enum.
         """
-        if self._in_time_range(modified_time, start_date=self._latest_ingested_mtime()):
+        signature = self._signature_fun(file_path) if self._signature_fun else self._signature_from_timestamp(modified_datetime.timestamp())
+
+        if self._in_time_range(modified_datetime, start_date=self._latest_ingested_mtime()):
             return GranuleStatus.DESIRED_FORWARD_PROCESSING
-        elif self._in_time_range(modified_time, date_from, date_to) and not await self._already_ingested(file_path):
+        elif self._in_time_range(modified_datetime, date_from, date_to) and not await self._already_ingested(file_path, signature):
             return GranuleStatus.DESIRED_HISTORICAL
         else:
             return GranuleStatus.UNDESIRED
@@ -102,14 +105,13 @@ class IngestionHistory(ABC):
         else:
             return None
 
-    async def _already_ingested(self, file_path: str) -> bool:
+    async def _already_ingested(self, file_path: str, signature) -> bool:
         """
         Return a boolean indicating whether the specified file has already been ingested, based on its signature.
         :param file_path: The full path of a file to search for in the history.
         :return: A boolean indicating whether this file has already been ingested or not
         """
         file_name = IngestionHistory._get_standardized_path(file_path)
-        signature = self._signature_fun(file_path)
         return signature == await self._get_signature(file_name)
 
     @abstractmethod
@@ -132,7 +134,11 @@ class IngestionHistory(ABC):
         :param date_to: timestamp, can be None
         :return: True is the update time of the file is between ts_from and ts_to. False otherwise
         """
-        is_after_from = start_date.timestamp() < date if start_date else True
-        is_before_to = end_date.timestamp() > date if end_date else True
+        is_after_from = start_date.timestamp() < date.timestamp() if start_date else True
+        is_before_to = end_date.timestamp() > date.timestamp() if end_date else True
 
         return is_after_from and is_before_to
+
+    @staticmethod
+    def _signature_from_timestamp(timestamp: float):
+        return str(int(timestamp))
