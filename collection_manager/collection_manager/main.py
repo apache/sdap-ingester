@@ -61,7 +61,7 @@ def get_args() -> argparse.Namespace:
 async def main():
     try:
         options = get_args()
-        ENABLE_S3 = False
+        ENABLE_S3 = True
 
         if ENABLE_S3:
             signature_fun = None

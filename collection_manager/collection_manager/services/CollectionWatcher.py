@@ -121,7 +121,7 @@ class CollectionWatcher:
         start = time.perf_counter()
         for collection in collections:
             for granule_path in glob(collection.path, recursive=True):
-                modified_time = os.path.getmtime(granule_path)
+                modified_time = int(os.path.getmtime(granule_path))
                 await self._granule_updated_callback(granule_path, modified_time, collection)
         logger.info(f"Finished scanning files in {time.perf_counter() - start} seconds.")
 
@@ -207,9 +207,9 @@ class _GranuleEventHandler(FileSystemEventHandler):
             try:
                 if collection.owns_file(path):
                     if isinstance(event, S3Event):
-                        modified_time = event.modified_time
+                        modified_time = int(event.modified_time.timestamp())
                     else:
-                        modified_time = datetime.fromtimestamp(os.path.getmtime(path))
+                        modified_time = int(os.path.getmtime(path))
                     self._loop.create_task(self._callback(path, modified_time, collection))
             except IsADirectoryError:
                 return

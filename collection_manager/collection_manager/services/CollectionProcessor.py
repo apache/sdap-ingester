@@ -24,7 +24,7 @@ class CollectionProcessor:
         self._history_manager_builder = history_manager_builder
         self._history_manager_cache: Dict[str, IngestionHistory] = {}
 
-    async def process_granule(self, granule: str, modified_time: datetime, collection: Collection):
+    async def process_granule(self, granule: str, modified_time: int, collection: Collection):
         """
         Determine whether a granule needs to be ingested, and if so publish a RabbitMQ message for it.
         :param granule: A path to a granule file
@@ -35,7 +35,10 @@ class CollectionProcessor:
             return
 
         history_manager = self._get_history_manager(collection.dataset_id)
-        granule_status = await history_manager.get_granule_status(granule, modified_time, collection.date_from, collection.date_to)
+        granule_status = await history_manager.get_granule_status(granule,
+                                                                  modified_time,
+                                                                  collection.date_from,
+                                                                  collection.date_to)
 
         if granule_status is GranuleStatus.DESIRED_FORWARD_PROCESSING:
             logger.info(f"New granule '{granule}' detected for forward-processing ingestion "

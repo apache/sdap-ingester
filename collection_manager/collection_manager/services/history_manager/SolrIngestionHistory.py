@@ -64,7 +64,7 @@ class SolrIngestionHistory(IngestionHistory):
             self._solr_datasets.add([{
                 'id': self._dataset_id,
                 'dataset_s': self._dataset_id,
-                'latest_update_l': int(self._latest_ingested_file_update)}])
+                'latest_update_l': self._latest_ingested_file_update}])
             self._solr_datasets.commit()
 
     def _get_latest_file_update(self):
