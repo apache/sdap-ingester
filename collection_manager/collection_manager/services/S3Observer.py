@@ -8,9 +8,6 @@ from typing import Set, Dict, Optional, Callable, Awaitable
 
 import aioboto3
 
-os.environ['AWS_PROFILE'] = "saml-pub"
-os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
-
 
 @dataclass
 class S3Event:
