@@ -54,6 +54,9 @@ def get_args() -> argparse.Namespace:
                         default='30',
                         metavar="INTERVAL",
                         help='Number of seconds after which to reload the collections config file. (Default: 30)')
+    parser.add_argument('--s3-bucket',
+                        metavar='S3-BUCKET',
+                        help='Optional name of an AWS S3 bucket where granules are stored. If this option is set, then all collections to be scanned must have their granules on S3, not the local filesystem.')
 
     return parser.parse_args()
 
@@ -61,12 +64,8 @@ def get_args() -> argparse.Namespace:
 async def main():
     try:
         options = get_args()
-        ENABLE_S3 = True
 
-        if ENABLE_S3:
-            signature_fun = None
-        else:
-            signature_fun = md5sum_from_filepath
+        signature_fun = None if options.s3_bucket else md5sum_from_filepath
 
         if options.history_path:
             history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path,
@@ -83,7 +82,7 @@ async def main():
             collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                    granule_updated_callback=collection_processor.process_granule,
                                                    collections_refresh_interval=int(options.refresh),
-                                                   s3=ENABLE_S3)
+                                                   s3_bucket=options.s3_bucket)
 
             await collection_watcher.start_watching()
             while True:
