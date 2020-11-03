@@ -12,7 +12,8 @@ COPY collection_manager/requirements.txt /collection_manager/requirements.txt
 COPY collection_manager/README.md /collection_manager/README.md
 COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
 
-RUN cd /common && python setup.py install
+RUN cd /common && python setup.py install 
 RUN cd /collection_manager && python setup.py install
+RUN pip install boto3==1.16.10
 
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
