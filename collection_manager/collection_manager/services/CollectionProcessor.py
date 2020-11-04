@@ -88,6 +88,7 @@ class CollectionProcessor:
                     **dict(collection.dimension_names),
                 },
                 {'name': 'emptyTileFilter'},
+                {'name': 'subtract180FromLongitude'},
                 {
                     'name': 'tileSummary',
                     'dataset_name': collection.dataset_id
