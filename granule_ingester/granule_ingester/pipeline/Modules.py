@@ -1,4 +1,8 @@
-from granule_ingester.processors import GenerateTileId, TileSummarizingProcessor, EmptyTileFilter, KelvinToCelsius
+from granule_ingester.processors import (GenerateTileId,
+                                         TileSummarizingProcessor,
+                                         EmptyTileFilter,
+                                         KelvinToCelsius,
+                                         Subtract180FromLongitude)
 from granule_ingester.processors.reading_processors import (EccoReadingProcessor,
                                                             GridReadingProcessor,
                                                             SwathReadingProcessor,
@@ -16,5 +20,6 @@ modules = {
     "Swath": SwathReadingProcessor,
     "tileSummary": TileSummarizingProcessor,
     "emptyTileFilter": EmptyTileFilter,
-    "kelvinToCelsius": KelvinToCelsius
+    "kelvinToCelsius": KelvinToCelsius,
+    "subtract180FromLongitude": Subtract180FromLongitude
 }
