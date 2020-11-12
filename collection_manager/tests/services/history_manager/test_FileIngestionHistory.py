@@ -36,7 +36,7 @@ class TestFileIngestionHistory(unittest.TestCase):
             # history_manager with this file
             current_file_path = pathlib.Path(__file__)
             await ingestion_history.push(str(current_file_path))
-            self.assertTrue(await ingestion_history.already_ingested(str(current_file_path)))
+            self.assertTrue(await ingestion_history._already_ingested(str(current_file_path)))
 
             del ingestion_history
 
@@ -47,7 +47,7 @@ class TestFileIngestionHistory(unittest.TestCase):
             # history_manager with this file
             current_file_path = pathlib.Path(__file__)
             await ingestion_history.push(str(current_file_path))
-            self.assertTrue(await ingestion_history.already_ingested(str(current_file_path)))
+            self.assertTrue(await ingestion_history._already_ingested(str(current_file_path)))
 
             del ingestion_history
 
@@ -57,7 +57,7 @@ class TestFileIngestionHistory(unittest.TestCase):
             ingestion_history = FileIngestionHistory(history_dir, DATASET_ID, md5sum_from_filepath)
             # history_manager with this file
             current_file_path = pathlib.Path(__file__)
-            self.assertFalse(await ingestion_history.already_ingested(str(current_file_path)))
+            self.assertFalse(await ingestion_history._already_ingested(str(current_file_path)))
 
 
 if __name__ == '__main__':

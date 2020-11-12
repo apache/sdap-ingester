@@ -18,6 +18,8 @@ RUN ./install_nexusproto.sh
 RUN cd /common && python setup.py install
 RUN cd /sdap && python setup.py install
 
+RUN pip install boto3==1.16.10
+
 RUN apk del .build-deps
 
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]

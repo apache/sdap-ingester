@@ -1,6 +1,7 @@
 cassandra-driver==3.23.0
 aiomultiprocess==0.7.0
-aioboto3
+aioboto3==8.0.5
 tblib==1.6.0
 pysolr==3.9.0
 kazoo==2.8.0
+aio-pika==6.7.1
