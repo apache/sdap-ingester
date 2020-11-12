@@ -3,11 +3,8 @@ import logging
 
 import pysolr
 import requests
-
+from collection_manager.services.history_manager.IngestionHistory import (IngestionHistory, IngestionHistoryBuilder)
 from common.async_utils.AsyncUtils import run_in_executor
-from collection_manager.services.history_manager.IngestionHistory import IngestionHistory
-from collection_manager.services.history_manager.IngestionHistory import IngestionHistoryBuilder
-from collection_manager.services.history_manager.IngestionHistory import md5sum_from_filepath
 
 logging.getLogger("pysolr").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -40,7 +37,7 @@ class SolrIngestionHistory(IngestionHistory):
             self._solr_granules = pysolr.Solr(f"{self._url_prefix}/{self._granule_collection_name}")
             self._solr_datasets = pysolr.Solr(f"{self._url_prefix}/{self._dataset_collection_name}")
             self._dataset_id = dataset_id
-            self._signature_fun = md5sum_from_filepath if signature_fun is None else signature_fun
+            self._signature_fun = signature_fun
             self._latest_ingested_file_update = self._get_latest_file_update()
         except requests.exceptions.RequestException:
             raise DatasetIngestionHistorySolrException(f"solr instance unreachable {solr_url}")
@@ -67,7 +64,7 @@ class SolrIngestionHistory(IngestionHistory):
             self._solr_datasets.add([{
                 'id': self._dataset_id,
                 'dataset_s': self._dataset_id,
-                'latest_update_l': int(self._latest_ingested_file_update)}])
+                'latest_update_l': self._latest_ingested_file_update}])
             self._solr_datasets.commit()
 
     def _get_latest_file_update(self):

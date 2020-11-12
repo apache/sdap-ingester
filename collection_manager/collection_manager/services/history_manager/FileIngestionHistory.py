@@ -4,7 +4,6 @@ from pathlib import Path
 
 from collection_manager.services.history_manager.IngestionHistory import IngestionHistory
 from collection_manager.services.history_manager.IngestionHistory import IngestionHistoryBuilder
-from collection_manager.services.history_manager.IngestionHistory import md5sum_from_filepath
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class FileIngestionHistory(IngestionHistory):
         """
         self._dataset_id = dataset_id
         self._history_file_path = os.path.join(history_path, f'{dataset_id}.csv')
-        self._signature_fun = md5sum_from_filepath if signature_fun is None else signature_fun
+        self._signature_fun = signature_fun
         self._history_dict = {}
         self._load_history_dict()
 

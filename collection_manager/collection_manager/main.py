@@ -3,8 +3,11 @@ import asyncio
 import logging
 import os
 
-from collection_manager.services import CollectionProcessor, CollectionWatcher, MessagePublisher
-from collection_manager.services.history_manager import SolrIngestionHistoryBuilder, FileIngestionHistoryBuilder
+from collection_manager.services import (CollectionProcessor,
+                                         CollectionWatcher, MessagePublisher)
+from collection_manager.services.history_manager import (
+    FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
+    md5sum_from_filepath)
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pika").setLevel(logging.WARNING)
@@ -51,6 +54,9 @@ def get_args() -> argparse.Namespace:
                         default='30',
                         metavar="INTERVAL",
                         help='Number of seconds after which to reload the collections config file. (Default: 30)')
+    parser.add_argument('--s3-bucket',
+                        metavar='S3-BUCKET',
+                        help='Optional name of an AWS S3 bucket where granules are stored. If this option is set, then all collections to be scanned must have their granules on S3, not the local filesystem.')
 
     return parser.parse_args()
 
@@ -59,10 +65,14 @@ async def main():
     try:
         options = get_args()
 
+        signature_fun = None if options.s3_bucket else md5sum_from_filepath
+
         if options.history_path:
-            history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path)
+            history_manager_builder = FileIngestionHistoryBuilder(history_path=options.history_path,
+                                                                  signature_fun=signature_fun)
         else:
-            history_manager_builder = SolrIngestionHistoryBuilder(solr_url=options.history_url)
+            history_manager_builder = SolrIngestionHistoryBuilder(solr_url=options.history_url,
+                                                                  signature_fun=signature_fun)
         async with MessagePublisher(host=options.rabbitmq_host,
                                     username=options.rabbitmq_username,
                                     password=options.rabbitmq_password,
@@ -70,9 +80,9 @@ async def main():
             collection_processor = CollectionProcessor(message_publisher=publisher,
                                                        history_manager_builder=history_manager_builder)
             collection_watcher = CollectionWatcher(collections_path=options.collections_path,
-                                                   collection_updated_callback=collection_processor.process_collection,
                                                    granule_updated_callback=collection_processor.process_granule,
-                                                   collections_refresh_interval=int(options.refresh))
+                                                   collections_refresh_interval=int(options.refresh),
+                                                   s3_bucket=options.s3_bucket)
 
             await collection_watcher.start_watching()
             while True:
