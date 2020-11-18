@@ -13,19 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from nexusproto.serialization import from_shaped_array, to_shaped_array
-
+from nexusproto.DataTile_pb2 import NexusTile
 from granule_ingester.processors.TileProcessor import TileProcessor
 
 
 class KelvinToCelsius(TileProcessor):
-    def process(self, tile, *args, **kwargs):
+    def process(self, tile: NexusTile, *args, **kwargs):
         the_tile_type = tile.tile.WhichOneof("tile_type")
         the_tile_data = getattr(tile.tile, the_tile_type)
+        kelvins = ['kelvin', 'degk', 'deg_k', 'degreesk', 'degrees_k', 'degree_k', 'degreek']
 
-        var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
-
-        the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
+        if 'dataset' in kwargs:
+            ds = kwargs['dataset']
+            variable_name = tile.summary.data_var_name
+            variable_unit = ds.variables[variable_name].attrs['units']
+            if any([unit in variable_unit.lower() for unit in kelvins]):
+                var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
+                the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
 
         return tile
