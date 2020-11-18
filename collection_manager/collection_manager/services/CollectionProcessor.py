@@ -87,6 +87,7 @@ class CollectionProcessor:
                 },
                 {'name': 'emptyTileFilter'},
                 {'name': 'subtract180FromLongitude'},
+                {'name': 'kelvinToCelsius'},
                 {
                     'name': 'tileSummary',
                     'dataset_name': collection.dataset_id
