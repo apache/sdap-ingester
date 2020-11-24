@@ -23,11 +23,12 @@ from granule_ingester.processors.TileProcessor import TileProcessor
 class GenerateTileId(TileProcessor):
 
     def process(self, tile: nexusproto.NexusTile, *args, **kwargs):
+        granule = os.path.basename(tile.summary.granule)
         variable_name = tile.summary.data_var_name
         spec = tile.summary.section_spec
         dataset_name = tile.summary.dataset_name
 
-        generated_id = uuid.uuid3(uuid.NAMESPACE_DNS, dataset_name + variable_name + spec)
+        generated_id = uuid.uuid3(uuid.NAMESPACE_DNS, dataset_name + granule + variable_name + spec)
 
         tile.summary.tile_id = str(generated_id)
         return tile
