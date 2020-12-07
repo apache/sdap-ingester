@@ -94,12 +94,13 @@ collections:
       j: 30
 ```
 
-Note that the dimensions listed under `slices` will not necessarily match those under `dimensionNames`. This is because sometimes
+Note that the dimensions listed under `slices` will not necessarily match the values of the properties under `dimensionNames`. This is because sometimes
 the actual dimensions are referenced by index variables. 
+
 > **Tip:** An easy way to determine which variables go under `dimensionNames` and which ones go under `slices` is that the variables 
-> on which the primary variable is dependent should go under `slices`, and the variables on which _those_ variables are dependent 
-> (which could be themselves, as in the case of the first collection in the above example) should go under `dimensionNames`. The excepction
-> to this is that the primary variable is always listed under `dimensionNames.variable`.
+> on which the primary variable is dependent should be listed under `slices`, and the variables on which _those_ variables are dependent 
+> (which could be themselves, as in the case of the first collection in the above example) should be the values of the properties under 
+> `dimensionNames`. The excepction to this is that the primary variable is always listed under `dimensionNames.variable`.
 
 ## Running the tests
 From `incubator-sdap-ingester/`, run:
