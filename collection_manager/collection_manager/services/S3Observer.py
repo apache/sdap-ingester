@@ -109,8 +109,6 @@ class S3Observer:
         end = time.perf_counter()
         duration = end - start
 
-        print(f"Retrieved {len(new_cache)} objects in {duration}")
-
         return new_cache
 
     def _get_object_key(full_path: str):

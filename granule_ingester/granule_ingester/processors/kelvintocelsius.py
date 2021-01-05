@@ -27,7 +27,15 @@ class KelvinToCelsius(TileProcessor):
         if 'dataset' in kwargs:
             ds = kwargs['dataset']
             variable_name = tile.summary.data_var_name
-            variable_unit = ds.variables[variable_name].attrs['units']
+            if 'units' in ds.variables[variable_name].attrs:
+                variable_unit = ds.variables[variable_name].attrs['units']
+            elif 'Units' in ds.variables[variable_name].attrs:
+                variable_unit = ds.variables[variable_name].attrs['Units']
+            elif 'UNITS' in ds.variables[variable_name].attrs:
+                variable_unit = ds.variables[variable_name].attrs['UNITS']
+            else:
+                return tile
+
             if any([unit in variable_unit.lower() for unit in kelvins]):
                 var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
                 the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
