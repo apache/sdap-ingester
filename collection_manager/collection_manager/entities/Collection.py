@@ -1,11 +1,12 @@
 import os
-from urllib.parse import urlparse
+import pathlib
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from fnmatch import fnmatch
 from glob import glob
 from typing import List, Optional
-from enum import Enum
+from urllib.parse import urlparse
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
 
@@ -68,6 +69,6 @@ class Collection:
                 raise IsADirectoryError()
 
             if os.path.isdir(self.path):
-                return os.path.dirname(file_path) == self.path
+                return pathlib.Path(self.path) in pathlib.Path(file_path).parents
             else:
                 return fnmatch(file_path, self.path)
