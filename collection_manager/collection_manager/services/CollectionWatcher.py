@@ -116,10 +116,15 @@ class CollectionWatcher:
         logger.info(f"Scanning files for {len(collections)} collections...")
         start = time.perf_counter()
         for collection in collections:
-            for granule_path in glob(collection.path, recursive=True):
+            for granule_path in self._get_files_at_path(collection.path):
                 modified_time = int(os.path.getmtime(granule_path))
                 await self._granule_updated_callback(granule_path, modified_time, collection)
         logger.info(f"Finished scanning files in {time.perf_counter() - start} seconds.")
+
+    def _get_files_at_path(self, path: str) -> List[str]:
+        if os.path.isfile(path):
+            return [path]
+        return [f for f in glob(path + '/**', recursive=True) if os.path.isfile(f)]
 
     async def _reload_and_reschedule(self):
         try:
@@ -191,11 +196,14 @@ class _GranuleEventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         super().on_created(event)
-        self._handle_event(event)
+        if isinstance(event, S3Event) or not event.is_directory:
+            self._handle_event(event)
 
     def on_modified(self, event):
         super().on_modified(event)
-        self._handle_event(event)
+
+        if isinstance(event, S3Event) or not event.is_directory:
+            self._handle_event(event)
 
     def _handle_event(self, event):
         path = event.src_path
