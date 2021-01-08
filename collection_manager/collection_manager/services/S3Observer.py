@@ -75,7 +75,11 @@ class S3Observer:
         new_cache = {}
         watch_index = {}
 
-        for watch in self._watches:
+        # We need to iterate on a copy of self._watches rather than on the original set itself
+        # because it is very possible that the original set could get updated while we are in the
+        # middle of scanning S3, which will cause an exception.
+        watches_copy = self._watches.copy()
+        for watch in watches_copy:
             new_cache_for_watch = await self._get_s3_files(watch.path)
             new_index = {file: watch for file in new_cache_for_watch}
 
