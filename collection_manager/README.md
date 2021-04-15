@@ -11,8 +11,14 @@ Manager service will publish a message to RabbitMQ to be picked up by the Granul
 
 Python 3.7
 
+Use a conda environment for example:
+
+    $ conda create -n cmenv python=3.7
+    $ conda activate cmenv    
+
 ## Building the service
 From `incubator-sdap-ingester`, run:
+
     $ cd common && python setup.py install
     $ cd ../collection_manager python setup.py install
     

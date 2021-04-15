@@ -70,8 +70,33 @@ class CollectionProcessor:
             self._history_manager_cache[dataset_id] = self._history_manager_builder.build(dataset_id=dataset_id)
         return self._history_manager_cache[dataset_id]
 
+
+    @staticmethod
+    def _get_default_processors(collection: Collection):
+        processors = [
+            {
+                'name': collection.projection,
+                **dict(collection.dimension_names),
+            },
+            {'name': 'emptyTileFilter'},
+            {'name': 'subtract180FromLongitude'}
+        ]
+
+        if collection.projection == 'Grid':
+            processors.append({'name': 'forceAscendingLatitude'})
+        processors.append({'name': 'kelvinToCelsius'})
+        processors.append({
+            'name': 'tileSummary',
+            'dataset_name': collection.dataset_id
+        })
+        processors.append({'name': 'generateTileId'})
+
+        return processors
+    
+
     @staticmethod
     def _generate_ingestion_message(granule_path: str, collection: Collection) -> str:
+
         config_dict = {
             'granule': {
                 'resource': granule_path
@@ -80,20 +105,7 @@ class CollectionProcessor:
                 'name': 'sliceFileByStepSize',
                 'dimension_step_sizes': dict(collection.slices)
             },
-            'processors': [
-                {
-                    'name': collection.projection,
-                    **dict(collection.dimension_names),
-                },
-                {'name': 'emptyTileFilter'},
-                {'name': 'subtract180FromLongitude'},
-                {'name': 'kelvinToCelsius'},
-                {
-                    'name': 'tileSummary',
-                    'dataset_name': collection.dataset_id
-                },
-                {'name': 'generateTileId'}
-            ]
+            'processors': CollectionProcessor._get_default_processors(collection)
         }
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")
