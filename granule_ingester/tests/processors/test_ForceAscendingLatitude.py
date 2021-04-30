@@ -7,15 +7,15 @@ from nexusproto import DataTile_pb2 as nexusproto
 
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 
-from granule_ingester.processors.ForceAscendingLatitude import ForceAscendingLatitude
+from granule_ingester.processors import ForceAscendingLatitude
 from granule_ingester.processors.reading_processors.GridReadingProcessor import GridReadingProcessor
 
 class TestForceAscendingLatitude(unittest.TestCase):
 
     def read_tile(self):
         reading_processor = GridReadingProcessor('B03', 'lat', 'lon', time='time')
-        granule_path = path.join(path.dirname(__file__),
-                                 '/Users/loubrieu/Documents/sdap/HLS/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
+        granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
+
         input_tile = nexusproto.NexusTile()
         input_tile.summary.granule = granule_path
 
