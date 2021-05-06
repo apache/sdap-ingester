@@ -12,7 +12,6 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.dataset_name = 'test_dataset'
         tile.summary.dataset_uuid = 'test_dataset_id'
-        tile.summary.data_var_name = 'test_variable'
         tile.summary.granule = 'test_granule_path'
         tile.summary.section_spec = 'time:0:1,j:0:20,i:200:240'
         tile.summary.bbox.lat_min = -180.1
@@ -25,6 +24,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.count = 100
         tile.summary.stats.min_time = 694224000
         tile.summary.stats.max_time = 694310400
+        tile.summary.standard_name = 'sea_surface_temperature'
 
         tile.tile.ecco_tile.depth = 10.5
 
@@ -39,7 +39,6 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_dataset!test_id', solr_doc['solr_id_s'])
         self.assertEqual('time:0:1,j:0:20,i:200:240', solr_doc['sectionSpec_s'])
         self.assertEqual('test_granule_path', solr_doc['granule_s'])
-        self.assertEqual('test_variable', solr_doc['tile_var_name_s'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
         self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
@@ -51,3 +50,4 @@ class TestSolrStore(unittest.TestCase):
         self.assertAlmostEqual(12.5, solr_doc['tile_avg_val_d'])
         self.assertEqual(100, solr_doc['tile_count_i'])
         self.assertAlmostEqual(10.5, solr_doc['tile_depth'])
+        self.assertEqual('sea_surface_temperature', solr_doc['standard_name'])

@@ -111,7 +111,6 @@ class SolrStore(MetadataStore):
             'sectionSpec_s': summary.section_spec,
             'dataset_s': summary.dataset_name,
             'granule_s': granule_file_name,
-            'tile_var_name_s': summary.data_var_name,
             'tile_min_lon': bbox.lon_min,
             'tile_max_lon': bbox.lon_max,
             'tile_min_lat': bbox.lat_min,
@@ -122,7 +121,8 @@ class SolrStore(MetadataStore):
             'tile_min_val_d': stats.min,
             'tile_max_val_d': stats.max,
             'tile_avg_val_d': stats.mean,
-            'tile_count_i': int(stats.count)
+            'tile_count_i': int(stats.count),
+            'standard_name': summary.standard_name
         }
 
         ecco_tile_id = getattr(tile_data, 'tile', None)
