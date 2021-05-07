@@ -124,7 +124,10 @@ class CollectionWatcher:
     def _get_files_at_path(self, path: str) -> List[str]:
         if os.path.isfile(path):
             return [path]
-        return [f for f in glob(path + '/**', recursive=True) if os.path.isfile(f)]
+        elif os.path.isdir(path):
+            return [f for f in glob(path + '/**', recursive=True) if os.path.isfile(f)]
+        else:
+            return [f for f in glob(path, recursive=True) if os.path.isfile(f)]
 
     async def _reload_and_reschedule(self):
         try:
