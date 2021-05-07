@@ -103,6 +103,8 @@ class SolrStore(MetadataStore):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
+        var_name = summary.standard_name if summary.standard_name else summary.data_var_name
+
         input_document = {
             'table_s': self.TABLE_NAME,
             'geo': geo,
@@ -111,7 +113,7 @@ class SolrStore(MetadataStore):
             'sectionSpec_s': summary.section_spec,
             'dataset_s': summary.dataset_name,
             'granule_s': granule_file_name,
-            'tile_var_name_s': summary.data_var_name,
+            'tile_var_name_s': var_name,
             'tile_min_lon': bbox.lon_min,
             'tile_max_lon': bbox.lon_max,
             'tile_min_lat': bbox.lat_min,

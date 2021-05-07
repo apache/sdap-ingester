@@ -41,7 +41,7 @@ class TileSummarizingProcessor(TileProcessor):
         super().__init__(*args, **kwargs)
         self._dataset_name = dataset_name
 
-    def process(self, tile, *args, **kwargs):
+    def process(self, tile, dataset, *args, **kwargs):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
@@ -80,6 +80,10 @@ class TileSummarizingProcessor(TileProcessor):
             tile_summary.stats.max_time = max_time
         except NoTimeException:
             pass
+
+        standard_name = dataset.variables[tile_summary.data_var_name].attrs.get('standard_name')
+        if standard_name:
+            tile_summary.standard_name = standard_name
 
         tile.summary.CopyFrom(tile_summary)
         return tile
