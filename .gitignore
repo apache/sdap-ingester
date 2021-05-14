@@ -1,8 +1,15 @@
+.idea
 credentials.json
 token.pickle
 tmp
-sdap_ingest_manager.egg-info
 venv
 __pycache__/
 dist/
 build/
+*.egg-info
+*.DS_Store
+.eggs
+temp/
+*.pyc
+*.vscode
+*.code-workspace

@@ -1,9 +1,0 @@
-# collection id with only letter and -
-# path: regular expression matching the netcdf files which compose the collection
-# variable: netcdf variable to be ingested (only one per dataset)
-# priority: order in which collections will be processed, the smaller numbers first.
-avhrr-oi-analysed-sst:
-  path: resources/test/data/avhrr_oi/*.nc
-  variable: analysed_sst
-  priority: 2
-

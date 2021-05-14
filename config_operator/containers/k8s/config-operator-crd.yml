@@ -1,0 +1,79 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: gitbasedconfigs.sdap.apache.org
+spec:
+  group: sdap.apache.org
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: gitbasedconfigs
+    singular: gitbasedconfig
+    kind: GitBasedConfig
+    shortNames:
+    - gitcfg
+  validation:
+    openAPIV3Schema:
+      type: object
+      properties:
+        git-url:
+          type: string
+        git-branch:
+          type: string
+        git-token:
+          type: string
+        update-every-seconds:
+          type: int
+        local-dir:
+          type: string
+        namespace:
+          type: string
+        config-map:
+          type: string
+
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: git-repo-config-operator
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: git-repo-config-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: git-repo-config-operator
+    namespace: default
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-repo-config-operator
+spec:
+  selector:
+    matchLabels:
+      app: git-repo-config-operator
+  template:
+    metadata:
+      labels:
+        app: git-repo-config-operator
+    spec:
+      serviceAccountName: git-repo-config-operator
+      containers:
+      - image: tloubrieu/config-operator:latest
+        name: git-repo-config-operator
+        imagePullPolicy: IfNotPresent
