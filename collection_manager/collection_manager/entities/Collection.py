@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ from urllib.parse import urlparse
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
 
+logger = logging.getLogger(__name__)
 
 class CollectionStorageType(Enum):
     LOCAL = 1
@@ -30,13 +32,15 @@ class Collection:
 
     @staticmethod
     def from_dict(properties: dict):
+        logger.debug(f'incoming properties dict: {properties}')
         try:
             date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
+            dimension_names = [(k, frozenset(v) if isinstance(v, list) else v) for k, v in properties['dimensionNames'].items()]
             collection = Collection(dataset_id=properties['id'],
                                     projection=properties['projection'],
-                                    dimension_names=frozenset(properties['dimensionNames'].items()),
+                                    dimension_names=frozenset(dimension_names),
                                     slices=frozenset(properties['slices'].items()),
                                     path=properties['path'],
                                     historical_priority=properties['priority'],

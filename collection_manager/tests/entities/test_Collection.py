@@ -137,6 +137,39 @@ class TestCollection(unittest.TestCase):
 
         self.assertEqual(expected_collection, Collection.from_dict(collection_dict))
 
+    def test_from_dict_dimension_list(self):
+        collection_dict = {
+            'id': 'test_id',
+            'path': '/some/path',
+            'projection': 'Grid',
+            'dimensionNames': {
+                'latitude': 'lat',
+                'longitude': 'lon',
+                'variable': ['test_var_1', 'test_var_2', 'test_var_3']
+            },
+            'slices': {'lat': 30, 'lon': 30, 'time': 1},
+            'priority': 1,
+            'forward-processing-priority': 2,
+            'from': '2020-01-01T00:00:00+00:00',
+            'to': '2020-02-01T00:00:00+00:00'
+        }
+
+        expected_collection = Collection(dataset_id='test_id',
+                                         projection="Grid",
+                                         slices=frozenset([('lat', 30), ('lon', 30), ('time', 1)]),
+                                         dimension_names=frozenset([
+                                             ('latitude', 'lat'),
+                                             ('longitude', 'lon'),
+                                             ('variable', frozenset(['test_var_1', 'test_var_2', 'test_var_3']))
+                                         ]),
+                                         path='/some/path',
+                                         historical_priority=1,
+                                         forward_processing_priority=2,
+                                         date_from=datetime(2020, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                                         date_to=datetime(2020, 2, 1, 0, 0, 0, tzinfo=timezone.utc))
+
+        self.assertEqual(expected_collection, Collection.from_dict(collection_dict))
+
     def test_from_dict_missing_optional_values(self):
         collection_dict = {
             'id': 'test_id',
