@@ -110,6 +110,7 @@ class Pipeline:
 
     @classmethod
     def from_string(cls, config_str: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
+        logger.debug(f'config_str: {config_str}')
         try:
             config = yaml.load(config_str, yaml.FullLoader)
             cls._validate_config(config)

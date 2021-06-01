@@ -11,4 +11,5 @@ python /sdap/granule_ingester/main.py \
   $([[ ! -z "$CASSANDRA_PASSWORD" ]] && echo --cassandra-password=$CASSANDRA_PASSWORD) \
   $([[ ! -z "$SOLR_HOST_AND_PORT" ]] && echo --solr-host-and-port=$SOLR_HOST_AND_PORT) \
   $([[ ! -z "$ZK_HOST_AND_PORT" ]] && echo --zk_host_and_port=$ZK_HOST_AND_PORT) \
-  $([[ ! -z "$MAX_THREADS" ]] && echo --max-threads=$MAX_THREADS)
+  $([[ ! -z "$MAX_THREADS" ]] && echo --max-threads=$MAX_THREADS) \
+  $([[ ! -z "$IS_VERBOSE" ]] && echo --verbose)
