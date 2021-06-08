@@ -37,7 +37,7 @@ class Collection:
             date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
-            dimension_names = [(k, frozenset(v) if isinstance(v, list) else v) for k, v in properties['dimensionNames'].items()]
+            dimension_names = [(k, str(v) if isinstance(v, list) else v) for k, v in properties['dimensionNames'].items()]
             collection = Collection(dataset_id=properties['id'],
                                     projection=properties['projection'],
                                     dimension_names=frozenset(dimension_names),
