@@ -12,12 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 
 import numpy
 from nexusproto import DataTile_pb2 as nexusproto
 from nexusproto.serialization import from_shaped_array
 
 from granule_ingester.processors.TileProcessor import TileProcessor
+logger = logging.getLogger(__name__)
 
 
 class NoTimeException(Exception):
@@ -69,7 +71,7 @@ class TileSummarizingProcessor(TileProcessor):
         elif tile_type == 'grid_tile':
             # Grid tiles need to repeat the weight for every longitude
             # TODO This assumes data axis' are ordered as latitude x longitude
-            tile_summary.stats.mean = type(self).calculate_mean_for_grid_tile(data, latitudes, longitudes)
+            tile_summary.stats.mean = type(self).calculate_mean_for_grid_tile(data, latitudes, longitudes, len(tile_summary.data_var_name))
         else:
             # Default to simple average with no weighting
             tile_summary.stats.mean = numpy.nanmean(data).item()
@@ -81,7 +83,7 @@ class TileSummarizingProcessor(TileProcessor):
         except NoTimeException:
             pass
 
-        standard_name = dataset.variables[tile_summary.data_var_name].attrs.get('standard_name')
+        standard_name = dataset.variables[tile_summary.data_var_name[0]].attrs.get('standard_name')  # TODO grabbing the 1st value is good enough?
         if standard_name:
             tile_summary.standard_name = standard_name
 
@@ -89,9 +91,10 @@ class TileSummarizingProcessor(TileProcessor):
         return tile
 
     @staticmethod
-    def calculate_mean_for_grid_tile(variable_data, latitudes, longitudes):
+    def calculate_mean_for_grid_tile(variable_data, latitudes, longitudes, data_var_name_len=1):
+        logger.debug(f'variable_data: {variable_data}. latitudes: {latitudes}. longitudes: {longitudes}')
         flattened_variable_data = numpy.ma.masked_invalid(variable_data).flatten()
-        repeated_latitudes = numpy.repeat(latitudes, len(longitudes))
+        repeated_latitudes = numpy.repeat(latitudes, len(longitudes) * data_var_name_len)
         weights = numpy.cos(numpy.radians(repeated_latitudes))
         return numpy.ma.average(flattened_variable_data, weights=weights).item()
 
