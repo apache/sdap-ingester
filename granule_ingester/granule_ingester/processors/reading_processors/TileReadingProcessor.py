@@ -12,8 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import ast
 import datetime
+import logging
 from abc import ABC, abstractmethod
 from typing import Dict
 
@@ -24,15 +25,22 @@ from nexusproto import DataTile_pb2 as nexusproto
 from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.processors.TileProcessor import TileProcessor
 
+logger = logging.getLogger(__name__)
+
 
 class TileReadingProcessor(TileProcessor, ABC):
 
     def __init__(self, variable: str, latitude: str, longitude: str, *args, **kwargs):
-        self.variable = variable
+        try:
+            self.variable = ast.literal_eval(variable)
+        except Exception as e:
+            logger.exception(f'failed to convert literal list to python list: {variable}')
+            raise e
         self.latitude = latitude
         self.longitude = longitude
 
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):
+        logger.debug(f'Reading Processor: {type(self)}')
         try:
             dimensions_to_slices = self._convert_spec_to_slices(tile.summary.section_spec)
 
