@@ -86,8 +86,9 @@ class SolrStore(MetadataStore):
     def _save_document(self, doc: dict):
         try:
             self._solr.add([doc])
-        except pysolr.SolrError:
-            raise SolrLostConnectionError("Lost connection to Solr, and cannot save tiles.")
+        except pysolr.SolrError as e:
+            logger.exception(f'Lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
+            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:
         summary: TileSummary = tile.summary
@@ -104,7 +105,7 @@ class SolrStore(MetadataStore):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
-        var_name = summary.standard_name if summary.standard_name else list(summary.data_var_name)
+        var_name = summary.standard_name if summary.standard_name else str(summary.data_var_name)
 
         input_document = {
             'table_s': self.TABLE_NAME,
