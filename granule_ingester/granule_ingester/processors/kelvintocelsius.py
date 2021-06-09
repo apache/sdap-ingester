@@ -45,7 +45,6 @@ class KelvinToCelsius(TileProcessor):
             variable_name = tile.summary.data_var_name
             logger.debug(f'K2C tile.summary.data_var_name: {variable_name}')
             logger.debug(f'ds.variables: {ds.variables}')
-            logger.warning(f'forcing to return for now')
             variable_unit = self.__retrieve_var_units(variable_name, ds)
             if len(variable_unit) < 1:
                 return tile
