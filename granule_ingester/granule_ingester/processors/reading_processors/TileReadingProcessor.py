@@ -32,10 +32,13 @@ class TileReadingProcessor(TileProcessor, ABC):
 
     def __init__(self, variable: str, latitude: str, longitude: str, *args, **kwargs):
         try:
-            self.variable = ast.literal_eval(variable)
+            self.variable = variable if isinstance(variable, list) else ast.literal_eval(variable)
         except Exception as e:
             logger.exception(f'failed to convert literal list to python list: {variable}')
             raise e
+        if len(self.variable) < 1:
+            logger.error(f'variable list is empty: {TileReadingProcessor}')
+            raise RuntimeError(f'variable list is empty: {self.variable}')
         self.latitude = latitude
         self.longitude = longitude
 
@@ -46,7 +49,7 @@ class TileReadingProcessor(TileProcessor, ABC):
 
             output_tile = nexusproto.NexusTile()
             output_tile.CopyFrom(tile)
-            output_tile.summary.data_var_name = self.variable
+            output_tile.summary.data_var_name.extend(self.variable)
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
         except Exception as e:
