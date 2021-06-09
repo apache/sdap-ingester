@@ -79,6 +79,7 @@ class SolrStore(MetadataStore):
 
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         solr_doc = self._build_solr_doc(nexus_tile)
+        logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
     @run_in_executor
@@ -103,7 +104,7 @@ class SolrStore(MetadataStore):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
-        var_name = summary.standard_name if summary.standard_name else summary.data_var_name
+        var_name = summary.standard_name if summary.standard_name else list(summary.data_var_name)
 
         input_document = {
             'table_s': self.TABLE_NAME,
