@@ -18,7 +18,8 @@ class EccoReadingProcessor(TileReadingProcessor):
                  time=None,
                  **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
-
+        if len(variable) != 1:
+            raise RuntimeError(f'EccoReadingProcessor does not support multiple variable: {variable}')
         self.depth = depth
         self.time = time
         self.tile = tile

@@ -11,7 +11,8 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 class TimeSeriesReadingProcessor(TileReadingProcessor):
     def __init__(self, variable, latitude, longitude, time, depth=None, **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
-
+        if len(variable) != 1:
+            raise RuntimeError(f'TimeSeriesReadingProcessor does not support multiple variable: {variable}')
         self.depth = depth
         self.time = time
 

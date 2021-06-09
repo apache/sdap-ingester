@@ -11,6 +11,8 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 class SwathReadingProcessor(TileReadingProcessor):
     def __init__(self, variable, latitude, longitude, time, depth=None, **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
+        if len(variable) != 1:
+            raise RuntimeError(f'SwathReadingProcessor does not support multiple variable: {variable}')
         self.depth = depth
         self.time = time
 
