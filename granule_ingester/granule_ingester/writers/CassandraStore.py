@@ -40,11 +40,12 @@ class TileModel(Model):
 
 
 class CassandraStore(DataStore):
-    def __init__(self, contact_points=None, port=9042, username=None, password=None):
+    def __init__(self, contact_points=None, port=9042, keyspace='nexustiles', username=None, password=None):
         self._contact_points = contact_points
         self._username = username
         self._password = password
         self._port = port
+        self._keyspace = keyspace
         self._session = None
 
     async def health_check(self) -> bool:
@@ -69,7 +70,7 @@ class CassandraStore(DataStore):
                           default_retry_policy=RetryPolicy(),
                           auth_provider=auth_provider)
         session = cluster.connect()
-        session.set_keyspace('nexustiles')
+        session.set_keyspace(self._keyspace)
         return session
 
     def connect(self):
