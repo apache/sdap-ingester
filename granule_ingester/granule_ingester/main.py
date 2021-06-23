@@ -26,8 +26,8 @@ from granule_ingester.healthcheck import HealthCheck
 from granule_ingester.writers import CassandraStore, SolrStore
 
 
-def cassandra_factory(contact_points, port, username, password):
-    store = CassandraStore(contact_points=contact_points, port=port, username=username, password=password)
+def cassandra_factory(contact_points, port, keyspace, username, password):
+    store = CassandraStore(contact_points=contact_points, port=port, keyspace=keyspace, username=username, password=password)
     store.connect()
     return store
 
@@ -73,6 +73,10 @@ async def main(loop):
                         default=9042,
                         metavar="PORT",
                         help='Cassandra port. (Default: 9042)')
+    parser.add_argument('--cassandra-keyspace', 
+                        default='nexustiles',
+                        metavar='KEYSPACE',
+                        help='Cassandra Keyspace (Default: "nexustiles")')
     parser.add_argument('--cassandra-username',
                         metavar="USERNAME",
                         default=None,
@@ -113,6 +117,7 @@ async def main(loop):
     cassandra_password = args.cassandra_password
     cassandra_contact_points = args.cassandra_contact_points
     cassandra_port = args.cassandra_port
+    cassandra_keyspace = args.cassandra_keyspace
     solr_host_and_port = args.solr_host_and_port
     zk_host_and_port = args.zk_host_and_port
 
@@ -123,6 +128,7 @@ async def main(loop):
                                data_store_factory=partial(cassandra_factory,
                                                           cassandra_contact_points,
                                                           cassandra_port,
+                                                          cassandra_keyspace,
                                                           cassandra_username,
                                                           cassandra_password),
                                metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port))
@@ -130,6 +136,7 @@ async def main(loop):
         solr_store = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
         await run_health_checks([CassandraStore(cassandra_contact_points,
                                                 cassandra_port,
+                                                cassandra_keyspace,
                                                 cassandra_username,
                                                 cassandra_password),
                                  solr_store,
