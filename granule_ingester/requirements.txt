@@ -5,3 +5,4 @@ tblib==1.6.0
 pysolr==3.9.0
 kazoo==2.8.0
 aio-pika==6.7.1
+elasticsearch[async]

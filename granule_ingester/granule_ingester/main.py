@@ -24,6 +24,7 @@ from granule_ingester.consumer import MessageConsumer
 from granule_ingester.exceptions import FailedHealthCheckError, LostConnectionError
 from granule_ingester.healthcheck import HealthCheck
 from granule_ingester.writers import CassandraStore, SolrStore
+from granule_ingester.writers.ElasticsearchStore import ElasticsearchStore
 
 
 def cassandra_factory(contact_points, port, keyspace, username, password):
@@ -38,6 +39,12 @@ def solr_factory(solr_host_and_port, zk_host_and_port):
     return store
 
 
+def elasticsearch_factory(elastic_url, username, password, index):
+    store = ElasticsearchStore(elastic_url, username, password, index)
+    store.connect()
+    return store
+
+
 async def run_health_checks(dependencies: List[HealthCheck]):
     for dependency in dependencies:
         if not await dependency.health_check():
@@ -48,6 +55,7 @@ async def run_health_checks(dependencies: List[HealthCheck]):
 async def main(loop):
     parser = argparse.ArgumentParser(description='Listen to RabbitMQ for granule ingestion instructions, and process '
                                                  'and ingest a granule for each message that comes through.')
+    # RABBITMQ
     parser.add_argument('--rabbitmq-host',
                         default='localhost',
                         metavar='HOST',
@@ -64,6 +72,8 @@ async def main(loop):
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
+    
+    # CASSANDRA
     parser.add_argument('--cassandra-contact-points',
                         default=['localhost'],
                         metavar="HOST",
@@ -85,12 +95,38 @@ async def main(loop):
                         metavar="PASSWORD",
                         default=None,
                         help='Cassandra password. Optional.')
+
+    # METADATA STORE
+    parser.add_argument('--metadata-store',
+                        default='solr',
+                        metavar='STORE',
+                        help='Which metadata store to use')
+
+    # SOLR + ZK
     parser.add_argument('--solr-host-and-port',
                         default='http://localhost:8983',
                         metavar='HOST:PORT',
                         help='Solr host and port. (Default: http://localhost:8983)')
     parser.add_argument('--zk_host_and_port',
                         metavar="HOST:PORT")
+    
+    # ELASTIC
+    parser.add_argument('--elastic-url', 
+                        default='http://localhost:9200', 
+                        metavar='ELASTIC_URL', 
+                        help='ElasticSearch URL:PORT (Default: http://localhost:9200)')
+    parser.add_argument('--elastic-username', 
+                        metavar='ELASTIC_USER', 
+                        help='ElasticSearch username')
+    parser.add_argument('--elastic-password', 
+                        metavar='ELASTIC_PWD', 
+                        help='ElasticSearch password')
+    parser.add_argument('--elastic-index', 
+                        default='nexustiles', 
+                        metavar='ELASTIC_INDEX', 
+                        help='ElasticSearch index')
+    
+    # OTHERS
     parser.add_argument('--max-threads',
                         default=16,
                         metavar='MAX_THREADS',
@@ -112,46 +148,92 @@ async def main(loop):
 
     config_values_str = "\n".join(["{} = {}".format(arg, getattr(args, arg)) for arg in vars(args)])
     logger.info("Using configuration values:\n{}".format(config_values_str))
-
     cassandra_username = args.cassandra_username
     cassandra_password = args.cassandra_password
     cassandra_contact_points = args.cassandra_contact_points
     cassandra_port = args.cassandra_port
     cassandra_keyspace = args.cassandra_keyspace
+
+    metadata_store = args.metadata_store    
+
     solr_host_and_port = args.solr_host_and_port
     zk_host_and_port = args.zk_host_and_port
 
-    consumer = MessageConsumer(rabbitmq_host=args.rabbitmq_host,
-                               rabbitmq_username=args.rabbitmq_username,
-                               rabbitmq_password=args.rabbitmq_password,
-                               rabbitmq_queue=args.rabbitmq_queue,
-                               data_store_factory=partial(cassandra_factory,
-                                                          cassandra_contact_points,
-                                                          cassandra_port,
-                                                          cassandra_keyspace,
-                                                          cassandra_username,
-                                                          cassandra_password),
-                               metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port))
-    try:
-        solr_store = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
-        await run_health_checks([CassandraStore(cassandra_contact_points,
-                                                cassandra_port,
-                                                cassandra_keyspace,
-                                                cassandra_username,
-                                                cassandra_password),
-                                 solr_store,
-                                 consumer])
-        async with consumer:
-            logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
-            await consumer.start_consuming(args.max_threads)
-    except FailedHealthCheckError as e:
-        logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
-    except LostConnectionError as e:
-        logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
-    except Exception as e:
-        logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
-    finally:
-        sys.exit(1)
+    elastic_url = args.elastic_url
+    elastic_username = args.elastic_username
+    elastic_password = args.elastic_password
+    elastic_index = args.elastic_index       
+
+    if metadata_store == 'solr':
+        consumer = MessageConsumer(rabbitmq_host=args.rabbitmq_host,
+                                   rabbitmq_username=args.rabbitmq_username,
+                                   rabbitmq_password=args.rabbitmq_password,
+                                   rabbitmq_queue=args.rabbitmq_queue,
+                                   data_store_factory=partial(cassandra_factory,
+                                                              cassandra_contact_points,
+                                                              cassandra_port,
+                                                              cassandra_keyspace,
+                                                              cassandra_username,
+                                                              cassandra_password),
+                                   metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port))
+        try:
+            solr_store = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
+            await run_health_checks([CassandraStore(cassandra_contact_points,
+                                                    cassandra_port,
+                                                    cassandra_keyspace,
+                                                    cassandra_username,
+                                                    cassandra_password),
+                                     solr_store,
+                                     consumer])
+            async with consumer:
+                logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
+                await consumer.start_consuming(args.max_threads)
+        except FailedHealthCheckError as e:
+            logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
+        except LostConnectionError as e:
+            logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
+        except Exception as e:
+            logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
+        finally:
+            sys.exit(1)
+
+    else:
+        consumer = MessageConsumer(rabbitmq_host=args.rabbitmq_host,
+                                   rabbitmq_username=args.rabbitmq_username,
+                                   rabbitmq_password=args.rabbitmq_password,
+                                   rabbitmq_queue=args.rabbitmq_queue,
+                                   data_store_factory=partial(cassandra_factory,
+                                                              cassandra_contact_points,
+                                                              cassandra_port,
+                                                              cassandra_keyspace,
+                                                              cassandra_username,
+                                                              cassandra_password),
+                                   metadata_store_factory=partial(elasticsearch_factory, 
+                                                                  elastic_url, 
+                                                                  elastic_username, 
+                                                                  elastic_password, 
+                                                                  elastic_index))
+        try:
+            es_store = ElasticsearchStore(elastic_url, elastic_username, elastic_password, elastic_index)
+            await run_health_checks([CassandraStore(cassandra_contact_points,
+                                                    cassandra_port,
+                                                    cassandra_keyspace,
+                                                    cassandra_username,
+                                                    cassandra_password),
+                                     es_store,
+                                     consumer])
+
+            async with consumer:
+                logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
+                await consumer.start_consuming(args.max_threads)
+        except FailedHealthCheckError as e:
+            logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
+        except LostConnectionError as e:
+            logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
+        except Exception as e:
+            logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
+        finally:
+            sys.exit(1)
 
 
 if __name__ == '__main__':
