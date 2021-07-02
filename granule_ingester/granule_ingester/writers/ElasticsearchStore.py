@@ -12,9 +12,6 @@ from pathlib import Path
 from typing import Dict
 
 
-# logging.basicConfig(level=logging.ERROR)
-
-
 class ElasticsearchStore(MetadataStore):
     def __init__(self, elastic_url: str, username: str, password: str, index: str):
         super().__init__()
@@ -32,7 +29,10 @@ class ElasticsearchStore(MetadataStore):
 
     def get_connection(self) -> Elasticsearch:
         if self.elastic_url:
-            return Elasticsearch([self.elastic_url], http_auth=(self.username, self.password), scheme='https')
+            if not self.username or not self.password:
+                return Elasticsearch([self.elastic_url])
+            else:
+                return Elasticsearch([self.elastic_url], http_auth=(self.username, self.password))
         else:
             raise RuntimeError('No Elasticsearch URL')
     
