@@ -82,10 +82,10 @@ class ElasticsearchStore(MetadataStore):
             'dataset_s': summary.dataset_name,
             'granule_s': granule_file_name,
             'tile_var_name_s': var_name,
-            'tile_min_lon': bbox.lon_min,
-            'tile_max_lon': bbox.lon_max,
-            'tile_min_lat': bbox.lat_min,
-            'tile_max_lat': bbox.lat_max,
+            'tile_min_lon': round(bbox.lon_min, 3),
+            'tile_max_lon': round(bbox.lon_max, 3),
+            'tile_min_lat': round(bbox.lat_min, 3),
+            'tile_max_lat': round(bbox.lat_max, 3),
             'tile_depth': tile_data.depth,
             'tile_min_time_dt': min_time,
             'tile_max_time_dt': max_time,
@@ -104,13 +104,20 @@ class ElasticsearchStore(MetadataStore):
                 0) if attribute.getValuesCount() == 1 else attribute.getValuesList()
 
         return input_document
- 
+    
+    @staticmethod
+    def _format_latlon_string(value):
+        rounded_value = round(value, 3)
+        return '{:.3f}'.format(rounded_value)
+    
+    
+    @classmethod
     def determine_geo(cls, bbox: TileSummary.BBox) -> str:
-        lat_min = bbox.lat_min
-        lat_max = bbox.lat_max
-        lon_min = bbox.lon_min
-        lon_max = bbox.lon_max
-
+        lat_min = cls._format_latlon_string(bbox.lat_min)
+        lat_max = cls._format_latlon_string(bbox.lat_max)
+        lon_min = cls._format_latlon_string(bbox.lon_min)
+        lon_max = cls._format_latlon_string(bbox.lon_max)
+        
         # If lat min = lat max and lon min = lon max, index the 'geo' bounding box as a POINT instead of a POLYGON
         if lat_min == lat_max and lon_min == lon_max:
             geo = 'POINT({} {})'.format(lon_min, lat_min)
@@ -119,7 +126,7 @@ class ElasticsearchStore(MetadataStore):
         elif lat_min == lat_max or lon_min == lon_max:
             geo = 'LINESTRING({} {}, {} {})'.format(lon_min, lat_min, lon_max, lat_min)
         
-	# All other cases should use POLYGON
+	    # All other cases should use POLYGON
         else:
             geo = 'POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(lon_min, lat_min,
                                                                         lon_max, lat_min,
