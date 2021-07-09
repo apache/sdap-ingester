@@ -321,59 +321,58 @@ class TestReadHLSData(unittest.TestCase):
         dimensions_to_slices = {
             'time': slice(0, 1),
             'lat': slice(0, 30),
-            'lon': slice(0, 30)
+            'lon': slice(0, 30),
+            # 'lat': slice(0, 200),
+            # 'lon': slice(0, 200),
         }
 
         with xr.open_dataset(granule_path) as ds:
             generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
         tile_type = generated_tile.tile.WhichOneof("tile_type")
         tile_data = getattr(generated_tile.tile, tile_type)
-        latitudes = from_shaped_array(tile_data.latitude)
-        longitudes = from_shaped_array(tile_data.longitude)
-        variable_data = from_shaped_array(tile_data.variable_data)
-
+        # latitudes = from_shaped_array(tile_data.latitude)
+        # longitudes = from_shaped_array(tile_data.longitude)
+        # variable_data = from_shaped_array(tile_data.variable_data)
+        # print(generated_tile.tile.grid_tile.variable_data)
         self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
         self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
-        self.assertEqual([30, 30, 11], generated_tile.tile.grid_tile.variable_data.shape)
+        self.assertEqual([11, 30, 30], generated_tile.tile.grid_tile.variable_data.shape)
         self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
         self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
 
-        print(latitudes)
-        print(longitudes)
-        print(variable_data)
         return
 
-    def test_02(self):
-        reading_processor = GridReadingProcessor('B03', 'lat', 'lon', time='time')
-        granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
-
-        input_tile = nexusproto.NexusTile()
-        input_tile.summary.granule = granule_path
-
-        dimensions_to_slices = {
-            'time': slice(0, 1),
-            'lat': slice(0, 30),
-            'lon': slice(0, 30)
-        }
-
-        with xr.open_dataset(granule_path) as ds:
-            generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
-        tile_type = generated_tile.tile.WhichOneof("tile_type")
-        tile_data = getattr(generated_tile.tile, tile_type)
-        latitudes = from_shaped_array(tile_data.latitude)
-        longitudes = from_shaped_array(tile_data.longitude)
-        variable_data = from_shaped_array(tile_data.variable_data)
-
-        self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
-        self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
-        self.assertEqual([30, 30], generated_tile.tile.grid_tile.variable_data.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
-
-        print(latitudes)
-        print(longitudes)
-        print(variable_data)
-        return
+    # def test_02(self):
+    #     reading_processor = GridReadingProcessor('B03', 'lat', 'lon', time='time')
+    #     granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
+    #
+    #     input_tile = nexusproto.NexusTile()
+    #     input_tile.summary.granule = granule_path
+    #
+    #     dimensions_to_slices = {
+    #         'time': slice(0, 1),
+    #         'lat': slice(0, 30),
+    #         'lon': slice(0, 30)
+    #     }
+    #
+    #     with xr.open_dataset(granule_path) as ds:
+    #         generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+    #     tile_type = generated_tile.tile.WhichOneof("tile_type")
+    #     tile_data = getattr(generated_tile.tile, tile_type)
+    #     latitudes = from_shaped_array(tile_data.latitude)
+    #     longitudes = from_shaped_array(tile_data.longitude)
+    #     variable_data = from_shaped_array(tile_data.variable_data)
+    #
+    #     self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+    #     self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
+    #     self.assertEqual([30, 30], generated_tile.tile.grid_tile.variable_data.shape)
+    #     self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
+    #     self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
+    #
+    #     # print(latitudes)
+    #     # print(longitudes)
+    #     # print(variable_data)
+    #     return
 
     def test_03(self):
         reading_processor = GridReadingProcessor(['B03'], 'lat', 'lon', time='time')
@@ -402,9 +401,9 @@ class TestReadHLSData(unittest.TestCase):
         self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
         self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
 
-        print(latitudes)
-        print(longitudes)
-        print(variable_data)
+        # print(latitudes)
+        # print(longitudes)
+        # print(variable_data)
         return
 
     def test_04(self):

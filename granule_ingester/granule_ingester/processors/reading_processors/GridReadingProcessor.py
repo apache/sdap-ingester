@@ -28,6 +28,7 @@ class GridReadingProcessor(TileReadingProcessor):
             - dimension 2 will be longitude
             - need to switch the dimensions
             - dimension 0: latitude, dimension 1: longitude, dimension 2: defined list of datasets from parameters
+        Update 2021-07-09: temporarily cancelling dimension switches as it means lots of changes on query side.
         :param ds: xarray.Dataset - netcdf4 object
         :param dimensions_to_slices: Dict[str, slice] - slice dict with keys as the keys of the netcdf4 datasets
         :param input_tile: nexusproto.NexusTile()
@@ -46,11 +47,12 @@ class GridReadingProcessor(TileReadingProcessor):
                 raise ValueError(f'list of variable is empty. Need at least 1 variable')
             data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
             data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
-            if len(self.variable) > 1:
-                logger.debug(f'self.variable has more than 1 band. need to transpose')
-                transpose_arguments = [k for k in range(1, len(data_subset.shape))]
-                transpose_arguments.append(0)
-                data_subset = data_subset.transpose(*transpose_arguments)
+            # Update: 2021-07-09: temporarily cancelling dimension switches
+            # if len(self.variable) > 1:
+            #     logger.debug(f'self.variable has more than 1 band. need to transpose')
+            #     transpose_arguments = [k for k in range(1, len(data_subset.shape))]
+            #     transpose_arguments.append(0)
+            #     data_subset = data_subset.transpose(*transpose_arguments)
         else:
             logger.debug(f'reading as normal grid as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
             data_subset = ds[self.variable][type(self)._slices_for_variable(ds[self.variable], dimensions_to_slices)]
