@@ -50,13 +50,42 @@ class SolrStore(MetadataStore):
         self.log.setLevel(logging.DEBUG)
         self._solr = None
 
+    def _get_collections(self, zk, parent_nodes):
+        """
+            try to get list of collection from zookeper, on a list of candidate nodes,
+            return the first successful request result
+        """
+
+        try:
+            logger.info("getting solr configuration from zookeeper, node '%s'", parent_nodes[0])
+            return parent_nodes[0], zk.zk.get_children(parent_nodes[0])
+        except NoNodeError:
+            logger.info("solr configuration not found in node '%s'", parent_nodes[0])
+            if len(parent_nodes)>1:
+                return self._get_collections(zk, parent_nodes[1:])
+            else:
+                raise
+
+    def _set_solr_status(self, zk):
+        """ because of something not working right between zookeeper and solr
+            we need to  manually update the solr status on zookeeper
+            see https://github.com/django-haystack/pysolr/issues/189
+        """
+        collections = {}
+        parent_node, zk_collections = self._get_collections(zk,
+                                                            ['collections',
+                                                             'solr/collections']
+                                                            # with bitnami/solr 0.3.3 helm chart deployment
+                                                            )
+
+        for c in zk_collections:
+            collections.update(json.loads(zk.zk.get(f"{parent_node}/{c}/state.json")[0].decode("utf-8")))
+        zk.collections = collections
+
     def _get_connection(self) -> pysolr.Solr:
         if self._zk_url:
             zk = pysolr.ZooKeeper(f"{self._zk_url}")
-            collections = {}
-            for c in zk.zk.get_children("collections"):
-                collections.update(json.loads(zk.zk.get("collections/{}/state.json".format(c))[0].decode("ascii")))
-            zk.collections = collections
+            self._set_solr_status(zk)
             return pysolr.SolrCloud(zk, self._collection, always_commit=True)
         elif self._solr_url:
             return pysolr.Solr(f'{self._solr_url}/solr/{self._collection}', always_commit=True)

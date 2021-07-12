@@ -64,6 +64,7 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
 
 
 async def _process_tile_in_worker(serialized_input_tile: str):
+    logger.debug("start to process tile in worker")
     try:
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
         processed_tile = _recurse(_worker_processor_list, _worker_dataset, input_tile)
@@ -82,6 +83,7 @@ def _recurse(processor_list: List[TileProcessor],
              input_tile: nexusproto.NexusTile) -> nexusproto.NexusTile:
     if len(processor_list) == 0:
         return input_tile
+    logger.debug("start processor %s", processor_list[0].__class__.__name__)
     output_tile = processor_list[0].process(tile=input_tile, dataset=dataset)
     return _recurse(processor_list[1:], dataset, output_tile) if output_tile else None
 

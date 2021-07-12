@@ -64,7 +64,8 @@ class CassandraStore(DataStore):
 
         cluster = Cluster(contact_points=self._contact_points,
                           port=self._port,
-                          # load_balancing_policy=
+                          #load_balancing_policy=DCAwareRoundRobinPolicy("dc1"),
+                          protocol_version=4,
                           reconnection_policy=ConstantReconnectionPolicy(delay=5.0),
                           default_retry_policy=RetryPolicy(),
                           auth_provider=auth_provider)
@@ -84,9 +85,11 @@ class CassandraStore(DataStore):
             tile_id = uuid.UUID(tile.summary.tile_id)
             serialized_tile_data = TileData.SerializeToString(tile.tile)
             prepared_query = self._session.prepare("INSERT INTO sea_surface_temp (tile_id, tile_blob) VALUES (?, ?)")
+            logger.debug("starting to updload tile %s data on cassandra", tile_id)
             await self._execute_query_async(self._session, prepared_query,
                                             [tile_id, bytearray(serialized_tile_data)])
-        except NoHostAvailable:
+        except Exception as e:
+            logger.error("exception while uploading tile data on cassandra %s", e)
             raise CassandraLostConnectionError(f"Lost connection to Cassandra, and cannot save tiles.")
 
     @staticmethod

@@ -123,10 +123,13 @@ class CollectionWatcher:
 
     def _get_files_at_path(self, path: str) -> List[str]:
         if os.path.isfile(path):
+            logger.info("process collections path as file")
             return [path]
         elif os.path.isdir(path):
+            logger.info("process collection path as directory")
             return [f for f in glob(path + '/**', recursive=True) if os.path.isfile(f)]
         else:
+            logger.info("process collection path as file path regex")
             return [f for f in glob(path, recursive=True) if os.path.isfile(f)]
 
     async def _reload_and_reschedule(self):

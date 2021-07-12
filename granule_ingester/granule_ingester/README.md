@@ -9,3 +9,9 @@ Example: `KelvinToCelsiusProcessor`
 This processor checks the units of the saved variable.  If it is some form of Kelvin, it automatically converts all of the temperature measurements to Celsius by subtracting 273.15 from each data point.  The transformed data then replaces the default (untransformed) values and the processor returns the modified tile.
 
 #### TODO Add configuration option for unusual representations of temperature units.
+
+
+## Building the Docker image
+From `incubator-sdap-ingester`, run:
+
+    $ docker build . -f granule_ingester/docker/Dockerfile -t nexusjpl/granule-ingester
