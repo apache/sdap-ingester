@@ -34,9 +34,9 @@ class TileReadingProcessor(TileProcessor, ABC):
         try:
             self.variable = variable if isinstance(variable, list) else ast.literal_eval(variable)
         except Exception as e:
-            logger.exception(f'failed to convert literal list to python list: {variable}')
-            raise e
-        if len(self.variable) < 1:
+            logger.exception(f'failed to convert literal list to python list. using as a single variable: {variable}')
+            self.variable = variable
+        if isinstance(self.variable, list) and len(self.variable) < 1:
             logger.error(f'variable list is empty: {TileReadingProcessor}')
             raise RuntimeError(f'variable list is empty: {self.variable}')
         self.latitude = latitude
