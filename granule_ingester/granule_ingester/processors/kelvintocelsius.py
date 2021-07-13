@@ -30,8 +30,6 @@ class KelvinToCelsius(TileProcessor):
         if not isinstance(copied_variable_name, list):
             copied_variable_name = [copied_variable_name]
         for each in copied_variable_name:
-            logger.info(f'for copied_variable_name : {each}')
-            logger.info(f'for ds.variables : {ds.variables}')
             try:
                 logger.info(f'for ds.variables[each].attrs : {ds.variables[each].attrs}')
                 if 'units' in ds.variables[each].attrs:
@@ -47,7 +45,6 @@ class KelvinToCelsius(TileProcessor):
     def process(self, tile: NexusTile, *args, **kwargs):
         the_tile_type = tile.tile.WhichOneof("tile_type")
         the_tile_data = getattr(tile.tile, the_tile_type)
-        logger.debug(the_tile_data.variable_data)
         kelvins = ['kelvin', 'degk', 'deg_k', 'degreesk', 'degrees_k', 'degree_k', 'degreek']
 
         if 'dataset' in kwargs:
