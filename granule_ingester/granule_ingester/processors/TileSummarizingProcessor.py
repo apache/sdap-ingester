@@ -92,7 +92,6 @@ class TileSummarizingProcessor(TileProcessor):
 
     @staticmethod
     def calculate_mean_for_grid_tile(variable_data, latitudes, longitudes, data_var_name_len=1):
-        logger.debug(f'variable_data: {variable_data}. latitudes: {latitudes}. longitudes: {longitudes}')
         flattened_variable_data = numpy.ma.masked_invalid(variable_data).flatten()
         repeated_latitudes = numpy.repeat(latitudes, len(longitudes) * data_var_name_len)
         weights = numpy.cos(numpy.radians(repeated_latitudes))
