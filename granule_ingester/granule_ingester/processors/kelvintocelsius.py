@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from copy import deepcopy
 
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 from nexusproto.DataTile_pb2 import NexusTile
 from granule_ingester.processors.TileProcessor import TileProcessor
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +26,25 @@ logger = logging.getLogger(__name__)
 class KelvinToCelsius(TileProcessor):
     def __retrieve_var_units(self, variable_name, ds):
         variable_unit = []
-        for each in variable_name:
-            if 'units' in ds.variables[each].attrs:
-                variable_unit.extend(ds.variables[each].attrs['units'])
-            elif 'Units' in ds.variables[each].attrs:
-                variable_unit.extend(ds.variables[each].attrs['Units'])
-            elif 'UNITS' in ds.variables[each].attrs:
-                variable_unit.extend(ds.variables[each].attrs['UNITS'])
+        copied_variable_name = deepcopy(variable_name)
+        if not isinstance(copied_variable_name, list):
+            copied_variable_name = [copied_variable_name]
+        for each in copied_variable_name:
+            logger.info(f'for copied_variable_name : {each}')
+            logger.info(f'for ds.variables : {ds.variables}')
+            try:
+                logger.info(f'for ds.variables[each].attrs : {ds.variables[each].attrs}')
+                if 'units' in ds.variables[each].attrs:
+                    variable_unit.extend(ds.variables[each].attrs['units'])
+                elif 'Units' in ds.variables[each].attrs:
+                    variable_unit.extend(ds.variables[each].attrs['Units'])
+                elif 'UNITS' in ds.variables[each].attrs:
+                    variable_unit.extend(ds.variables[each].attrs['UNITS'])
+            except Exception as e:
+                logger.exception(f'some error in __retrieve_var_units: {str(e)}')
         return variable_unit
 
     def process(self, tile: NexusTile, *args, **kwargs):
-        logger.debug(f'KelvinToCelsius kwargs: {kwargs}')
         the_tile_type = tile.tile.WhichOneof("tile_type")
         the_tile_data = getattr(tile.tile, the_tile_type)
         logger.debug(the_tile_data.variable_data)
@@ -44,7 +54,6 @@ class KelvinToCelsius(TileProcessor):
             ds = kwargs['dataset']
             variable_name = tile.summary.data_var_name
             logger.debug(f'K2C tile.summary.data_var_name: {variable_name}')
-            logger.debug(f'ds.variables: {ds.variables}')
             variable_unit = self.__retrieve_var_units(variable_name, ds)
             if len(variable_unit) < 1:
                 return tile
