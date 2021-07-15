@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 class GenerateTileId(TileProcessor):
 
     def process(self, tile: nexusproto.NexusTile, *args, **kwargs):
+        logger.debug(f'processing: {tile}')
         granule = os.path.basename(tile.summary.granule)
         variable_name = tile.summary.data_var_name
         spec = tile.summary.section_spec

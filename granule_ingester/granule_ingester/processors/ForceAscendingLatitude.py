@@ -12,10 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 import numpy as np
 
 from nexusproto.serialization import from_shaped_array, to_shaped_array
 from granule_ingester.processors.TileProcessor import TileProcessor
+logger = logging.getLogger(__name__)
+
 
 class ForceAscendingLatitude(TileProcessor):
 
@@ -27,6 +31,7 @@ class ForceAscendingLatitude(TileProcessor):
         :param tile: The nexus_tile
         :return: Tile data with altered latitude values
         """
+        logger.debug(f'processing: {tile}')
 
         the_tile_type = tile.tile.WhichOneof("tile_type")
 

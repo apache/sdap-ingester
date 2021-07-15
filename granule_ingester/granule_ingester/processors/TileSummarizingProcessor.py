@@ -44,6 +44,7 @@ class TileSummarizingProcessor(TileProcessor):
         self._dataset_name = dataset_name
 
     def process(self, tile, dataset, *args, **kwargs):
+        logger.debug(f'processing: {tile}')
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
