@@ -10,7 +10,7 @@ from granule_ingester.processors.reading_processors import EccoReadingProcessor
 class TestEccoReadingProcessor(unittest.TestCase):
 
     def test_generate_tile(self):
-        reading_processor = EccoReadingProcessor(variable='OBP',
+        reading_processor = EccoReadingProcessor(variable=['OBP'],
                                                  latitude='YC',
                                                  longitude='XC',
                                                  time='time',
@@ -40,7 +40,7 @@ class TestEccoReadingProcessor(unittest.TestCase):
             self.assertEqual(output_tile.tile.ecco_tile.longitude.shape, [15, 7])
 
     def test_generate_tile_with_dims_out_of_order(self):
-        reading_processor = EccoReadingProcessor(variable='OBP',
+        reading_processor = EccoReadingProcessor(variable=['OBP'],
                                                  latitude='YC',
                                                  longitude='XC',
                                                  time='time',
