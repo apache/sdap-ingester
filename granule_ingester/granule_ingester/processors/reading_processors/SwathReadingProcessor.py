@@ -33,6 +33,7 @@ class SwathReadingProcessor(TileReadingProcessor):
             if len(self.variable) < 1:
                 raise ValueError(f'list of variable is empty. Need at least 1 variable')
             if len(self.variable) == 1:
+                # TODO array with length 1 is assumed as a single band for backward compatibility. This is needed coz collection manager convert singleband of single variable to an array of 1
                 logger.debug(
                     f'reading as normal swath as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
                 data_subset = ds[data_variable][
