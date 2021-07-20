@@ -17,7 +17,7 @@ import unittest
 from os import path
 
 import xarray as xr
-from nexusproto import DataTile_pb2 as nexusproto
+from nexusproto import DataTile_pb2 as nexusproto, from_shaped_array
 
 from granule_ingester.processors.reading_processors import SwathReadingProcessor
 
@@ -45,6 +45,38 @@ class TestReadAscatbData(unittest.TestCase):
             self.assertEqual([1, 82], output_tile.tile.swath_tile.variable_data.shape)
             self.assertEqual([1, 82], output_tile.tile.swath_tile.latitude.shape)
             self.assertEqual([1, 82], output_tile.tile.swath_tile.longitude.shape)
+
+    def test_read_not_empty_ascatb_mb(self):
+        reading_processor = SwathReadingProcessor(variable=['wind_speed', 'wind_dir'],
+                                                  latitude='lat',
+                                                  longitude='lon',
+                                                  time='time')
+        # granule_path = path.join(path.dirname(__file__), '/Users/wphyo/Projects/access/local-sdap-volume/ascat_20181231_190000_metopb_32621_eps_o_coa_3201_ovw.l2.nc')
+        granule_path = path.join(path.dirname(__file__), '../granules/not_empty_ascatb.nc4')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'NUMROWS': slice(0, 2),
+            'NUMCELLS': slice(0, 82)
+        }
+        with xr.open_dataset(granule_path, decode_cf=True) as ds:
+            output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+            self.assertEqual(granule_path, output_tile.summary.granule, granule_path)
+            self.assertEqual([2, 82], output_tile.tile.swath_tile.time.shape)
+            self.assertEqual([2, 2, 82], output_tile.tile.swath_tile.variable_data.shape)
+            self.assertEqual([2, 82], output_tile.tile.swath_tile.latitude.shape)
+            self.assertEqual([2, 82], output_tile.tile.swath_tile.longitude.shape)
+            variable_data = from_shaped_array(output_tile.tile.swath_tile.variable_data)
+            self.assertTrue(abs(float(ds['wind_speed'][0][0].data) - variable_data[0][0][0]) < 0.0001, 'wrong wind_speed[0][0]')
+            self.assertTrue(abs(float(ds['wind_speed'][0][1].data) - variable_data[0][0][1]) < 0.0001, 'wrong wind_speed[0][1]')
+            self.assertTrue(abs(float(ds['wind_speed'][1][0].data) - variable_data[0][1][0]) < 0.0001, 'wrong wind_speed[1][0]')
+            self.assertTrue(abs(float(ds['wind_speed'][1][1].data) - variable_data[0][1][1]) < 0.0001, 'wrong wind_speed[1][1]')
+            self.assertTrue(abs(float(ds['wind_dir'][0][0].data) - variable_data[1][0][0]) < 0.0001, 'wrong wind_dir[0][0]')
+            self.assertTrue(abs(float(ds['wind_dir'][0][1].data) - variable_data[1][0][1]) < 0.0001, 'wrong wind_dir[0][1]')
+            self.assertTrue(abs(float(ds['wind_dir'][1][0].data) - variable_data[1][1][0]) < 0.0001, 'wrong wind_dir[1][0]')
+            self.assertTrue(abs(float(ds['wind_dir'][1][1].data) - variable_data[1][1][1]) < 0.0001, 'wrong wind_dir[1][1]')
 
 
 class TestReadSmapData(unittest.TestCase):

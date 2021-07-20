@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 
 import numpy as np
@@ -7,12 +8,11 @@ from nexusproto.serialization import to_shaped_array
 
 from granule_ingester.processors.reading_processors.TileReadingProcessor import TileReadingProcessor
 
+logger = logging.getLogger(__name__)
 
 class SwathReadingProcessor(TileReadingProcessor):
     def __init__(self, variable, latitude, longitude, time, depth=None, **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
-        if isinstance(variable, list) and len(variable) != 1:
-            raise RuntimeError(f'SwathReadingProcessor does not support multiple variable: {variable}')
         self.depth = depth
         self.time = time
 
@@ -28,9 +28,24 @@ class SwathReadingProcessor(TileReadingProcessor):
         time_subset = ds[self.time][type(self)._slices_for_variable(ds[self.time], dimensions_to_slices)]
         time_subset = np.ma.filled(type(self)._convert_to_timestamp(time_subset), np.NaN)
 
-        data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable],
-                                                                                dimensions_to_slices)]
-        data_subset = np.ma.filled(data_subset, np.NaN)
+        if isinstance(self.variable, list):
+            logger.debug(f'reading as banded swath as self.variable is a list. self.variable: {self.variable}')
+            if len(self.variable) < 1:
+                raise ValueError(f'list of variable is empty. Need at least 1 variable')
+            if len(self.variable) == 1:
+                logger.debug(
+                    f'reading as normal swath as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
+                data_subset = ds[data_variable][
+                    type(self)._slices_for_variable(ds[data_variable], dimensions_to_slices)]
+                data_subset = np.ma.filled(data_subset, np.NaN)
+            else:
+                data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
+                data_subset = np.ma.filled(data_subset, np.NaN)
+                # TODO: might need to transpose. needs further discussion
+        else:
+            logger.debug(f'reading as normal swath as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
+            data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable], dimensions_to_slices)]
+            data_subset = np.ma.filled(data_subset, np.NaN)
 
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
