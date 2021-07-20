@@ -31,9 +31,8 @@ class ForceAscendingLatitude(TileProcessor):
         :param tile: The nexus_tile
         :return: Tile data with altered latitude values
         """
-        logger.debug(f'processing: {tile}')
-
         the_tile_type = tile.tile.WhichOneof("tile_type")
+        logger.debug(f'processing the_tile_type: {the_tile_type}')
 
         the_tile_data = getattr(tile.tile, the_tile_type)
 
