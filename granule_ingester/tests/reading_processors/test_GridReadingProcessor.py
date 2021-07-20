@@ -18,6 +18,11 @@ from os import path
 
 import numpy as np
 import xarray as xr
+from granule_ingester.processors import ForceAscendingLatitude
+from granule_ingester.processors.EmptyTileFilter import EmptyTileFilter
+from granule_ingester.processors.Subtract180FromLongitude import Subtract180FromLongitude
+from granule_ingester.processors.TileSummarizingProcessor import TileSummarizingProcessor
+from granule_ingester.processors.kelvintocelsius import KelvinToCelsius
 from nexusproto import DataTile_pb2 as nexusproto
 from nexusproto.serialization import from_shaped_array
 
@@ -311,6 +316,49 @@ class TestReadInterpEccoData(unittest.TestCase):
 
 
 class TestReadHLSData(unittest.TestCase):
+    def test_101_preprocessed_data(self):
+        reading_processor = GridReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
+        # granule_path = path.join(path.dirname(__file__), '../granules/s1_output_latlon_HLS_S30_T18TYN_2019070.nc')
+        granule_path = path.join(path.dirname(__file__), '../granules/s1_output_latlon_HLS_S30_T18TYN_2019363.nc')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(500, 550),
+            'long': slice(500, 550),
+        }
+
+        with xr.open_dataset(granule_path) as ds:
+            generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+        empty_filter = EmptyTileFilter().process(generated_tile)
+        self.assertNotEqual(empty_filter, None, f'empty_filter is None')
+        subtract_180 = Subtract180FromLongitude().process(empty_filter)
+        self.assertNotEqual(subtract_180, None, f'subtract_180 is None')
+        force_asc = ForceAscendingLatitude().process(empty_filter)
+        self.assertNotEqual(force_asc, None, f'force_asc is None')
+        kelvin = KelvinToCelsius().process(force_asc)
+        self.assertNotEqual(kelvin, None, f'kelvin is None')
+        with xr.open_dataset(granule_path, decode_cf=True) as ds:
+            kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
+            summary = TileSummarizingProcessor('test').process(kelvin, ds)
+            self.assertNotEqual(summary, None, f'summary is None')
+
+        tile_type = generated_tile.tile.WhichOneof("tile_type")
+        tile_data = getattr(generated_tile.tile, tile_type)
+        # latitudes = from_shaped_array(tile_data.latitude)
+        # longitudes = from_shaped_array(tile_data.longitude)
+        variable_data = from_shaped_array(tile_data.variable_data)
+        # print(variable_data)
+        self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+        self.assertEqual(1577577600, generated_tile.tile.grid_tile.time)
+        self.assertEqual([6, 50, 50], generated_tile.tile.grid_tile.variable_data.shape)
+        self.assertEqual([50], generated_tile.tile.grid_tile.latitude.shape)
+        self.assertEqual([50], generated_tile.tile.grid_tile.longitude.shape)
+
+        return
+
     def test_01(self):
         reading_processor = GridReadingProcessor([f'B{k:02d}' for k in range(1, 12)], 'lat', 'lon', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
@@ -407,20 +455,7 @@ class TestReadHLSData(unittest.TestCase):
         return
 
     def test_04(self):
-        reading_processor = GridReadingProcessor([], 'lat', 'lon', time='time')
-        granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
-
-        input_tile = nexusproto.NexusTile()
-        input_tile.summary.granule = granule_path
-
-        dimensions_to_slices = {
-            'time': slice(0, 1),
-            'lat': slice(0, 30),
-            'lon': slice(0, 30)
-        }
-
-        with xr.open_dataset(granule_path) as ds:
-            self.assertRaises(ValueError, reading_processor._generate_tile, ds, dimensions_to_slices, input_tile)
+        self.assertRaises(RuntimeError, GridReadingProcessor, [], 'lat', 'lon', time='time')
         return
 
 
