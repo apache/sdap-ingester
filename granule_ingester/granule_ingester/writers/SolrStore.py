@@ -17,6 +17,7 @@ import asyncio
 import functools
 import json
 import logging
+import time
 from asyncio import AbstractEventLoop
 from datetime import datetime
 from pathlib import Path
@@ -57,10 +58,10 @@ class SolrStore(MetadataStore):
         """
 
         try:
-            logger.info("getting solr configuration from zookeeper, node '%s'", parent_nodes[0])
+            logger.debug("getting solr configuration from zookeeper, node '%s'", parent_nodes[0])
             return parent_nodes[0], zk.zk.get_children(parent_nodes[0])
         except NoNodeError:
-            logger.info("solr configuration not found in node '%s'", parent_nodes[0])
+            logger.debug("solr configuration not found in node '%s'", parent_nodes[0])
             if len(parent_nodes)>1:
                 return self._get_collections(zk, parent_nodes[1:])
             else:
@@ -111,11 +112,18 @@ class SolrStore(MetadataStore):
         await self._save_document(solr_doc)
 
     @run_in_executor
-    def _save_document(self, doc: dict):
+    def _save_document(self, doc: dict, max_num_try=6, num_try=0):
         try:
             self._solr.add([doc])
-        except pysolr.SolrError:
-            raise SolrLostConnectionError("Lost connection to Solr, and cannot save tiles.")
+        except pysolr.SolrError as e:
+            if max_num_try >= num_try :
+                time.sleep(2**num_try)
+                logger.warning("Lost connection to Solr, %s, retry once more", e)
+                self._save_document(doc,
+                                    max_num_try=max_num_try,
+                                    num_try=num_try+1)
+            else:
+                raise SolrLostConnectionError("Lost connection to Solr, and cannot save tiles.")
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:
         summary: TileSummary = tile.summary

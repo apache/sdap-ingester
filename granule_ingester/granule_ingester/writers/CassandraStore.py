@@ -17,6 +17,7 @@
 import asyncio
 import logging
 import uuid
+import time
 
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, Session, NoHostAvailable
@@ -27,6 +28,7 @@ from nexusproto.DataTile_pb2 import NexusTile, TileData
 
 from granule_ingester.exceptions import CassandraFailedHealthCheckError, CassandraLostConnectionError
 from granule_ingester.writers.DataStore import DataStore
+from granule_ingester.writers.CassandraStoreConnectionRetryPolicy import CassandraStoreConnectionRetryPolicy
 
 logging.getLogger('cassandra').setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
@@ -67,10 +69,13 @@ class CassandraStore(DataStore):
                           #load_balancing_policy=DCAwareRoundRobinPolicy("dc1"),
                           protocol_version=4,
                           reconnection_policy=ConstantReconnectionPolicy(delay=5.0),
-                          default_retry_policy=RetryPolicy(),
+                          default_retry_policy=CassandraStoreConnectionRetryPolicy(),
                           auth_provider=auth_provider)
+
         session = cluster.connect()
         session.set_keyspace('nexustiles')
+        session.default_timeout = 60
+
         return session
 
     def connect(self):
@@ -80,7 +85,7 @@ class CassandraStore(DataStore):
         if self._session:
             self._session.shutdown()
 
-    async def save_data(self, tile: NexusTile) -> None:
+    async def save_data(self, tile: NexusTile, max_num_try=6, num_try=0) -> None:
         try:
             tile_id = uuid.UUID(tile.summary.tile_id)
             serialized_tile_data = TileData.SerializeToString(tile.tile)
@@ -89,12 +94,18 @@ class CassandraStore(DataStore):
             await self._execute_query_async(self._session, prepared_query,
                                             [tile_id, bytearray(serialized_tile_data)])
         except Exception as e:
-            logger.error("exception while uploading tile data on cassandra %s", e)
-            raise CassandraLostConnectionError(f"Lost connection to Cassandra, and cannot save tiles.")
+            if max_num_try >= num_try:
+                time.sleep(2**num_try)
+                logger.warning("exception while uploading tile data on cassandra %s, retry once more", e)
+                await self.save_data(tile, max_num_try=max_num_try, num_try=num_try+1)
+            else:
+                logger.error("exception while uploading tile data on cassandra %s, second attempt", e)
+                raise CassandraLostConnectionError(f"Lost connection to Cassandra, and cannot save tiles.")
+
 
     @staticmethod
     async def _execute_query_async(session: Session, query, parameters=None):
-        cassandra_future = session.execute_async(query, parameters)
+        cassandra_future = session.execute_async(query, parameters, timeout=6000)
         asyncio_future = asyncio.Future()
         cassandra_future.add_callbacks(asyncio_future.set_result, asyncio_future.set_exception)
         return await asyncio_future

@@ -101,7 +101,7 @@ class Pipeline:
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
-        self._max_concurrency = max_concurrency
+        self._max_concurrency: int = max_concurrency
 
         # Create a SyncManager so that we can to communicate exceptions from the
         # worker processes back to the main process.
@@ -188,8 +188,8 @@ class Pipeline:
                                       self._data_store_factory,
                                       self._metadata_store_factory,
                                       shared_memory),
-                            maxtasksperchild=self._max_concurrency,
-                            childconcurrency=self._max_concurrency) as pool:
+                            maxtasksperchild=int(self._max_concurrency),
+                            childconcurrency=int(self._max_concurrency)) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
                                     self._slicer.generate_tiles(dataset, granule_name)]
                 # aiomultiprocess is built on top of the stdlib multiprocessing library, which has the limitation that

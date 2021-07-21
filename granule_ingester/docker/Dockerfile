@@ -23,5 +23,5 @@ RUN pip install boto3==1.16.10
 RUN apk del .build-deps
 
 USER 1001
-
+ENV OPENBLAS_NUM_THREADS=1
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
