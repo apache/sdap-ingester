@@ -41,23 +41,21 @@ class TestReadHLSData(unittest.TestCase):
             'time': slice(0, 1),
             'lat': slice(0, 30),
             'lon': slice(0, 30),
-            # 'lat': slice(0, 200),
-            # 'lon': slice(0, 200),
         }
 
         with xr.open_dataset(granule_path) as ds:
             generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
-        tile_type = generated_tile.tile.WhichOneof("tile_type")
-        tile_data = getattr(generated_tile.tile, tile_type)
-        # latitudes = from_shaped_array(tile_data.latitude)
-        # longitudes = from_shaped_array(tile_data.longitude)
-        # variable_data = from_shaped_array(tile_data.variable_data)
-        # print(generated_tile.tile.grid_tile.variable_data)
-        self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
-        self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
-        self.assertEqual([11, 30, 30], generated_tile.tile.grid_tile.variable_data.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
+            self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+            tile_type = generated_tile.tile.WhichOneof("tile_type")
+            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            tile_data = getattr(generated_tile.tile, tile_type)
+            self.assertEqual(1577836800, tile_data.time)
+            self.assertEqual([1, 30, 30, 11], tile_data.variable_data.shape)
+            self.assertEqual([30], tile_data.latitude.shape)
+            self.assertEqual([30], tile_data.longitude.shape)
+            variable_data = from_shaped_array(tile_data.variable_data)
+            original_b03_data = ds['B03'].values
+            self.assertEqual(original_b03_data[0][1][0], variable_data[0][1][0][2])
         return
 
     def test_02_preprocessed_data(self):
@@ -69,8 +67,8 @@ class TestReadHLSData(unittest.TestCase):
 
         dimensions_to_slices = {
             'time': slice(0, 1),
-            'lat': slice(500, 550),
-            'long': slice(500, 550),
+            'lat': slice(0, 550),
+            'long': slice(0, 550),
         }
 
         with xr.open_dataset(granule_path) as ds:
@@ -79,34 +77,25 @@ class TestReadHLSData(unittest.TestCase):
         self.assertNotEqual(empty_filter, None, f'empty_filter is None')
         subtract_180 = Subtract180FromLongitude().process(empty_filter)
         self.assertNotEqual(subtract_180, None, f'subtract_180 is None')
-        variable_data = from_shaped_array(subtract_180.tile.grid_tile.variable_data)
-        with open('before.txt', 'w') as ff:
-            ff.write(str(list(variable_data)))
-        force_asc = ForceAscendingLatitude().process(empty_filter)
-        self.assertNotEqual(force_asc, None, f'force_asc is None')
-        variable_data = from_shaped_array(force_asc.tile.grid_tile.variable_data)
-        with open('after.txt', 'w') as ff:
-            ff.write(str(list(variable_data)))
-        kelvin = KelvinToCelsius().process(force_asc)
-        self.assertNotEqual(kelvin, None, f'kelvin is None')
+        # force_asc = ForceAscendingLatitude().process(empty_filter)
+        # self.assertNotEqual(force_asc, None, f'force_asc is None')
+        # kelvin = KelvinToCelsius().process(force_asc)
+        # self.assertNotEqual(kelvin, None, f'kelvin is None')
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
-            kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
-            summary = TileSummarizingProcessor('test').process(kelvin, ds)
-            self.assertNotEqual(summary, None, f'summary is None')
-
-        tile_type = generated_tile.tile.WhichOneof("tile_type")
-        tile_data = getattr(generated_tile.tile, tile_type)
-        latitudes = from_shaped_array(tile_data.latitude)
-        # print(latitudes)
-        # longitudes = from_shaped_array(tile_data.longitude)
-        variable_data = from_shaped_array(tile_data.variable_data)
-        # print(variable_data)
-        self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
-        self.assertEqual(1577577600, generated_tile.tile.grid_tile.time)
-        self.assertEqual([6, 50, 50], generated_tile.tile.grid_tile.variable_data.shape)
-        self.assertEqual([50], generated_tile.tile.grid_tile.latitude.shape)
-        self.assertEqual([50], generated_tile.tile.grid_tile.longitude.shape)
-
+            # kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
+            # summary = TileSummarizingProcessor('test').process(kelvin, ds)
+            # self.assertNotEqual(summary, None, f'summary is None')
+            self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+            tile_type = generated_tile.tile.WhichOneof("tile_type")
+            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            tile_data = getattr(generated_tile.tile, tile_type)
+            self.assertEqual(1577577600, tile_data.time)
+            self.assertEqual([1, 550, 550, 6], tile_data.variable_data.shape)
+            self.assertEqual([550], tile_data.latitude.shape)
+            self.assertEqual([550], tile_data.longitude.shape)
+            variable_data = from_shaped_array(tile_data.variable_data)
+            original_b2_data = ds['b2'].values
+            self.assertEqual(original_b2_data[0][500][104], variable_data[0][500][104][0])
         return
 
     def test_03(self):
@@ -125,16 +114,17 @@ class TestReadHLSData(unittest.TestCase):
         with xr.open_dataset(granule_path) as ds:
             generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
         tile_type = generated_tile.tile.WhichOneof("tile_type")
+        self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
         tile_data = getattr(generated_tile.tile, tile_type)
-        latitudes = from_shaped_array(tile_data.latitude)
-        longitudes = from_shaped_array(tile_data.longitude)
-        variable_data = from_shaped_array(tile_data.variable_data)
 
         self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
-        self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
-        self.assertEqual([30, 30], generated_tile.tile.grid_tile.variable_data.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
-        self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
+        self.assertEqual(1577836800, tile_data.time)
+        self.assertEqual([1, 30, 30, 1], tile_data.variable_data.shape)
+        self.assertEqual([30], tile_data.latitude.shape)
+        self.assertEqual([30], tile_data.longitude.shape)
+        variable_data = from_shaped_array(tile_data.variable_data)
+        original_b03_data = ds['B03'].values
+        self.assertEqual(original_b03_data[0][2][3], variable_data[0][2][3][0])
 
         # print(latitudes)
         # print(longitudes)

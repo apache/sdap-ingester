@@ -16,6 +16,21 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         super().__init__(variable, latitude, longitude, **kwargs)
         self.depth = depth
         self.time = time
+        self.band = 'band'
+
+    def __get_transposing_dimensions(self, original_dimensions):
+        """
+        Expecting [time, lat, lon, bands]
+        """
+        logger.debug(f're-arranging original_dimensions: {original_dimensions}')
+        new_dimensions = [
+            original_dimensions[self.time],
+            original_dimensions[self.latitude],
+            original_dimensions[self.longitude],
+            original_dimensions[self.band],
+        ]
+        logger.debug(f'order of [time, lat, lon, bands]: {new_dimensions}')
+        return tuple(new_dimensions)
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         """
@@ -34,30 +49,27 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         :param input_tile: nexusproto.NexusTile()
         :return: input_tile - filled with the value
         """
-        new_tile = nexusproto.GridTile()
+        new_tile = nexusproto.GridMultiBandTile()
 
         lat_subset = ds[self.latitude][type(self)._slices_for_variable(ds[self.latitude], dimensions_to_slices)]
         lon_subset = ds[self.longitude][type(self)._slices_for_variable(ds[self.longitude], dimensions_to_slices)]
         lat_subset = np.ma.filled(np.squeeze(lat_subset), np.NaN)
         lon_subset = np.ma.filled(np.squeeze(lon_subset), np.NaN)
 
-        if isinstance(self.variable, list):
-            logger.debug(f'reading as banded grid as self.variable is a list. self.variable: {self.variable}')
-            if len(self.variable) < 1:
-                raise ValueError(f'list of variable is empty. Need at least 1 variable')
-            data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
-            data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
-            # Update: 2021-07-09: temporarily cancelling dimension switches
-            # if len(self.variable) > 1:
-            #     logger.debug(f'self.variable has more than 1 band. need to transpose')
-            #     transpose_arguments = [k for k in range(1, len(data_subset.shape))]
-            #     transpose_arguments.append(0)
-            #     data_subset = data_subset.transpose(*transpose_arguments)
-        else:
-            logger.debug(f'reading as normal grid as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
-            data_subset = ds[self.variable][type(self)._slices_for_variable(ds[self.variable], dimensions_to_slices)]
-            data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
-
+        if not isinstance(self.variable, list):
+            raise ValueError(f'self.variable `{self.variable}` needs to be a list. use GridReadingProcessor for single band Grid files.')
+        logger.debug(f'reading as banded grid as self.variable is a list. self.variable: {self.variable}')
+        if len(self.variable) < 1:
+            raise ValueError(f'list of variable is empty. Need at least 1 variable')
+        data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
+        original_dims = ['band'] + list(data_subset[0].dims)
+        original_dims = {k: i for i, k in enumerate(original_dims)}
+        logger.debug(f'filling the data_subset with NaN')
+        data_subset = np.ma.filled(data_subset, np.NaN)
+        logger.debug(f'transposing data_subset')
+        data_subset = data_subset.transpose(self.__get_transposing_dimensions(original_dims))
+        logger.debug(f'adding summary.data_dim_names')
+        input_tile.summary.data_dim_names.extend([self.time, self.latitude, self.longitude, self.band])
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
                                                                           dimensions_to_slices).items())[0]
@@ -81,5 +93,5 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
         new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
 
-        input_tile.tile.grid_tile.CopyFrom(new_tile)
+        input_tile.tile.grid_multi_band_tile.CopyFrom(new_tile)
         return input_tile
