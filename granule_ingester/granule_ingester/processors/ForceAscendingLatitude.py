@@ -22,6 +22,20 @@ logger = logging.getLogger(__name__)
 
 
 class ForceAscendingLatitude(TileProcessor):
+    def __init__(self, default_latitude_axis=0):
+        self.__default_latitude_axis = default_latitude_axis
+        self.__latitude_keywords = {'lat', 'latitude', 'latitudes', 'yc', 'ydim_grid'}
+
+    def __get_latitude_axis(self, axis_tuple):
+        if axis_tuple is None:
+            logger.debug(f'axis_tuple is None. using the default axis')
+            return self.__default_latitude_axis
+        for i, k in enumerate(axis_tuple):
+            if k.lower() in self.__latitude_keywords:
+                logger.debug(f'found the latitude axis: {i}')
+                return i
+        logger.debug(f'cannot find one of latitude keywords from {self.__latitude_keywords} in axis_tuple: {axis_tuple}. using the default axis')
+        return self.__default_latitude_axis
 
     def process(self, tile, *args, **kwargs):
         """
@@ -37,16 +51,19 @@ class ForceAscendingLatitude(TileProcessor):
         the_tile_data = getattr(tile.tile, the_tile_type)
 
         latitudes = from_shaped_array(the_tile_data.latitude)
-
         data = from_shaped_array(the_tile_data.variable_data)
-
-        # Only reverse latitude ordering if current ordering is descending.
-        if len(latitudes) > 1:
-            delta = latitudes[1] - latitudes[0]
-            if delta < 0:
-                latitudes = np.flip(latitudes)
-                data = np.flip(data, axis=0)
-                the_tile_data.latitude.CopyFrom(to_shaped_array(latitudes))
-                the_tile_data.variable_data.CopyFrom(to_shaped_array(data))
-
+        if len(latitudes) < 2:
+            logger.debug(f'Not enough latitude in data to flip. No need to do so..')
+            return tile
+        delta = latitudes[1] - latitudes[0]
+        if delta >= 0:
+            logger.debug(f'Only reverse latitude ordering if current ordering is descending.. No need to do so..')
+            return tile
+        logger.debug(f'flipping latitudes')
+        latitudes = np.flip(latitudes)
+        latitude_axis = self.__get_latitude_axis(tile.summary.data_dim_names)
+        logger.debug(f'flipping data on axis: {latitude_axis}')
+        data = np.flip(data, axis=latitude_axis)
+        the_tile_data.latitude.CopyFrom(to_shaped_array(latitudes))
+        the_tile_data.variable_data.CopyFrom(to_shaped_array(data))
         return tile
