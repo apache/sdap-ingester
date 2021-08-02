@@ -3,6 +3,7 @@ from typing import Dict
 
 import numpy as np
 import xarray as xr
+from granule_ingester.processors.reading_processors.MultiBandUtils import MultiBandUtils
 from nexusproto import DataTile_pb2 as nexusproto
 from nexusproto.serialization import to_shaped_array
 
@@ -18,9 +19,13 @@ class SwathMultiBandReadingProcessor(TileReadingProcessor):
         self.time = time
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
-        data_variable = self.variable[0] if isinstance(self.variable, list) else self.variable
-        new_tile = nexusproto.SwathTile()
+        if not isinstance(self.variable, list):
+            raise ValueError(f'self.variable `{self.variable}` needs to be a list. use SwathReadingProcessor for single band Swath files.')
+        logger.debug(f'reading as banded swath as self.variable is a list. self.variable: {self.variable}')
+        if len(self.variable) < 1:
+            raise ValueError(f'list of variable is empty. Need at least 1 variable')
 
+        new_tile = nexusproto.SwathMultiBandTile()
         lat_subset = ds[self.latitude][type(self)._slices_for_variable(ds[self.latitude], dimensions_to_slices)]
         lon_subset = ds[self.longitude][type(self)._slices_for_variable(ds[self.longitude], dimensions_to_slices)]
         lat_subset = np.ma.filled(lat_subset, np.NaN)
@@ -29,25 +34,14 @@ class SwathMultiBandReadingProcessor(TileReadingProcessor):
         time_subset = ds[self.time][type(self)._slices_for_variable(ds[self.time], dimensions_to_slices)]
         time_subset = np.ma.filled(type(self)._convert_to_timestamp(time_subset), np.NaN)
 
-        if isinstance(self.variable, list):
-            logger.debug(f'reading as banded swath as self.variable is a list. self.variable: {self.variable}')
-            if len(self.variable) < 1:
-                raise ValueError(f'list of variable is empty. Need at least 1 variable')
-            if len(self.variable) == 1:
-                # TODO array with length 1 is assumed as a single band for backward compatibility. This is needed coz collection manager convert singleband of single variable to an array of 1
-                logger.debug(
-                    f'reading as normal swath as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
-                data_subset = ds[data_variable][
-                    type(self)._slices_for_variable(ds[data_variable], dimensions_to_slices)]
-                data_subset = np.ma.filled(data_subset, np.NaN)
-            else:
-                data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
-                data_subset = np.ma.filled(data_subset, np.NaN)
-                # TODO: might need to transpose. needs further discussion
-        else:
-            logger.debug(f'reading as normal swath as self.variable is not a list. Assuming it is a string. self.variable: {self.variable}')
-            data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable], dimensions_to_slices)]
-            data_subset = np.ma.filled(data_subset, np.NaN)
+        data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
+        updated_dims, updated_dims_indices = MultiBandUtils.move_band_dimension(list(data_subset[0].dims))
+        logger.debug(f'filling the data_subset with NaN')
+        data_subset = np.ma.filled(data_subset, np.NaN)
+        logger.debug(f'transposing data_subset')
+        data_subset = data_subset.transpose(updated_dims_indices)
+        logger.debug(f'adding summary.data_dim_names')
+        input_tile.summary.data_dim_names.extend(updated_dims)
 
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
@@ -63,5 +57,5 @@ class SwathMultiBandReadingProcessor(TileReadingProcessor):
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
         new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
         new_tile.time.CopyFrom(to_shaped_array(time_subset))
-        input_tile.tile.swath_tile.CopyFrom(new_tile)
+        input_tile.tile.swath_multi_band_tile.CopyFrom(new_tile)
         return input_tile

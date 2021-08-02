@@ -3,6 +3,7 @@ from typing import Dict
 
 import numpy as np
 import xarray as xr
+from granule_ingester.processors.reading_processors.MultiBandUtils import MultiBandUtils
 from nexusproto import DataTile_pb2 as nexusproto
 from nexusproto.serialization import to_shaped_array
 
@@ -16,21 +17,6 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         super().__init__(variable, latitude, longitude, **kwargs)
         self.depth = depth
         self.time = time
-        self.band = 'band'
-
-    def __get_transposing_dimensions(self, original_dimensions):
-        """
-        Expecting [time, lat, lon, bands]
-        """
-        logger.debug(f're-arranging original_dimensions: {original_dimensions}')
-        new_dimensions = [
-            original_dimensions[self.time],
-            original_dimensions[self.latitude],
-            original_dimensions[self.longitude],
-            original_dimensions[self.band],
-        ]
-        logger.debug(f'order of [time, lat, lon, bands]: {new_dimensions}')
-        return tuple(new_dimensions)
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
         """
@@ -62,14 +48,13 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         if len(self.variable) < 1:
             raise ValueError(f'list of variable is empty. Need at least 1 variable')
         data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
-        original_dims = ['band'] + list(data_subset[0].dims)
-        original_dims = {k: i for i, k in enumerate(original_dims)}
+        updated_dims, updated_dims_indices = MultiBandUtils.move_band_dimension(list(data_subset[0].dims))
         logger.debug(f'filling the data_subset with NaN')
         data_subset = np.ma.filled(data_subset, np.NaN)
         logger.debug(f'transposing data_subset')
-        data_subset = data_subset.transpose(self.__get_transposing_dimensions(original_dims))
+        data_subset = data_subset.transpose(updated_dims_indices)
         logger.debug(f'adding summary.data_dim_names')
-        input_tile.summary.data_dim_names.extend([self.time, self.latitude, self.longitude, self.band])
+        input_tile.summary.data_dim_names.extend(updated_dims)
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
                                                                           dimensions_to_slices).items())[0]
