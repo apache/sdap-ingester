@@ -35,7 +35,7 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         :param input_tile: nexusproto.NexusTile()
         :return: input_tile - filled with the value
         """
-        new_tile = nexusproto.GridMultiBandTile()
+        new_tile = nexusproto.GridMultiVariableTile()
 
         lat_subset = ds[self.latitude][type(self)._slices_for_variable(ds[self.latitude], dimensions_to_slices)]
         lon_subset = ds[self.longitude][type(self)._slices_for_variable(ds[self.longitude], dimensions_to_slices)]
@@ -78,5 +78,5 @@ class GridMultiBandReadingProcessor(TileReadingProcessor):
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
         new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
 
-        input_tile.tile.grid_multi_band_tile.CopyFrom(new_tile)
+        input_tile.tile.grid_multi_variable_tile.CopyFrom(new_tile)
         return input_tile

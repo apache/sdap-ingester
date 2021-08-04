@@ -47,7 +47,7 @@ class TestReadHLSData(unittest.TestCase):
             generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
             self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
             tile_type = generated_tile.tile.WhichOneof("tile_type")
-            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            self.assertEqual(tile_type, 'grid_multi_variable_tile', f'wrong tile type')
             tile_data = getattr(generated_tile.tile, tile_type)
             self.assertEqual(1577836800, tile_data.time)
             self.assertEqual([1, 30, 30, 11], tile_data.variable_data.shape)
@@ -80,7 +80,7 @@ class TestReadHLSData(unittest.TestCase):
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
             self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
             tile_type = generated_tile.tile.WhichOneof("tile_type")
-            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            self.assertEqual(tile_type, 'grid_multi_variable_tile', f'wrong tile type')
             tile_data = getattr(generated_tile.tile, tile_type)
             self.assertEqual(1577577600, tile_data.time)
             self.assertEqual([1, 550, 550, 6], tile_data.variable_data.shape)
@@ -120,7 +120,7 @@ class TestReadHLSData(unittest.TestCase):
             self.assertNotEqual(summary, None, f'summary is None')
             self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
             tile_type = generated_tile.tile.WhichOneof("tile_type")
-            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            self.assertEqual(tile_type, 'grid_multi_variable_tile', f'wrong tile type')
             tile_data = getattr(generated_tile.tile, tile_type)
             self.assertEqual(1577577600, tile_data.time)
             self.assertEqual([1, 550, 550, 6], tile_data.variable_data.shape)
@@ -144,7 +144,7 @@ class TestReadHLSData(unittest.TestCase):
         with xr.open_dataset(granule_path) as ds:
             generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
         tile_type = generated_tile.tile.WhichOneof("tile_type")
-        self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+        self.assertEqual(tile_type, 'grid_multi_variable_tile', f'wrong tile type')
         tile_data = getattr(generated_tile.tile, tile_type)
 
         self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)

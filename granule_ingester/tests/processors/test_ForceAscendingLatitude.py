@@ -30,7 +30,7 @@ class TestForceAscendingLatitude(unittest.TestCase):
             tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
             flipped_tile = ForceAscendingLatitude().process(tile)
             the_flipped_tile_type = flipped_tile.tile.WhichOneof("tile_type")
-            self.assertEqual(the_flipped_tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            self.assertEqual(the_flipped_tile_type, 'grid_multi_variable_tile', f'wrong tile type')
             the_flipped_tile_data = getattr(flipped_tile.tile, the_flipped_tile_type)
             self.assertEqual([1, 30, 30, 2], the_flipped_tile_data.variable_data.shape)
             flipped_latitudes = from_shaped_array(the_flipped_tile_data.latitude)
