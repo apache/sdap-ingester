@@ -42,10 +42,10 @@ class TestReadAscatbData(unittest.TestCase):
             output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
 
             self.assertEqual(granule_path, output_tile.summary.granule, granule_path)
-            self.assertEqual([1, 82], output_tile.tile.swath_multi_band_tile.time.shape)
-            self.assertEqual([1, 82, 1], output_tile.tile.swath_multi_band_tile.variable_data.shape)
-            self.assertEqual([1, 82], output_tile.tile.swath_multi_band_tile.latitude.shape)
-            self.assertEqual([1, 82], output_tile.tile.swath_multi_band_tile.longitude.shape)
+            self.assertEqual([1, 82], output_tile.tile.swath_multi_variable_tile.time.shape)
+            self.assertEqual([1, 82, 1], output_tile.tile.swath_multi_variable_tile.variable_data.shape)
+            self.assertEqual([1, 82], output_tile.tile.swath_multi_variable_tile.latitude.shape)
+            self.assertEqual([1, 82], output_tile.tile.swath_multi_variable_tile.longitude.shape)
 
     def test_read_not_empty_ascatb_mb(self):
         reading_processor = SwathMultiBandReadingProcessor(variable=['wind_speed', 'wind_dir'],
@@ -65,11 +65,11 @@ class TestReadAscatbData(unittest.TestCase):
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
             output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
             self.assertEqual(granule_path, output_tile.summary.granule, granule_path)
-            self.assertEqual([2, 82], output_tile.tile.swath_multi_band_tile.time.shape)
-            self.assertEqual([2, 82, 2], output_tile.tile.swath_multi_band_tile.variable_data.shape)
-            self.assertEqual([2, 82], output_tile.tile.swath_multi_band_tile.latitude.shape)
-            self.assertEqual([2, 82], output_tile.tile.swath_multi_band_tile.longitude.shape)
-            variable_data = from_shaped_array(output_tile.tile.swath_multi_band_tile.variable_data)
+            self.assertEqual([2, 82], output_tile.tile.swath_multi_variable_tile.time.shape)
+            self.assertEqual([2, 82, 2], output_tile.tile.swath_multi_variable_tile.variable_data.shape)
+            self.assertEqual([2, 82], output_tile.tile.swath_multi_variable_tile.latitude.shape)
+            self.assertEqual([2, 82], output_tile.tile.swath_multi_variable_tile.longitude.shape)
+            variable_data = from_shaped_array(output_tile.tile.swath_multi_variable_tile.variable_data)
             self.assertTrue(abs(float(ds['wind_speed'][0][0].data) - variable_data[0][0][0]) < 0.0001, 'wrong wind_speed[0][0]')
             self.assertTrue(abs(float(ds['wind_speed'][0][1].data) - variable_data[0][1][0]) < 0.0001, 'wrong wind_speed[0][1]')
             self.assertTrue(abs(float(ds['wind_speed'][1][0].data) - variable_data[1][0][0]) < 0.0001, 'wrong wind_speed[1][0]')

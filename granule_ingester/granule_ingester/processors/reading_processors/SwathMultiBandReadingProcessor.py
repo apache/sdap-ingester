@@ -25,7 +25,7 @@ class SwathMultiBandReadingProcessor(TileReadingProcessor):
         if len(self.variable) < 1:
             raise ValueError(f'list of variable is empty. Need at least 1 variable')
 
-        new_tile = nexusproto.SwathMultiBandTile()
+        new_tile = nexusproto.SwathMultiVariableTile()
         lat_subset = ds[self.latitude][type(self)._slices_for_variable(ds[self.latitude], dimensions_to_slices)]
         lon_subset = ds[self.longitude][type(self)._slices_for_variable(ds[self.longitude], dimensions_to_slices)]
         lat_subset = np.ma.filled(lat_subset, np.NaN)
@@ -57,5 +57,5 @@ class SwathMultiBandReadingProcessor(TileReadingProcessor):
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
         new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
         new_tile.time.CopyFrom(to_shaped_array(time_subset))
-        input_tile.tile.swath_multi_band_tile.CopyFrom(new_tile)
+        input_tile.tile.swath_multi_variable_tile.CopyFrom(new_tile)
         return input_tile
