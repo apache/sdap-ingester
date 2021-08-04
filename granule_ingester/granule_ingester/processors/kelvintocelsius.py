@@ -44,7 +44,7 @@ class KelvinToCelsius(TileProcessor):
 
     def process(self, tile: NexusTile, *args, **kwargs):
         the_tile_type = tile.tile.WhichOneof("tile_type")
-        logger.debug(f'processing the_tile_type: {the_tile_type}')
+        logger.debug(f'processing granule: {tile.summary.granule}')
         the_tile_data = getattr(tile.tile, the_tile_type)
         kelvins = ['kelvin', 'degk', 'deg_k', 'degreesk', 'degrees_k', 'degree_k', 'degreek']
 

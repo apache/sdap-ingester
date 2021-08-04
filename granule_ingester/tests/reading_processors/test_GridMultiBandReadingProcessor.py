@@ -77,14 +77,7 @@ class TestReadHLSData(unittest.TestCase):
         self.assertNotEqual(empty_filter, None, f'empty_filter is None')
         subtract_180 = Subtract180FromLongitude().process(empty_filter)
         self.assertNotEqual(subtract_180, None, f'subtract_180 is None')
-        # force_asc = ForceAscendingLatitude().process(empty_filter)
-        # self.assertNotEqual(force_asc, None, f'force_asc is None')
-        # kelvin = KelvinToCelsius().process(force_asc)
-        # self.assertNotEqual(kelvin, None, f'kelvin is None')
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
-            # kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
-            # summary = TileSummarizingProcessor('test').process(kelvin, ds)
-            # self.assertNotEqual(summary, None, f'summary is None')
             self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
             tile_type = generated_tile.tile.WhichOneof("tile_type")
             self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
@@ -96,6 +89,43 @@ class TestReadHLSData(unittest.TestCase):
             variable_data = from_shaped_array(tile_data.variable_data)
             original_b2_data = ds['b2'].values
             self.assertEqual(original_b2_data[0][500][104], variable_data[0][500][104][0])
+        return
+
+    def test_02_a_preprocessed_data_chain_processors(self):
+        reading_processor = GridMultiBandReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
+        granule_path = path.join(path.dirname(__file__), '../granules/s1_output_latlon_HLS_S30_T18TYN_2019363.nc')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(0, 550),
+            'long': slice(0, 550),
+        }
+
+        with xr.open_dataset(granule_path) as ds:
+            generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+        empty_filter = EmptyTileFilter().process(generated_tile)
+        self.assertNotEqual(empty_filter, None, f'empty_filter is None')
+        subtract_180 = Subtract180FromLongitude().process(empty_filter)
+        self.assertNotEqual(subtract_180, None, f'subtract_180 is None')
+        force_asc = ForceAscendingLatitude().process(empty_filter)
+        self.assertNotEqual(force_asc, None, f'force_asc is None')
+        kelvin = KelvinToCelsius().process(force_asc)
+        self.assertNotEqual(kelvin, None, f'kelvin is None')
+        with xr.open_dataset(granule_path, decode_cf=True) as ds:
+            kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
+            summary = TileSummarizingProcessor('test').process(kelvin, ds)
+            self.assertNotEqual(summary, None, f'summary is None')
+            self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+            tile_type = generated_tile.tile.WhichOneof("tile_type")
+            self.assertEqual(tile_type, 'grid_multi_band_tile', f'wrong tile type')
+            tile_data = getattr(generated_tile.tile, tile_type)
+            self.assertEqual(1577577600, tile_data.time)
+            self.assertEqual([1, 550, 550, 6], tile_data.variable_data.shape)
+            self.assertEqual([550], tile_data.latitude.shape)
+            self.assertEqual([550], tile_data.longitude.shape)
         return
 
     def test_03(self):

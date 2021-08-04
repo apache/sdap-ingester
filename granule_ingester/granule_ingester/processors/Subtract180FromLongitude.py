@@ -29,7 +29,7 @@ class Subtract180FromLongitude(TileProcessor):
         :return: Tile data with altered longitude values
         """
         the_tile_type = tile.tile.WhichOneof("tile_type")
-        logger.debug(f'processing the_tile_type: {the_tile_type}')
+        logger.debug(f'processing granule: {tile.summary.granule}')
         the_tile_data = getattr(tile.tile, the_tile_type)
         longitudes = from_shaped_array(the_tile_data.longitude)
 

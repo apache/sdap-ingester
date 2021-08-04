@@ -31,7 +31,7 @@ def parse_input(nexus_tile_data):
 class EmptyTileFilter(TileProcessor):
     def process(self, tile, *args, **kwargs):
         tile_type = tile.tile.WhichOneof("tile_type")
-        logger.debug(f'processing tile_type: {tile_type}')
+        logger.debug(f'processing granule: {tile.summary.granule}')
         tile_data = getattr(tile.tile, tile_type)
         data = from_shaped_array(tile_data.variable_data)
         # Only supply data if there is actual values in the tile

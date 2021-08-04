@@ -105,7 +105,7 @@ class SolrStore(MetadataStore):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
-        var_name = summary.standard_name if summary.standard_name else str(summary.data_var_name)
+        var_name = summary.standard_name if summary.standard_name else json.dumps(summary.data_var_name)
 
         input_document = {
             'table_s': self.TABLE_NAME,

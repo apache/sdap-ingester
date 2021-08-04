@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import logging
 
 import numpy
@@ -45,7 +46,7 @@ class TileSummarizingProcessor(TileProcessor):
 
     def process(self, tile, dataset, *args, **kwargs):
         tile_type = tile.tile.WhichOneof("tile_type")
-        logger.debug(f'processing tile_type: {tile_type}')
+        logger.debug(f'processing granule: {tile.summary.granule}')
         tile_data = getattr(tile.tile, tile_type)
 
         latitudes = numpy.ma.masked_invalid(from_shaped_array(tile_data.latitude))
@@ -94,12 +95,13 @@ class TileSummarizingProcessor(TileProcessor):
         except NoTimeException:
             pass
         logger.debug(f'calc standard_name')
-
-        standard_name = dataset.variables[tile_summary.data_var_name[0]].attrs.get('standard_name')  # TODO grabbing the 1st value is good enough?
-        if standard_name:
-            logger.debug(f'set standard_name')
-            tile_summary.standard_name = standard_name
-        logger.debug(f'run CopyFromset grid mean')
+        standard_names = [dataset.variables[k].attrs.get('standard_name')for k in tile_summary.data_var_name]
+        if any([k is None for k in standard_names]):
+            logger.debug(f'one or more of standard_names is None. skipping. {standard_names}')
+        else:
+            logger.debug(f'using standard_names as all are not None: {standard_names}')
+            tile_summary.standard_name = json.dumps(standard_names)
+        logger.debug(f'copy tile_summary to tile')
         tile.summary.CopyFrom(tile_summary)
         return tile
 
