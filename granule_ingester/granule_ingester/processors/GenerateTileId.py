@@ -30,7 +30,7 @@ class GenerateTileId(TileProcessor):
         spec = tile.summary.section_spec
         dataset_name = tile.summary.dataset_name
 
-        generated_id = uuid.uuid3(uuid.NAMESPACE_DNS, dataset_name + granule + str(variable_name) + spec)
+        generated_id = uuid.uuid3(uuid.NAMESPACE_DNS, dataset_name + granule + variable_name + spec)
         logger.debug(f'generated_id: {generated_id}')
         tile.summary.tile_id = str(generated_id)
         return tile

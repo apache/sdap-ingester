@@ -67,6 +67,9 @@ class TileSummarizingProcessor(TileProcessor):
         tile_summary.stats.count = data.size - numpy.count_nonzero(numpy.isnan(data))
         logger.debug(f'set summary fields')
 
+        data_var_name = json.loads(tile_summary.data_var_name)
+        if not isinstance(data_var_name, list):
+            data_var_name = [data_var_name]
         # In order to accurately calculate the average we need to weight the data based on the cosine of its latitude
         # This is handled slightly differently for swath vs. grid data
         if tile_type == 'swath_tile':
@@ -77,8 +80,9 @@ class TileSummarizingProcessor(TileProcessor):
             # Grid tiles need to repeat the weight for every longitude
             # TODO This assumes data axis' are ordered as latitude x longitude
             logger.debug(f'set grid mean. tile_summary.data_var_name: {tile_summary.data_var_name}')
+
             try:
-                tile_summary.stats.mean = type(self).calculate_mean_for_grid_tile(data, latitudes, longitudes, len(tile_summary.data_var_name))
+                tile_summary.stats.mean = type(self).calculate_mean_for_grid_tile(data, latitudes, longitudes, len(data_var_name))
             except Exception as e:
                 logger.exception(f'error while setting grid mean: {str(e)}')
                 tile_summary.stats.mean = 0
@@ -95,12 +99,12 @@ class TileSummarizingProcessor(TileProcessor):
         except NoTimeException:
             pass
         logger.debug(f'calc standard_name')
-        standard_names = [dataset.variables[k].attrs.get('standard_name')for k in tile_summary.data_var_name]
+        standard_names = [dataset.variables[k].attrs.get('standard_name')for k in data_var_name]
         if any([k is None for k in standard_names]):
             logger.debug(f'one or more of standard_names is None. skipping. {standard_names}')
         else:
             logger.debug(f'using standard_names as all are not None: {standard_names}')
-            tile_summary.standard_name = json.dumps(standard_names)
+            tile_summary.standard_name = json.dumps(standard_names if len(standard_names) > 1 else standard_names[0])
         logger.debug(f'copy tile_summary to tile')
         tile.summary.CopyFrom(tile_summary)
         return tile

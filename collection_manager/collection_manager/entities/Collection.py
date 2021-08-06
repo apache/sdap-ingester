@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pathlib
@@ -43,12 +44,12 @@ class Collection:
         if 'variable' in dimension_names_dict:
             if not isinstance(dimension_names_dict['variable'], str):
                 raise RuntimeError(f'variable in dimensionNames must be string type. value: {dimension_names_dict["variable"]}')
-            new_dimension_names.append(('variable', str([dimension_names_dict['variable']])))
+            new_dimension_names.append(('variable', json.dumps(dimension_names_dict['variable'])))
             return new_dimension_names
         if 'variables' in dimension_names_dict:
             if not isinstance(dimension_names_dict['variables'], list):
                 raise RuntimeError(f'variable in dimensionNames must be list type. value: {dimension_names_dict["variables"]}')
-            new_dimension_names.append(('variable', str(dimension_names_dict['variables'])))
+            new_dimension_names.append(('variable', json.dumps(dimension_names_dict['variables'])))
             return new_dimension_names
 
     @staticmethod

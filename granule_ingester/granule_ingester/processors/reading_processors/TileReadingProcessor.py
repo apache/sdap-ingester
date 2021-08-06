@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import ast
 import datetime
+import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 
 class TileReadingProcessor(TileProcessor, ABC):
 
-    def __init__(self, variable: str, latitude: str, longitude: str, *args, **kwargs):
+    def __init__(self, variable: Union[str, list], latitude: str, longitude: str, *args, **kwargs):
         try:
-            self.variable = variable if isinstance(variable, list) else ast.literal_eval(variable)
+            self.variable = json.loads(variable)
         except Exception as e:
             logger.exception(f'failed to convert literal list to python list. using as a single variable: {variable}')
             self.variable = variable
@@ -49,7 +49,7 @@ class TileReadingProcessor(TileProcessor, ABC):
 
             output_tile = nexusproto.NexusTile()
             output_tile.CopyFrom(tile)
-            output_tile.summary.data_var_name.extend(self.variable)
+            output_tile.summary.data_var_name = json.dumps(self.variable)
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
         except Exception as e:

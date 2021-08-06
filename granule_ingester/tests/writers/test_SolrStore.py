@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from nexusproto import DataTile_pb2 as nexusproto
@@ -12,7 +13,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.dataset_name = 'test_dataset'
         tile.summary.dataset_uuid = 'test_dataset_id'
-        tile.summary.data_var_name.extend(['test_variable'])
+        tile.summary.data_var_name = json.dumps(['test_variable'])
         tile.summary.granule = 'test_granule_path'
         tile.summary.section_spec = 'time:0:1,j:0:20,i:200:240'
         tile.summary.bbox.lat_min = -180.1
@@ -58,7 +59,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.dataset_name = 'test_dataset'
         tile.summary.dataset_uuid = 'test_dataset_id'
-        tile.summary.data_var_name.extend(['test_variable', 'test_variable_02'])
+        tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
         tile.summary.granule = 'test_granule_path'
         tile.summary.section_spec = 'time:0:1,j:0:20,i:200:240'
         tile.summary.bbox.lat_min = -180.1
@@ -105,7 +106,7 @@ class TestSolrStore(unittest.TestCase):
         """
         tile = nexusproto.NexusTile()
         tile.summary.tile_id = 'test_id'
-        tile.summary.data_var_name.extend(['test_variable', 'test_variable_02'])
+        tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
         tile.tile.ecco_tile.depth = 10.5
 
         metadata_store = SolrStore()

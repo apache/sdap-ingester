@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import logging
 from copy import deepcopy
 
@@ -50,7 +51,9 @@ class KelvinToCelsius(TileProcessor):
 
         if 'dataset' in kwargs:
             ds = kwargs['dataset']
-            variable_name = tile.summary.data_var_name
+            variable_name = json.loads(tile.summary.data_var_name)
+            if not isinstance(variable_name, list):
+                variable_name = [variable_name]
             logger.debug(f'K2C tile.summary.data_var_name: {variable_name}')
             variable_unit = self.__retrieve_var_units(variable_name, ds)
             if len(variable_unit) < 1:

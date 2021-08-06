@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from datetime import datetime, timezone
@@ -127,7 +128,7 @@ class TestCollection(unittest.TestCase):
                                          dimension_names=frozenset([
                                              ('latitude', 'lat'),
                                              ('longitude', 'lon'),
-                                             ('variable', 'test_var')
+                                             ('variable', json.dumps('test_var'))
                                          ]),
                                          path='/some/path',
                                          historical_priority=1,
@@ -145,7 +146,7 @@ class TestCollection(unittest.TestCase):
             'dimensionNames': {
                 'latitude': 'lat',
                 'longitude': 'lon',
-                'variable': ['test_var_1', 'test_var_2', 'test_var_3']
+                'variables': ['test_var_1', 'test_var_2', 'test_var_3'],
             },
             'slices': {'lat': 30, 'lon': 30, 'time': 1},
             'priority': 1,
@@ -160,7 +161,7 @@ class TestCollection(unittest.TestCase):
                                          dimension_names=frozenset([
                                              ('latitude', 'lat'),
                                              ('longitude', 'lon'),
-                                             ('variable', frozenset(['test_var_1', 'test_var_2', 'test_var_3']))
+                                             ('variable', json.dumps(['test_var_1', 'test_var_2', 'test_var_3']))
                                          ]),
                                          path='/some/path',
                                          historical_priority=1,
@@ -190,7 +191,7 @@ class TestCollection(unittest.TestCase):
                                          dimension_names=frozenset([
                                              ('latitude', 'lat'),
                                              ('longitude', 'lon'),
-                                             ('variable', 'test_var')
+                                             ('variable', json.dumps('test_var'))
                                          ]),
                                          path='/some/path',
                                          historical_priority=3,

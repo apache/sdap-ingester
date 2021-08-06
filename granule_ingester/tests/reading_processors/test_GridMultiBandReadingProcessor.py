@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import json
 import unittest
 from os import path
 
@@ -115,7 +115,7 @@ class TestReadHLSData(unittest.TestCase):
         kelvin = KelvinToCelsius().process(force_asc)
         self.assertNotEqual(kelvin, None, f'kelvin is None')
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
-            kelvin.summary.data_var_name.extend([f'b{k}' for k in range(2, 8)])
+            kelvin.summary.data_var_name = json.dumps([f'b{k}' for k in range(2, 8)])
             summary = TileSummarizingProcessor('test').process(kelvin, ds)
             self.assertNotEqual(summary, None, f'summary is None')
             self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
