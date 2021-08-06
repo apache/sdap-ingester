@@ -23,7 +23,7 @@ from granule_ingester.processors.EmptyTileFilter import EmptyTileFilter
 from granule_ingester.processors.Subtract180FromLongitude import Subtract180FromLongitude
 from granule_ingester.processors.TileSummarizingProcessor import TileSummarizingProcessor
 from granule_ingester.processors.kelvintocelsius import KelvinToCelsius
-from granule_ingester.processors.reading_processors import GridMultiBandReadingProcessor
+from granule_ingester.processors.reading_processors import GridMultiVariableReadingProcessor
 from nexusproto import DataTile_pb2 as nexusproto
 from nexusproto.serialization import from_shaped_array
 
@@ -31,7 +31,7 @@ from nexusproto.serialization import from_shaped_array
 class TestReadHLSData(unittest.TestCase):
 
     def test_01(self):
-        reading_processor = GridMultiBandReadingProcessor([f'B{k:02d}' for k in range(1, 12)], 'lat', 'lon', time='time')
+        reading_processor = GridMultiVariableReadingProcessor([f'B{k:02d}' for k in range(1, 12)], 'lat', 'lon', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
 
         input_tile = nexusproto.NexusTile()
@@ -59,7 +59,7 @@ class TestReadHLSData(unittest.TestCase):
         return
 
     def test_02_preprocessed_data(self):
-        reading_processor = GridMultiBandReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
+        reading_processor = GridMultiVariableReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/s1_output_latlon_HLS_S30_T18TYN_2019363.nc')
 
         input_tile = nexusproto.NexusTile()
@@ -92,7 +92,7 @@ class TestReadHLSData(unittest.TestCase):
         return
 
     def test_02_a_preprocessed_data_chain_processors(self):
-        reading_processor = GridMultiBandReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
+        reading_processor = GridMultiVariableReadingProcessor([f'b{k}' for k in range(2, 8)], 'lat', 'long', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/s1_output_latlon_HLS_S30_T18TYN_2019363.nc')
 
         input_tile = nexusproto.NexusTile()
@@ -129,7 +129,7 @@ class TestReadHLSData(unittest.TestCase):
         return
 
     def test_03(self):
-        reading_processor = GridMultiBandReadingProcessor(['B03'], 'lat', 'lon', time='time')
+        reading_processor = GridMultiVariableReadingProcessor(['B03'], 'lat', 'lon', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
 
         input_tile = nexusproto.NexusTile()
@@ -162,7 +162,7 @@ class TestReadHLSData(unittest.TestCase):
         return
 
     def test_04(self):
-        self.assertRaises(RuntimeError, GridMultiBandReadingProcessor, [], 'lat', 'lon', time='time')
+        self.assertRaises(RuntimeError, GridMultiVariableReadingProcessor, [], 'lat', 'lon', time='time')
         return
 
 

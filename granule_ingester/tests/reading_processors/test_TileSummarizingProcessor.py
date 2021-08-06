@@ -4,7 +4,7 @@ from os import path
 
 import xarray as xr
 from granule_ingester.processors import TileSummarizingProcessor
-from granule_ingester.processors.reading_processors import GridMultiBandReadingProcessor
+from granule_ingester.processors.reading_processors import GridMultiVariableReadingProcessor
 from granule_ingester.processors.reading_processors.GridReadingProcessor import GridReadingProcessor
 from nexusproto import DataTile_pb2 as nexusproto
 
@@ -83,7 +83,7 @@ class TestTileSummarizingProcessor(unittest.TestCase):
         TileSummarizingProcessor
         """
         input_var_list = [f'B{k:02d}' for k in range(1, 12)]
-        reading_processor = GridMultiBandReadingProcessor(input_var_list, 'lat', 'lon', time='time', tile='tile')
+        reading_processor = GridMultiVariableReadingProcessor(input_var_list, 'lat', 'lon', time='time', tile='tile')
         granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
 
         tile_summary = nexusproto.TileSummary()

@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 from os import path
 
-from granule_ingester.processors.reading_processors import GridMultiBandReadingProcessor, GridReadingProcessor
+from granule_ingester.processors.reading_processors import GridMultiVariableReadingProcessor, GridReadingProcessor
 from nexusproto import DataTile_pb2 as nexusproto
 
 from nexusproto.serialization import from_shaped_array, to_shaped_array
@@ -14,7 +14,7 @@ from granule_ingester.processors import ForceAscendingLatitude
 
 class TestForceAscendingLatitude(unittest.TestCase):
     def test_01_grid_multi_band_data(self):
-        reading_processor = GridMultiBandReadingProcessor(['B03', 'B04'], 'lat', 'lon', time='time')
+        reading_processor = GridMultiVariableReadingProcessor(['B03', 'B04'], 'lat', 'lon', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
 
         input_tile = nexusproto.NexusTile()

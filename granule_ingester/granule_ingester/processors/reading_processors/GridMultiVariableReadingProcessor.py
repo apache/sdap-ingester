@@ -12,7 +12,7 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 logger = logging.getLogger(__name__)
 
 
-class GridMultiBandReadingProcessor(TileReadingProcessor):
+class GridMultiVariableReadingProcessor(TileReadingProcessor):
     def __init__(self, variable, latitude, longitude, depth=None, time=None, **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
         self.depth = depth
