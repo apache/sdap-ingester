@@ -1,7 +1,6 @@
 set -e
 
-#APACHE_NEXUSPROTO="https://github.com/apache/incubator-sdap-nexusproto.git"
-APACHE_NEXUSPROTO="https://github.com/wphyojpl/incubator-sdap-nexusproto.git"
+APACHE_NEXUSPROTO="https://github.com/apache/incubator-sdap-nexusproto.git"
 MASTER="master"
 
 GIT_REPO=${1:-$APACHE_NEXUSPROTO}
