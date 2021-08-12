@@ -11,10 +11,13 @@ from granule_ingester.processors.reading_processors.TileReadingProcessor import 
 class GridReadingProcessor(TileReadingProcessor):
     def __init__(self, variable, latitude, longitude, depth=None, time=None, **kwargs):
         super().__init__(variable, latitude, longitude, **kwargs)
+        if isinstance(variable, list) and len(variable) != 1:
+            raise RuntimeError(f'TimeSeriesReadingProcessor does not support multiple variable: {variable}')
         self.depth = depth
         self.time = time
 
     def _generate_tile(self, ds: xr.Dataset, dimensions_to_slices: Dict[str, slice], input_tile):
+        data_variable = self.variable[0] if isinstance(self.variable, list) else self.variable
         new_tile = nexusproto.GridTile()
 
         lat_subset = ds[self.latitude][type(self)._slices_for_variable(ds[self.latitude], dimensions_to_slices)]
@@ -22,7 +25,7 @@ class GridReadingProcessor(TileReadingProcessor):
         lat_subset = np.ma.filled(np.squeeze(lat_subset), np.NaN)
         lon_subset = np.ma.filled(np.squeeze(lon_subset), np.NaN)
 
-        data_subset = ds[self.variable][type(self)._slices_for_variable(ds[self.variable],
+        data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable],
                                                                         dimensions_to_slices)]
         data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
 
