@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo $IS_VERBOSE ;
+
 python /sdap/granule_ingester/main.py \
   $([[ ! -z "$RABBITMQ_HOST" ]] && echo --rabbitmq-host=$RABBITMQ_HOST) \
   $([[ ! -z "$RABBITMQ_USERNAME" ]] && echo --rabbitmq-username=$RABBITMQ_USERNAME) \
@@ -19,3 +21,4 @@ python /sdap/granule_ingester/main.py \
   $([[ ! -z "$ELASTIC_INDEX" ]] && echo --elastic-index=$ELASTIC_INDEX) \
   $([[ ! -z "$MAX_THREADS" ]] && echo --max-threads=$MAX_THREADS) \
   $([[ ! -z "$VERBOSE" ]] && echo --verbose)
+  $([[ ! -z "$IS_VERBOSE" ]] && echo --verbose)

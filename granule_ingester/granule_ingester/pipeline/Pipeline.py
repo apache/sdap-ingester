@@ -65,7 +65,9 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
+        logger.debug(f'serialized_input_tile: {serialized_input_tile}')
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
+        logger.debug(f'_recurse params: _worker_processor_list = {_worker_processor_list}, _worker_dataset = {_worker_dataset}, input_tile = {input_tile}')
         processed_tile = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
         if processed_tile:
@@ -110,6 +112,7 @@ class Pipeline:
 
     @classmethod
     def from_string(cls, config_str: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
+        logger.debug(f'config_str: {config_str}')
         try:
             config = yaml.load(config_str, yaml.FullLoader)
             cls._validate_config(config)

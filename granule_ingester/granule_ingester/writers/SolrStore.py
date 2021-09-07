@@ -79,14 +79,16 @@ class SolrStore(MetadataStore):
 
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         solr_doc = self._build_solr_doc(nexus_tile)
+        logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
     @run_in_executor
     def _save_document(self, doc: dict):
         try:
             self._solr.add([doc])
-        except pysolr.SolrError:
-            raise SolrLostConnectionError("Lost connection to Solr, and cannot save tiles.")
+        except pysolr.SolrError as e:
+            logger.exception(f'Lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
+            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:
         summary: TileSummary = tile.summary

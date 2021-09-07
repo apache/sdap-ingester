@@ -50,8 +50,57 @@ class TestReadMurData(unittest.TestCase):
             masked_data = np.ma.masked_invalid(from_shaped_array(output_tile.tile.grid_tile.variable_data))
             self.assertEqual(0, np.ma.count(masked_data))
 
+    def test_read_empty_mur_01(self):
+        reading_processor = GridReadingProcessor(['analysed_sst'], 'lat', 'lon', time='time')
+        granule_path = path.join(path.dirname(__file__), '../granules/empty_mur.nc4')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(0, 10),
+            'lon': slice(0, 5)
+        }
+        with xr.open_dataset(granule_path) as ds:
+            output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+
+            self.assertEqual(granule_path, output_tile.summary.granule, granule_path)
+            self.assertEqual(1451638800, output_tile.tile.grid_tile.time)
+            self.assertEqual([10, 5], output_tile.tile.grid_tile.variable_data.shape)
+            self.assertEqual([10], output_tile.tile.grid_tile.latitude.shape)
+            self.assertEqual([5], output_tile.tile.grid_tile.longitude.shape)
+
+            masked_data = np.ma.masked_invalid(from_shaped_array(output_tile.tile.grid_tile.variable_data))
+            self.assertEqual(0, np.ma.count(masked_data))
+        return
+
     def test_read_not_empty_mur(self):
         reading_processor = GridReadingProcessor('analysed_sst', 'lat', 'lon', time='time')
+        granule_path = path.join(path.dirname(__file__), '../granules/not_empty_mur.nc4')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(0, 10),
+            'lon': slice(0, 5)
+        }
+        with xr.open_dataset(granule_path) as ds:
+            output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+
+            self.assertEqual(granule_path, output_tile.summary.granule, granule_path)
+            self.assertEqual(1451638800, output_tile.tile.grid_tile.time)
+            self.assertEqual([10, 5], output_tile.tile.grid_tile.variable_data.shape)
+            self.assertEqual([10], output_tile.tile.grid_tile.latitude.shape)
+            self.assertEqual([5], output_tile.tile.grid_tile.longitude.shape)
+
+            masked_data = np.ma.masked_invalid(from_shaped_array(output_tile.tile.grid_tile.variable_data))
+            self.assertEqual(50, np.ma.count(masked_data))
+
+    def test_read_not_empty_mur_01(self):
+        reading_processor = GridReadingProcessor(['analysed_sst'], 'lat', 'lon', time='time')
         granule_path = path.join(path.dirname(__file__), '../granules/not_empty_mur.nc4')
 
         input_tile = nexusproto.NexusTile()
@@ -259,6 +308,44 @@ class TestReadInterpEccoData(unittest.TestCase):
         #     self.assertEqual((1, 10, 10), the_data.shape)
         #     self.assertEqual(100, np.ma.count(the_data))
         #     self.assertEqual(1484568000, tile.time)
+
+
+class TestReadHLSData(unittest.TestCase):
+    def test_03(self):
+        reading_processor = GridReadingProcessor(['B03'], 'lat', 'lon', time='time')
+        granule_path = path.join(path.dirname(__file__), '../granules/HLS.S30.T11SPC.2020001.v1.4.hdf.nc')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.granule = granule_path
+
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(0, 30),
+            'lon': slice(0, 30)
+        }
+
+        with xr.open_dataset(granule_path) as ds:
+            generated_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+        tile_type = generated_tile.tile.WhichOneof("tile_type")
+        tile_data = getattr(generated_tile.tile, tile_type)
+        latitudes = from_shaped_array(tile_data.latitude)
+        longitudes = from_shaped_array(tile_data.longitude)
+        variable_data = from_shaped_array(tile_data.variable_data)
+
+        self.assertEqual(granule_path, generated_tile.summary.granule, granule_path)
+        self.assertEqual(1577836800, generated_tile.tile.grid_tile.time)
+        self.assertEqual([30, 30], generated_tile.tile.grid_tile.variable_data.shape)
+        self.assertEqual([30], generated_tile.tile.grid_tile.latitude.shape)
+        self.assertEqual([30], generated_tile.tile.grid_tile.longitude.shape)
+
+        # print(latitudes)
+        # print(longitudes)
+        # print(variable_data)
+        return
+
+    def test_04(self):
+        self.assertRaises(RuntimeError, GridReadingProcessor, [], 'lat', 'lon', time='time')
+        return
 
 
 if __name__ == '__main__':

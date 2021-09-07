@@ -12,9 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 
 from granule_ingester.processors.TileProcessor import TileProcessor
 from nexusproto.serialization import from_shaped_array, to_shaped_array
+
+logger = logging.getLogger(__name__)
 
 
 class Subtract180FromLongitude(TileProcessor):
@@ -25,8 +28,8 @@ class Subtract180FromLongitude(TileProcessor):
         :param nexus_tile: The nexus_tile
         :return: Tile data with altered longitude values
         """
-
         the_tile_type = tile.tile.WhichOneof("tile_type")
+        logger.debug(f'processing granule: {tile.summary.granule}')
         the_tile_data = getattr(tile.tile, the_tile_type)
         longitudes = from_shaped_array(the_tile_data.longitude)
 

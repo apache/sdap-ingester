@@ -12,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import datetime
+import json
+import logging
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
@@ -24,21 +25,31 @@ from nexusproto import DataTile_pb2 as nexusproto
 from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.processors.TileProcessor import TileProcessor
 
+logger = logging.getLogger(__name__)
+
 
 class TileReadingProcessor(TileProcessor, ABC):
 
-    def __init__(self, variable: str, latitude: str, longitude: str, *args, **kwargs):
-        self.variable = variable
+    def __init__(self, variable: Union[str, list], latitude: str, longitude: str, *args, **kwargs):
+        try:
+            self.variable = json.loads(variable)
+        except Exception as e:
+            logger.exception(f'failed to convert literal list to python list. using as a single variable: {variable}')
+            self.variable = variable
+        if isinstance(self.variable, list) and len(self.variable) < 1:
+            logger.error(f'variable list is empty: {TileReadingProcessor}')
+            raise RuntimeError(f'variable list is empty: {self.variable}')
         self.latitude = latitude
         self.longitude = longitude
 
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):
+        logger.debug(f'Reading Processor: {type(self)}')
         try:
             dimensions_to_slices = self._convert_spec_to_slices(tile.summary.section_spec)
 
             output_tile = nexusproto.NexusTile()
             output_tile.CopyFrom(tile)
-            output_tile.summary.data_var_name = self.variable
+            output_tile.summary.data_var_name = json.dumps(self.variable)
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
         except Exception as e:
