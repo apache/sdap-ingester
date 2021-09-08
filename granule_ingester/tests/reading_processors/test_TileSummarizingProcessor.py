@@ -75,6 +75,7 @@ class TestTileSummarizingProcessor(unittest.TestCase):
             tile_summary_processor = TileSummarizingProcessor('test')
             new_tile = tile_summary_processor.process(tile=output_tile, dataset=ds)
             self.assertEqual('null', new_tile.summary.standard_name, f'wrong new_tile.summary.standard_name')
+            self.assertEqual(None, json.loads(new_tile.summary.standard_name), f'unable to convert new_tile.summary.standard_name from JSON')
             self.assertTrue(abs(new_tile.summary.stats.mean - 0.26137) < 0.001, f'mean value is not close expected: 0.26137. actual: {new_tile.summary.stats.mean}')
 
     def test_hls_multiple_var_01(self):
@@ -106,4 +107,5 @@ class TestTileSummarizingProcessor(unittest.TestCase):
             tile_summary_processor = TileSummarizingProcessor('test')
             new_tile = tile_summary_processor.process(tile=output_tile, dataset=ds)
             self.assertEqual('[null, null, null, null, null, null, null, null, null, null, null]', new_tile.summary.standard_name, f'wrong new_tile.summary.standard_name')
+            self.assertEqual([None for _ in range(11)], json.loads(new_tile.summary.standard_name), f'unable to convert new_tile.summary.standard_name from JSON')
             self.assertTrue(abs(new_tile.summary.stats.mean - 0.26523) < 0.001, f'mean value is not close expected: 0.26523. actual: {new_tile.summary.stats.mean}')
