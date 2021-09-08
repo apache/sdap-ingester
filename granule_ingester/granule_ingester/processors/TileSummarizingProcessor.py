@@ -100,11 +100,8 @@ class TileSummarizingProcessor(TileProcessor):
             pass
         logger.debug(f'calc standard_name')
         standard_names = [dataset.variables[k].attrs.get('standard_name')for k in data_var_name]
-        if any([k is None for k in standard_names]):
-            logger.debug(f'one or more of standard_names is None. skipping. {standard_names}')
-        else:
-            logger.debug(f'using standard_names as all are not None: {standard_names}')
-            tile_summary.standard_name = json.dumps(standard_names if len(standard_names) > 1 else standard_names[0])
+        logger.debug(f'using standard_names: {standard_names}')
+        tile_summary.standard_name = json.dumps(standard_names if len(standard_names) > 1 else standard_names[0])
         logger.debug(f'copy tile_summary to tile')
         tile.summary.CopyFrom(tile_summary)
         return tile
