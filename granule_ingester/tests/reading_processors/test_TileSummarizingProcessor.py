@@ -74,6 +74,7 @@ class TestTileSummarizingProcessor(unittest.TestCase):
             output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
             tile_summary_processor = TileSummarizingProcessor('test')
             new_tile = tile_summary_processor.process(tile=output_tile, dataset=ds)
+            self.assertEqual('null', new_tile.summary.standard_name, f'wrong new_tile.summary.standard_name')
             self.assertTrue(abs(new_tile.summary.stats.mean - 0.26137) < 0.001, f'mean value is not close expected: 0.26137. actual: {new_tile.summary.stats.mean}')
 
     def test_hls_multiple_var_01(self):
@@ -104,4 +105,5 @@ class TestTileSummarizingProcessor(unittest.TestCase):
             output_tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
             tile_summary_processor = TileSummarizingProcessor('test')
             new_tile = tile_summary_processor.process(tile=output_tile, dataset=ds)
+            self.assertEqual('[null, null, null, null, null, null, null, null, null, null, null]', new_tile.summary.standard_name, f'wrong new_tile.summary.standard_name')
             self.assertTrue(abs(new_tile.summary.stats.mean - 0.26523) < 0.001, f'mean value is not close expected: 0.26523. actual: {new_tile.summary.stats.mean}')
