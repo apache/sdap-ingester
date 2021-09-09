@@ -30,6 +30,10 @@ class SolrLostConnectionError(LostConnectionError):
     pass
 
 
+class ElasticsearchLostConnectionError(LostConnectionError):
+    pass
+
+
 class FailedHealthCheckError(Exception):
     pass
 
@@ -39,6 +43,10 @@ class CassandraFailedHealthCheckError(FailedHealthCheckError):
 
 
 class SolrFailedHealthCheckError(FailedHealthCheckError):
+    pass
+
+
+class ElasticsearchFailedHealthCheckError(FailedHealthCheckError):
     pass
 
 

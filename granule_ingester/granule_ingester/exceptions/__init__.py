@@ -5,4 +5,5 @@ from .Exceptions import (CassandraFailedHealthCheckError,
                          RabbitMQFailedHealthCheckError,
                          RabbitMQLostConnectionError,
                          SolrFailedHealthCheckError, SolrLostConnectionError,
+                         ElasticsearchFailedHealthCheckError, ElasticsearchLostConnectionError,
                          TileProcessingError)

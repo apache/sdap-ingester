@@ -12,7 +12,13 @@ python /sdap/granule_ingester/main.py \
   $([[ ! -z "$CASSANDRA_KEYSPACE" ]] && echo --cassandra-keyspace=$CASSANDRA_KEYSPACE) \
   $([[ ! -z "$CASSANDRA_USERNAME" ]] && echo --cassandra-username=$CASSANDRA_USERNAME) \
   $([[ ! -z "$CASSANDRA_PASSWORD" ]] && echo --cassandra-password=$CASSANDRA_PASSWORD) \
+  $([[ ! -z "$METADATA_STORE" ]] && echo --metadata-store=$METADATA_STORE) \
   $([[ ! -z "$SOLR_HOST_AND_PORT" ]] && echo --solr-host-and-port=$SOLR_HOST_AND_PORT) \
-  $([[ ! -z "$ZK_HOST_AND_PORT" ]] && echo --zk_host_and_port=$ZK_HOST_AND_PORT) \
+  $([[ ! -z "$ZK_HOST_AND_PORT" ]] && echo --zk-host-and-port=$ZK_HOST_AND_PORT) \
+  $([[ ! -z "$ELASTIC_URL" ]] && echo --elastic-url=$ELASTIC_URL) \
+  $([[ ! -z "$ELASTIC_USERNAME" ]] && echo --elastic-username=$ELASTIC_USERNAME) \
+  $([[ ! -z "$ELASTIC_PASSWORD" ]] && echo --elastic-password=$ELASTIC_PASSWORD) \
+  $([[ ! -z "$ELASTIC_INDEX" ]] && echo --elastic-index=$ELASTIC_INDEX) \
   $([[ ! -z "$MAX_THREADS" ]] && echo --max-threads=$MAX_THREADS) \
+  $([[ ! -z "$VERBOSE" ]] && echo --verbose)
   $([[ ! -z "$IS_VERBOSE" ]] && echo --verbose)
