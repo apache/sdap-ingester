@@ -107,7 +107,7 @@ async def main(loop):
                         default='http://localhost:8983',
                         metavar='HOST:PORT',
                         help='Solr host and port. (Default: http://localhost:8983)')
-    parser.add_argument('--zk_host_and_port',
+    parser.add_argument('--zk-host-and-port',
                         metavar="HOST:PORT")
     
     # ELASTIC
