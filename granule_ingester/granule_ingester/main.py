@@ -23,8 +23,12 @@ from typing import List
 from granule_ingester.consumer import MessageConsumer
 from granule_ingester.exceptions import FailedHealthCheckError, LostConnectionError
 from granule_ingester.healthcheck import HealthCheck
-from granule_ingester.writers import CassandraStore, SolrStore
+from granule_ingester.writers import CassandraStore, SolrStore, S3ObjectStore
 from granule_ingester.writers.ElasticsearchStore import ElasticsearchStore
+
+
+def obj_store_factory(bucket, region):
+    return S3ObjectStore(bucket, region)
 
 
 def cassandra_factory(contact_points, port, keyspace, username, password):
@@ -52,6 +56,8 @@ async def run_health_checks(dependencies: List[HealthCheck]):
     return True
 
 
+VALID_DATA_STORE = ['OBJECT_STORE', 'CASSANDRA']
+
 async def main(loop):
     parser = argparse.ArgumentParser(description='Listen to RabbitMQ for granule ingestion instructions, and process '
                                                  'and ingest a granule for each message that comes through.')
@@ -72,7 +78,12 @@ async def main(loop):
                         default="nexus",
                         metavar="QUEUE",
                         help='Name of the RabbitMQ queue to consume from. (Default: "nexus")')
-    
+
+    # DATA STORE
+    parser.add_argument('--data-store',
+                        metavar='DATA_STORE',
+                        required=True,
+                        help=f'Which data store to use. {VALID_DATA_STORE}')
     # CASSANDRA
     parser.add_argument('--cassandra-contact-points',
                         default=['localhost'],
@@ -95,7 +106,15 @@ async def main(loop):
                         metavar="PASSWORD",
                         default=None,
                         help='Cassandra password. Optional.')
-
+    #OBJECT STORE
+    parser.add_argument('--object-store-bucket',
+                        metavar="OBJECT-STORE-BUCKET",
+                        default=None,
+                        help='OBJECT-STORE-BUCKET. Required if OBJECT_STORE is used')
+    parser.add_argument('--object-store-region',
+                        metavar="OBJECT-STORE-REGION",
+                        default=None,
+                        help='OBJECT-STORE-REGION. Required if OBJECT_STORE is used.')
     # METADATA STORE
     parser.add_argument('--metadata-store',
                         default='solr',
@@ -153,7 +172,13 @@ async def main(loop):
     cassandra_contact_points = args.cassandra_contact_points
     cassandra_port = args.cassandra_port
     cassandra_keyspace = args.cassandra_keyspace
+    obj_store_bucket = args.object_store_bucket
+    obj_store_region = args.object_store_region
 
+    data_store = args.data_store.upper()
+    if data_store not in VALID_DATA_STORE:
+        logger.error(f'invalid data store: {data_store} vs. {VALID_DATA_STORE}')
+        sys.exit(1)
     metadata_store = args.metadata_store    
 
     solr_host_and_port = args.solr_host_and_port
@@ -176,26 +201,31 @@ async def main(loop):
     else:
         metadata_store_obj = ElasticsearchStore(elastic_url, elastic_username, elastic_password, elastic_index)
         msg_consumer_params['metadata_store_factory'] = partial(elasticsearch_factory,
-                                                                  elastic_url,
-                                                                  elastic_username,
-                                                                  elastic_password,
-                                                                  elastic_index)
-    # TODO this will also need to check for cassandra vs S3
-    msg_consumer_params['data_store_factory'] = partial(cassandra_factory,
-                                                              cassandra_contact_points,
-                                                              cassandra_port,
-                                                              cassandra_keyspace,
-                                                              cassandra_username,
-                                                              cassandra_password)
+                                                                elastic_url,
+                                                                elastic_username,
+                                                                elastic_password,
+                                                                elastic_index)
+    if data_store == 'CASSANDRA':
+        msg_consumer_params['data_store_factory'] = partial(cassandra_factory,
+                                                            cassandra_contact_points,
+                                                            cassandra_port,
+                                                            cassandra_keyspace,
+                                                            cassandra_username,
+                                                            cassandra_password)
+        data_store_obj = CassandraStore(cassandra_contact_points,
+                                        cassandra_port,
+                                        cassandra_keyspace,
+                                        cassandra_username,
+                                        cassandra_password)
+    elif data_store == 'OBJECT_STORE':
+        msg_consumer_params['data_store_factory'] = partial(obj_store_factory, obj_store_bucket, obj_store_region)
+        data_store_obj = S3ObjectStore(obj_store_bucket, obj_store_region)
+    else:
+        logger.error(f'invalid data_store: {data_store} vs. {VALID_DATA_STORE}')
+        sys.exit(1)
     consumer = MessageConsumer(**msg_consumer_params)
     try:
-        await run_health_checks([CassandraStore(cassandra_contact_points,
-                                                cassandra_port,
-                                                cassandra_keyspace,
-                                                cassandra_username,
-                                                cassandra_password),
-                                 metadata_store_obj,
-                                 consumer])
+        await run_health_checks([data_store_obj, metadata_store_obj, consumer])
         async with consumer:
             logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
             await consumer.start_consuming(args.max_threads)
