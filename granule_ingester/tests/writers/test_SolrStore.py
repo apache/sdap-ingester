@@ -13,7 +13,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.dataset_name = 'test_dataset'
         tile.summary.dataset_uuid = 'test_dataset_id'
-        tile.summary.data_var_name = json.dumps(['test_variable'])
+        tile.summary.data_var_name = json.dumps('test_variable')
         tile.summary.granule = 'test_granule_path'
         tile.summary.section_spec = 'time:0:1,j:0:20,i:200:240'
         tile.summary.bbox.lat_min = -180.1
@@ -26,7 +26,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.count = 100
         tile.summary.stats.min_time = 694224000
         tile.summary.stats.max_time = 694310400
-        tile.summary.standard_name = json.dumps(['sea_surface_temperature'])
+        tile.summary.standard_name = json.dumps('sea_surface_temperature')
 
         tile.tile.ecco_tile.depth = 10.5
 

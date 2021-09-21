@@ -101,7 +101,7 @@ class TileSummarizingProcessor(TileProcessor):
         logger.debug(f'calc standard_name')
         standard_names = [dataset.variables[k].attrs.get('standard_name')for k in data_var_name]
         logger.debug(f'using standard_names: {standard_names}')
-        tile_summary.standard_name = json.dumps(standard_names if len(standard_names) > 1 else standard_names[0])
+        tile_summary.standard_name = json.dumps(standard_names)
         logger.debug(f'copy tile_summary to tile')
         tile.summary.CopyFrom(tile_summary)
         return tile

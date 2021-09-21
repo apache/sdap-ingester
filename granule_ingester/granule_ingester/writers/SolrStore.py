@@ -110,6 +110,10 @@ class SolrStore(MetadataStore):
             standard_names = json.loads(summary.standard_name)
         else:
             standard_names = [None] * len(var_names)
+        if not isinstance(var_names, list):
+            var_names = [var_names]
+        if not isinstance(standard_names, list):
+            standard_names = [standard_names]
 
         input_document = {
             'table_s': self.TABLE_NAME,
