@@ -26,7 +26,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.count = 100
         tile.summary.stats.min_time = 694224000
         tile.summary.stats.max_time = 694310400
-        tile.summary.standard_name = 'sea_surface_temperature'
+        tile.summary.standard_name = json.dumps(['sea_surface_temperature'])
 
         tile.tile.ecco_tile.depth = 10.5
 
@@ -41,7 +41,8 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_dataset!test_id', solr_doc['solr_id_s'])
         self.assertEqual('time:0:1,j:0:20,i:200:240', solr_doc['sectionSpec_s'])
         self.assertEqual('test_granule_path', solr_doc['granule_s'])
-        self.assertEqual('sea_surface_temperature', solr_doc['tile_var_name_s'])
+        self.assertEqual(['test_variable'], solr_doc['tile_var_name_ss'])
+        self.assertEqual('sea_surface_temperature', solr_doc['test_variable.tile_standard_name_s'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
         self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
@@ -86,7 +87,7 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_dataset!test_id', solr_doc['solr_id_s'])
         self.assertEqual('time:0:1,j:0:20,i:200:240', solr_doc['sectionSpec_s'])
         self.assertEqual('test_granule_path', solr_doc['granule_s'])
-        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_s'])
+        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_ss'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
         self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
@@ -112,4 +113,7 @@ class TestSolrStore(unittest.TestCase):
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
 
-        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_s'])
+        assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
+        # Because there was no standard names in the tile summary, those values should be 'None'
+        assert not solr_doc['test_variable.tile_standard_name_s']
+        assert not solr_doc['test_variable_02.tile_standard_name_s']
