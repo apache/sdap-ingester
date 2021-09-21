@@ -162,78 +162,51 @@ async def main(loop):
     elastic_url = args.elastic_url
     elastic_username = args.elastic_username
     elastic_password = args.elastic_password
-    elastic_index = args.elastic_index       
+    elastic_index = args.elastic_index
 
+    msg_consumer_params = {
+        'rabbitmq_host': args.rabbitmq_host,
+        'rabbitmq_username': args.rabbitmq_username,
+        'rabbitmq_password': args.rabbitmq_password,
+        'rabbitmq_queue': args.rabbitmq_queue,
+    }
     if metadata_store == 'solr':
-        consumer = MessageConsumer(rabbitmq_host=args.rabbitmq_host,
-                                   rabbitmq_username=args.rabbitmq_username,
-                                   rabbitmq_password=args.rabbitmq_password,
-                                   rabbitmq_queue=args.rabbitmq_queue,
-                                   data_store_factory=partial(cassandra_factory,
-                                                              cassandra_contact_points,
-                                                              cassandra_port,
-                                                              cassandra_keyspace,
-                                                              cassandra_username,
-                                                              cassandra_password),
-                                   metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port))
-        try:
-            solr_store = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
-            await run_health_checks([CassandraStore(cassandra_contact_points,
-                                                    cassandra_port,
-                                                    cassandra_keyspace,
-                                                    cassandra_username,
-                                                    cassandra_password),
-                                     solr_store,
-                                     consumer])
-            async with consumer:
-                logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
-                await consumer.start_consuming(args.max_threads)
-        except FailedHealthCheckError as e:
-            logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
-        except LostConnectionError as e:
-            logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
-        except Exception as e:
-            logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
-        finally:
-            sys.exit(1)
-
+        metadata_store_obj = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
+        msg_consumer_params['metadata_store_factory'] = partial(solr_factory, solr_host_and_port, zk_host_and_port)
     else:
-        consumer = MessageConsumer(rabbitmq_host=args.rabbitmq_host,
-                                   rabbitmq_username=args.rabbitmq_username,
-                                   rabbitmq_password=args.rabbitmq_password,
-                                   rabbitmq_queue=args.rabbitmq_queue,
-                                   data_store_factory=partial(cassandra_factory,
+        metadata_store_obj = ElasticsearchStore(elastic_url, elastic_username, elastic_password, elastic_index)
+        msg_consumer_params['metadata_store_factory'] = partial(elasticsearch_factory,
+                                                                  elastic_url,
+                                                                  elastic_username,
+                                                                  elastic_password,
+                                                                  elastic_index)
+    # TODO this will also need to check for cassandra vs S3
+    msg_consumer_params['data_store_factory'] = partial(cassandra_factory,
                                                               cassandra_contact_points,
                                                               cassandra_port,
                                                               cassandra_keyspace,
                                                               cassandra_username,
-                                                              cassandra_password),
-                                   metadata_store_factory=partial(elasticsearch_factory, 
-                                                                  elastic_url, 
-                                                                  elastic_username, 
-                                                                  elastic_password, 
-                                                                  elastic_index))
-        try:
-            es_store = ElasticsearchStore(elastic_url, elastic_username, elastic_password, elastic_index)
-            await run_health_checks([CassandraStore(cassandra_contact_points,
-                                                    cassandra_port,
-                                                    cassandra_keyspace,
-                                                    cassandra_username,
-                                                    cassandra_password),
-                                     es_store,
-                                     consumer])
-
-            async with consumer:
-                logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
-                await consumer.start_consuming(args.max_threads)
-        except FailedHealthCheckError as e:
-            logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
-        except LostConnectionError as e:
-            logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
-        except Exception as e:
-            logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
-        finally:
-            sys.exit(1)
+                                                              cassandra_password)
+    consumer = MessageConsumer(**msg_consumer_params)
+    try:
+        await run_health_checks([CassandraStore(cassandra_contact_points,
+                                                cassandra_port,
+                                                cassandra_keyspace,
+                                                cassandra_username,
+                                                cassandra_password),
+                                 metadata_store_obj,
+                                 consumer])
+        async with consumer:
+            logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
+            await consumer.start_consuming(args.max_threads)
+    except FailedHealthCheckError as e:
+        logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
+    except LostConnectionError as e:
+        logger.error(f"{e} Any messages that were being processed have been re-queued. Quitting.")
+    except Exception as e:
+        logger.exception(f"Shutting down because of an unrecoverable error:\n{e}")
+    finally:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
