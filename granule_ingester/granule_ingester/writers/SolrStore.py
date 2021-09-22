@@ -137,7 +137,8 @@ class SolrStore(MetadataStore):
         }
 
         for var_name, standard_name in zip(var_names, standard_names):
-            input_document[f'{var_name}.tile_standard_name_s'] = standard_name
+            if standard_name:
+                input_document[f'{var_name}.tile_standard_name_s'] = standard_name
 
         ecco_tile_id = getattr(tile_data, 'tile', None)
         if ecco_tile_id:

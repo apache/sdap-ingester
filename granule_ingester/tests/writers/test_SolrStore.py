@@ -103,7 +103,7 @@ class TestSolrStore(unittest.TestCase):
     def test_build_solr_doc_no_standard_name(self):
         """
         When TileSummary.standard_name isn't available, the solr field
-        tile_var_name_s should use TileSummary.data_var_name
+        VAR_NAME.tile_standard_name_s should not be present.
         """
         tile = nexusproto.NexusTile()
         tile.summary.tile_id = 'test_id'
@@ -114,6 +114,24 @@ class TestSolrStore(unittest.TestCase):
         solr_doc = metadata_store._build_solr_doc(tile)
 
         assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
-        # Because there was no standard names in the tile summary, those values should be 'None'
         assert 'test_variable.tile_standard_name_s' not in solr_doc
+        assert 'test_variable_02.tile_standard_name_s' not in solr_doc
+
+    def test_build_solr_doc_some_standard_names(self):
+        """
+        When TileSummary.standard_name isn't available, the solr field
+        VAR_NAME.tile_standard_name_s should only be present for the
+        appropriate variables.
+        """
+        tile = nexusproto.NexusTile()
+        tile.summary.tile_id = 'test_id'
+        tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
+        tile.summary.standard_name = json.dumps(['sea_surface_temperature', None])
+        tile.tile.ecco_tile.depth = 10.5
+
+        metadata_store = SolrStore()
+        solr_doc = metadata_store._build_solr_doc(tile)
+
+        assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
+        assert solr_doc['test_variable.tile_standard_name_s'] == 'sea_surface_temperature'
         assert 'test_variable_02.tile_standard_name_s' not in solr_doc
