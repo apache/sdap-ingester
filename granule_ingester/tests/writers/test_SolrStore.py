@@ -115,5 +115,5 @@ class TestSolrStore(unittest.TestCase):
 
         assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
         # Because there was no standard names in the tile summary, those values should be 'None'
-        assert not solr_doc['test_variable.tile_standard_name_s']
-        assert not solr_doc['test_variable_02.tile_standard_name_s']
+        assert 'test_variable.tile_standard_name_s' not in solr_doc
+        assert 'test_variable_02.tile_standard_name_s' not in solr_doc

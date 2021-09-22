@@ -106,10 +106,9 @@ class SolrStore(MetadataStore):
         tile_data = getattr(tile.tile, tile_type)
 
         var_names = json.loads(summary.data_var_name)
+        standard_names = []
         if summary.standard_name:
             standard_names = json.loads(summary.standard_name)
-        else:
-            standard_names = [None] * len(var_names)
         if not isinstance(var_names, list):
             var_names = [var_names]
         if not isinstance(standard_names, list):
