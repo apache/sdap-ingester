@@ -97,7 +97,7 @@ class SolrStore(MetadataStore):
 
         min_time = datetime.strftime(datetime.utcfromtimestamp(stats.min_time), self.iso)
         max_time = datetime.strftime(datetime.utcfromtimestamp(stats.max_time), self.iso)
-
+        day_of_year = datetime.utcfromtimestamp(stats.min_time).timetuple().tm_yday
         geo = self.determine_geo(bbox)
 
         granule_file_name: str = Path(summary.granule).name  # get base filename
@@ -116,6 +116,7 @@ class SolrStore(MetadataStore):
             'dataset_s': summary.dataset_name,
             'granule_s': granule_file_name,
             'tile_var_name_s': var_name,
+            'day_of_year_i': day_of_year,
             'tile_min_lon': bbox.lon_min,
             'tile_max_lon': bbox.lon_max,
             'tile_min_lat': bbox.lat_min,
