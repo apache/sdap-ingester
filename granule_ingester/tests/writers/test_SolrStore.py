@@ -13,7 +13,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.dataset_name = 'test_dataset'
         tile.summary.dataset_uuid = 'test_dataset_id'
-        tile.summary.data_var_name = json.dumps(['test_variable'])
+        tile.summary.data_var_name = json.dumps('test_variable')
         tile.summary.granule = 'test_granule_path'
         tile.summary.section_spec = 'time:0:1,j:0:20,i:200:240'
         tile.summary.bbox.lat_min = -180.1
@@ -26,7 +26,7 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.count = 100
         tile.summary.stats.min_time = 694224000
         tile.summary.stats.max_time = 694310400
-        tile.summary.standard_name = 'sea_surface_temperature'
+        tile.summary.standard_name = json.dumps('sea_surface_temperature')
 
         tile.tile.ecco_tile.depth = 10.5
 
@@ -41,7 +41,8 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_dataset!test_id', solr_doc['solr_id_s'])
         self.assertEqual('time:0:1,j:0:20,i:200:240', solr_doc['sectionSpec_s'])
         self.assertEqual('test_granule_path', solr_doc['granule_s'])
-        self.assertEqual('sea_surface_temperature', solr_doc['tile_var_name_s'])
+        self.assertEqual(['test_variable'], solr_doc['tile_var_name_ss'])
+        self.assertEqual('sea_surface_temperature', solr_doc['test_variable.tile_standard_name_s'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
         self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
@@ -86,7 +87,7 @@ class TestSolrStore(unittest.TestCase):
         self.assertEqual('test_dataset!test_id', solr_doc['solr_id_s'])
         self.assertEqual('time:0:1,j:0:20,i:200:240', solr_doc['sectionSpec_s'])
         self.assertEqual('test_granule_path', solr_doc['granule_s'])
-        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_s'])
+        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_ss'])
         self.assertAlmostEqual(-90.5, solr_doc['tile_min_lon'])
         self.assertAlmostEqual(90.0, solr_doc['tile_max_lon'])
         self.assertAlmostEqual(-180.1, solr_doc['tile_min_lat'], delta=1E-5)
@@ -102,7 +103,7 @@ class TestSolrStore(unittest.TestCase):
     def test_build_solr_doc_no_standard_name(self):
         """
         When TileSummary.standard_name isn't available, the solr field
-        tile_var_name_s should use TileSummary.data_var_name
+        VAR_NAME.tile_standard_name_s should not be present.
         """
         tile = nexusproto.NexusTile()
         tile.summary.tile_id = 'test_id'
@@ -112,4 +113,25 @@ class TestSolrStore(unittest.TestCase):
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
 
-        self.assertEqual(['test_variable', 'test_variable_02'], solr_doc['tile_var_name_s'])
+        assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
+        assert 'test_variable.tile_standard_name_s' not in solr_doc
+        assert 'test_variable_02.tile_standard_name_s' not in solr_doc
+
+    def test_build_solr_doc_some_standard_names(self):
+        """
+        When TileSummary.standard_name isn't available, the solr field
+        VAR_NAME.tile_standard_name_s should only be present for the
+        appropriate variables.
+        """
+        tile = nexusproto.NexusTile()
+        tile.summary.tile_id = 'test_id'
+        tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
+        tile.summary.standard_name = json.dumps(['sea_surface_temperature', None])
+        tile.tile.ecco_tile.depth = 10.5
+
+        metadata_store = SolrStore()
+        solr_doc = metadata_store._build_solr_doc(tile)
+
+        assert ['test_variable', 'test_variable_02'] == solr_doc['tile_var_name_ss']
+        assert solr_doc['test_variable.tile_standard_name_s'] == 'sea_surface_temperature'
+        assert 'test_variable_02.tile_standard_name_s' not in solr_doc

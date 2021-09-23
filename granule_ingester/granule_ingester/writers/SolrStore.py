@@ -105,7 +105,14 @@ class SolrStore(MetadataStore):
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
-        var_name = summary.standard_name if summary.standard_name else summary.data_var_name
+        var_names = json.loads(summary.data_var_name)
+        standard_names = []
+        if summary.standard_name:
+            standard_names = json.loads(summary.standard_name)
+        if not isinstance(var_names, list):
+            var_names = [var_names]
+        if not isinstance(standard_names, list):
+            standard_names = [standard_names]
 
         input_document = {
             'table_s': self.TABLE_NAME,
@@ -115,7 +122,7 @@ class SolrStore(MetadataStore):
             'sectionSpec_s': summary.section_spec,
             'dataset_s': summary.dataset_name,
             'granule_s': granule_file_name,
-            'tile_var_name_s': var_name,
+            'tile_var_name_ss': var_names,
             'day_of_year_i': day_of_year,
             'tile_min_lon': bbox.lon_min,
             'tile_max_lon': bbox.lon_max,
@@ -129,6 +136,10 @@ class SolrStore(MetadataStore):
             'tile_avg_val_d': stats.mean,
             'tile_count_i': int(stats.count)
         }
+
+        for var_name, standard_name in zip(var_names, standard_names):
+            if standard_name:
+                input_document[f'{var_name}.tile_standard_name_s'] = standard_name
 
         ecco_tile_id = getattr(tile_data, 'tile', None)
         if ecco_tile_id:
