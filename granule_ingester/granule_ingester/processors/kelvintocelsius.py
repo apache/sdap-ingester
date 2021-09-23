@@ -33,12 +33,13 @@ class KelvinToCelsius(TileProcessor):
         for each in copied_variable_name:
             try:
                 logger.info(f'for ds.variables[each].attrs : {ds.variables[each].attrs}')
-                if 'units' in ds.variables[each].attrs:
-                    variable_unit.extend(ds.variables[each].attrs['units'])
-                elif 'Units' in ds.variables[each].attrs:
-                    variable_unit.extend(ds.variables[each].attrs['Units'])
-                elif 'UNITS' in ds.variables[each].attrs:
-                    variable_unit.extend(ds.variables[each].attrs['UNITS'])
+                for unit_attr in ('units', 'Units', 'UNITS'):
+                    if unit_attr in ds.variables[each].attrs:
+                        if isinstance(ds.variables[each].attrs[unit_attr], list):
+                            variable_unit.extend(ds.variables[each].attrs[unit_attr])
+                        else:
+                            variable_unit.append(ds.variables[each].attrs[unit_attr])
+                        break
             except Exception as e:
                 logger.exception(f'some error in __retrieve_var_units: {str(e)}')
         return variable_unit
@@ -62,4 +63,5 @@ class KelvinToCelsius(TileProcessor):
             if any([unit in variable_unit for unit in kelvins]):
                 var_data = from_shaped_array(the_tile_data.variable_data) - 273.15
                 the_tile_data.variable_data.CopyFrom(to_shaped_array(var_data))
+        
         return tile
