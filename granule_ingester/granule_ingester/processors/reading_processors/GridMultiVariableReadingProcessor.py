@@ -1,6 +1,7 @@
 import logging
 from typing import Dict
 
+import cftime
 import numpy as np
 import xarray as xr
 from granule_ingester.processors.reading_processors.MultiBandUtils import MultiBandUtils
@@ -72,6 +73,9 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
                 raise RuntimeError(
                     "Time slices must have length 1, but '{dim}' has length {dim_len}.".format(dim=self.time,
                                                                                                dim_len=time_slice_len))
+
+            if isinstance(ds[self.time][time_slice.start].item(), cftime.DatetimeJulian):
+                ds[self.time] = ds.indexes[self.time].to_datetimeindex()
             new_tile.time = int(ds[self.time][time_slice.start].item() / 1e9)
 
         new_tile.latitude.CopyFrom(to_shaped_array(lat_subset))
