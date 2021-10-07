@@ -347,6 +347,22 @@ class TestReadHLSData(unittest.TestCase):
         self.assertRaises(RuntimeError, GridReadingProcessor, [], 'lat', 'lon', time='time')
         return
 
+class TestReadGPMData(unittest.TestCase):
+    def test_generate_tile(self):
+        granule_path = path.join(path.dirname(__file__), '../granules/3B-DAY-E.MS.MRG.3IMERG.20070101-S000000-E235959.V06.nc4')
+        dimensions_to_slices = {
+            'time': slice(0, 1),
+            'lat': slice(0, 30),
+            'lon': slice(0, 30)
+        }
+
+        tile  = nexusproto.NexusTile()
+
+        with xr.open_dataset(granule_path, decode_cf=True) as ds:
+            reading_processor = GridReadingProcessor(['HQprecipitation'], 'lat', 'lon', time='time')
+            tile = reading_processor._generate_tile(ds, dimensions_to_slices, tile)
+            assert tile.tile.grid_tile.time
+
 
 if __name__ == '__main__':
     unittest.main()
