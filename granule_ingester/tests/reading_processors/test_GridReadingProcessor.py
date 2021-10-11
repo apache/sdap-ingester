@@ -347,21 +347,70 @@ class TestReadHLSData(unittest.TestCase):
         self.assertRaises(RuntimeError, GridReadingProcessor, [], 'lat', 'lon', time='time')
         return
 
-class TestReadGPMData(unittest.TestCase):
-    def test_generate_tile(self):
-        granule_path = path.join(path.dirname(__file__), '../granules/3B-DAY-E.MS.MRG.3IMERG.20070101-S000000-E235959.V06.nc4')
+class TestCalendars(unittest.TestCase):
+    """
+    Test that various calendars can be ingested into SDAP without error.
+    """
+
+    def assert_time_data(self, granule_name, time_var, lat_var, lon_var, data_var):
+        granule_path = path.join(
+            path.dirname(__file__),
+            '../granules/',
+            granule_name
+        )
         dimensions_to_slices = {
-            'time': slice(0, 1),
-            'lat': slice(0, 30),
-            'lon': slice(0, 30)
+            time_var: slice(0, 1),
+            lat_var: slice(0, 30),
+            lon_var: slice(0, 30)
         }
 
-        tile  = nexusproto.NexusTile()
+        tile = nexusproto.NexusTile()
 
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
-            reading_processor = GridReadingProcessor(['HQprecipitation'], 'lat', 'lon', time='time')
+            reading_processor = GridReadingProcessor(
+                [data_var],
+                lat_var,
+                lon_var,
+                time=time_var
+            )
             tile = reading_processor._generate_tile(ds, dimensions_to_slices, tile)
             assert tile.tile.grid_tile.time
+
+    def test_julian_calendar_tile(self):
+        self.assert_time_data(
+            granule_name='3B-DAY-E.MS.MRG.3IMERG.20070101-S000000-E235959.V06.nc4',
+            time_var='time',
+            lat_var='lat',
+            lon_var='lon',
+            data_var='HQprecipitation'
+        )
+
+    def test_gregorian_calendar_tile(self):
+        self.assert_time_data(
+            granule_name='20190630_d-ACRI-L4-CHL-MULTI_4KM-GLO-REP.nc',
+            time_var='time',
+            lat_var='lat',
+            lon_var='lon',
+            data_var='CHL'
+        )
+
+    def test_standard_calendar_tile(self):
+        self.assert_time_data(
+            granule_name='OISSS_L4_multimission_global_7d_v1.0_2021-03-12.nc',
+            time_var='time',
+            lat_var='latitude',
+            lon_var='longitude',
+            data_var='sss'
+        )
+
+    def test_missing_calendar_tile(self):
+        self.assert_time_data(
+            granule_name='20181231090000-JPL-L4_GHRSST-SSTfnd-MUR25-GLOB-v02.0-fv04.2.nc',
+            time_var='time',
+            lat_var='lat',
+            lon_var='lon',
+            data_var='analysed_sst'
+        )
 
 
 if __name__ == '__main__':
