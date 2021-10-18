@@ -12,8 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import json
 import logging
+import re
+import datetime
 
 import numpy
 from nexusproto import DataTile_pb2 as nexusproto
@@ -27,15 +30,43 @@ class NoTimeException(Exception):
     pass
 
 
-def find_time_min_max(tile_data):
+def find_time_min_max(tile_data, time_from_granule=None):
     if tile_data.time:
         if isinstance(tile_data.time, nexusproto.ShapedArray):
             time_data = from_shaped_array(tile_data.time)
             return int(numpy.nanmin(time_data).item()), int(numpy.nanmax(time_data).item())
-        elif isinstance(tile_data.time, int):
+        elif isinstance(tile_data.time, int) and \
+             tile_data.time > datetime.datetime(1970, 1, 1).timestamp():  # time should be at least greater than Epoch, right?
             return tile_data.time, tile_data.time
 
+    if time_from_granule:
+        return time_from_granule, time_from_granule
+
     raise NoTimeException
+
+
+def get_time_from_granule(granule: str) -> int:
+    """
+    Get time from granule name. It makes the assumption that a datetime is
+    specificed in the granule name, and it has the following format "YYYYddd",
+    where YYYY is 4 digit year and ddd is day of year (i.e. 1 to 365).
+    
+    Note: This is a very narrow implmentation for a specific need. If you found
+    yourself needing to modify this function to accommodate more use cases, then
+    perhaps it is time to refactor this function to a more dynamic module.
+    """
+
+    # rs search for a sub str which starts with 19 or 20, and has 7 digits
+    search_res = re.search('((?:19|20)[0-9]{2})([0-9]{3})', os.path.basename(granule))
+    if not search_res:
+        return None
+    
+    year, days = search_res.groups()
+    year = int(year)
+    days = int(days)
+
+    # since datetime is set to 1/1 (+1 day), timedelta needs to -1 to cancel it out
+    return int((datetime.datetime(year, 1, 1) + datetime.timedelta(days-1)).timestamp())
 
 
 class TileSummarizingProcessor(TileProcessor):
@@ -92,7 +123,9 @@ class TileSummarizingProcessor(TileProcessor):
         logger.debug(f'find min max time')
 
         try:
-            min_time, max_time = find_time_min_max(tile_data)
+            min_time, max_time = find_time_min_max(
+                tile_data, get_time_from_granule(tile.summary.granule)
+            )
             logger.debug(f'set min max time')
             tile_summary.stats.min_time = min_time
             tile_summary.stats.max_time = max_time
