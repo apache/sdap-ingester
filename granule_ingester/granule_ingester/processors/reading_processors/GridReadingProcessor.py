@@ -47,7 +47,7 @@ class GridReadingProcessor(TileReadingProcessor):
                 raise RuntimeError(
                     "Time slices must have length 1, but '{dim}' has length {dim_len}.".format(dim=self.time,
                                                                                                dim_len=time_slice_len))
-            if isinstance(ds[self.time][time_slice.start].item(), cftime.DatetimeJulian):
+            if isinstance(ds[self.time][time_slice.start].item(), cftime.datetime):
                 ds[self.time] = ds.indexes[self.time].to_datetimeindex()
             new_tile.time = int(ds[self.time][time_slice.start].item() / 1e9)
 
