@@ -86,7 +86,7 @@ class SolrStore(MetadataStore):
         if self._zk_url:
             zk = pysolr.ZooKeeper(f"{self._zk_url}")
             self._set_solr_status(zk)
-            return pysolr.SolrCloud(zk, self._collection)
+            return pysolr.SolrCloud(zk, self._collection, always_commit=False)
         elif self._solr_url:
             return pysolr.Solr(f'{self._solr_url}/solr/{self._collection}')
         else:

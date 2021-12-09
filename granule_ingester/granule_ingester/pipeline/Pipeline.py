@@ -204,7 +204,6 @@ class Pipeline:
                         # await asyncio.sleep(1)
                         raise pickle.loads(shared_memory.error)
 
-        self._metadata_store_factory.commit()
         end = time.perf_counter()
         logger.info("Pipeline finished in {} seconds".format(end - start))
 
