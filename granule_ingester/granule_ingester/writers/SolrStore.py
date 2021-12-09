@@ -88,7 +88,7 @@ class SolrStore(MetadataStore):
             self._set_solr_status(zk)
             return pysolr.SolrCloud(zk, self._collection)
         elif self._solr_url:
-            return pysolr.Solr(f'{self._solr_url}/solr/{self._collection}', always_commit=True)
+            return pysolr.Solr(f'{self._solr_url}/solr/{self._collection}')
         else:
             raise RuntimeError("You must provide either solr_host or zookeeper_host.")
 
@@ -111,20 +111,21 @@ class SolrStore(MetadataStore):
         logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
+    def commit(self):
+        try:
+            self._solr.commit()
+        except pysolr.SolrError as e:
+            logger.exception(f'Lost connection to Solr, and cannot commit tiles. cause: {e}. creating SolrLostConnectionError')
+            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot commit tiles. cause: {e}')
+
     @run_in_executor
     def _save_document(self, doc: dict):
         try:
             self._solr.add([doc])
         except pysolr.SolrError as e:
-            logger.exception(f'Lost connection to Solr, and cannot save tiles while adding doc. cause: {e}. creating SolrLostConnectionError')
-            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
+            logger.exception(f'Lost connection to Solr, and cannot add tile. cause: {e}. creating SolrLostConnectionError')
+            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot add tiles. cause: {e}')
 
-    def _commit(self):
-        try:
-            self._solr.commit()
-        except pysolr.SolrError as e:
-            logger.exception(f'Lost connection to Solr, and cannot save tiles while commiting. cause: {e}. creating SolrLostConnectionError')
-            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:
         summary: TileSummary = tile.summary

@@ -48,7 +48,10 @@ class ElasticsearchStore(MetadataStore):
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         es_doc = self.build_es_doc(nexus_tile)
         await self.save_document(es_doc)
-    
+
+    def commit(self):
+        pass
+
     @run_in_executor
     def save_document(self, doc: dict):
         try:
