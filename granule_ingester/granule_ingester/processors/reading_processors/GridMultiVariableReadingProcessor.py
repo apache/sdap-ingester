@@ -1,5 +1,7 @@
 import logging
+import time
 from typing import Dict
+from itertools import takewhile
 
 import cftime
 import numpy as np
@@ -48,6 +50,16 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
         logger.debug(f'reading as banded grid as self.variable is a list. self.variable: {self.variable}')
         if len(self.variable) < 1:
             raise ValueError(f'list of variable is empty. Need at least 1 variable')
+
+        start = time.time()
+
+
+        data_subset_variables, data_subset_variables_dims = self._get_variable_values(ds, dimensions_to_slices)
+        input_tile.summary.data_dim_names.extend(data_subset_variables_dims)
+        data_subset_variables = np.ma.filled(data_subset_variables, np.NaN)
+        new_tile.variable_data.CopyFrom(to_shaped_array(data_subset_variables))
+
+        '''
         data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
         updated_dims, updated_dims_indices = MultiBandUtils.move_band_dimension(list(data_subset[0].dims))
         logger.debug(f'filling the data_subset with NaN')
@@ -56,6 +68,12 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
         data_subset = data_subset.transpose(updated_dims_indices)
         logger.debug(f'adding summary.data_dim_names')
         input_tile.summary.data_dim_names.extend(updated_dims)
+        new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
+        '''
+
+        end = time.time()
+        logger.debug("processing time %f", end-start)
+
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
                                                                           dimensions_to_slices).items())[0]
@@ -80,7 +98,27 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
 
         new_tile.latitude.CopyFrom(to_shaped_array(lat_subset))
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
-        new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
 
         input_tile.tile.grid_multi_variable_tile.CopyFrom(new_tile)
         return input_tile
+
+    def _get_variable_values(self, ds, dimensions_to_slices):
+        variable_iterator = iter(self.variable)
+        v = next(variable_iterator)
+        v_data_subset = ds[v][type(self)._slices_for_variable(ds[v], dimensions_to_slices)]
+        new_shape = list(v_data_subset.shape)
+        new_shape.append(1)
+        data_subset_variables = np.reshape(v_data_subset.values, new_shape)
+        try:
+            while True:
+                v = next(variable_iterator)
+                v_data_subset = ds[v][type(self)._slices_for_variable(ds[v], dimensions_to_slices)]
+                v_data_subset_values = np.reshape(v_data_subset.values, new_shape)
+                data_subset_variables = np.concatenate([data_subset_variables, v_data_subset_values], axis=3)
+        except StopIteration:
+            pass
+
+        dims = list(v_data_subset.dims)
+        dims.extend(MultiBandUtils.BAND)
+
+        return data_subset_variables, dims

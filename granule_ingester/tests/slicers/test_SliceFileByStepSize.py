@@ -15,7 +15,7 @@ class TestSliceFileByStepSize(unittest.TestCase):
             slicer = SliceFileByStepSize(dimension_step_sizes=dimension_steps)
             slices = slicer._generate_slices(dimension_specs=dataset.dims)
             expected_slices = [
-                'depth:0:2,latitude:0:180,longitude:0:180,nv:0:2,time:0:1',
+                'time:0:1,nv:0:2,depth:0:2,longitude:0:180,latitude:0:180',
                 'depth:0:2,latitude:0:180,longitude:180:360,nv:0:2,time:0:1',
                 'depth:0:2,latitude:0:180,longitude:360:540,nv:0:2,time:0:1',
                 'depth:0:2,latitude:0:180,longitude:540:720,nv:0:2,time:0:1',

@@ -40,7 +40,6 @@ class ForceAscendingLatitude(TileProcessor):
     def process(self, tile, *args, **kwargs):
         """
         This method will reverse the ordering of latitude values in a tile if necessary to ensure that the latitude values are ascending.
-​
         :param self:
         :param tile: The nexus_tile
         :return: Tile data with altered latitude values

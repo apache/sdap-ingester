@@ -225,7 +225,7 @@ async def main(loop):
 
             async with consumer:
                 logger.info("All external dependencies have passed the health checks. Now listening to message queue.")
-                await consumer.start_consuming(args.max_threads)
+                await consumer.start_consuming(int(args.max_threads))
         except FailedHealthCheckError as e:
             logger.error(f"Quitting because not all dependencies passed the health checks: {e}")
         except LostConnectionError as e:

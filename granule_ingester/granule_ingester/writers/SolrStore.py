@@ -86,7 +86,7 @@ class SolrStore(MetadataStore):
         if self._zk_url:
             zk = pysolr.ZooKeeper(f"{self._zk_url}")
             self._set_solr_status(zk)
-            return pysolr.SolrCloud(zk, self._collection, always_commit=True)
+            return pysolr.SolrCloud(zk, self._collection)
         elif self._solr_url:
             return pysolr.Solr(f'{self._solr_url}/solr/{self._collection}', always_commit=True)
         else:
@@ -116,7 +116,14 @@ class SolrStore(MetadataStore):
         try:
             self._solr.add([doc])
         except pysolr.SolrError as e:
-            logger.exception(f'Lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
+            logger.exception(f'Lost connection to Solr, and cannot save tiles while adding doc. cause: {e}. creating SolrLostConnectionError')
+            raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
+
+    def _commit(self):
+        try:
+            self._solr.commit()
+        except pysolr.SolrError as e:
+            logger.exception(f'Lost connection to Solr, and cannot save tiles while commiting. cause: {e}. creating SolrLostConnectionError')
             raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:

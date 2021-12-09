@@ -9,3 +9,7 @@ class MetadataStore(HealthCheck, ABC):
     @abstractmethod
     def save_metadata(self, nexus_tile: nexusproto.NexusTile) -> None:
         pass
+
+    @abstractmethod
+    def commit(self) -> None:
+        pass

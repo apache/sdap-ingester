@@ -5,10 +5,10 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     pip_requirements = f.readlines()
 
-try:
-    check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
-except (CalledProcessError, IOError) as e:
-    raise EnvironmentError("Error installing conda packages", e)
+#try:
+#    check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
+#except (CalledProcessError, IOError) as e:
+#    raise EnvironmentError("Error installing conda packages", e)
 
 __version__ = '1.0.0-SNAPSHOT'
 

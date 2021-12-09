@@ -9,7 +9,15 @@ data to Cassandra and Solr.
 
 ## Prerequisites
 
-Python 3.7
+Python 3.7, conda
+
+Create a virtual environment:
+
+    conda create -n nexus-ingester python=3.7
+
+Activate it:
+
+    conda activate nexus-ingester
 
 ## Building the service
 From `incubator-sdap-ingester`, run:
