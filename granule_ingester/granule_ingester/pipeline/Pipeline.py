@@ -28,6 +28,7 @@ from granule_ingester.exceptions import PipelineBuildingError
 from granule_ingester.granule_loaders import GranuleLoader
 from granule_ingester.pipeline.Modules import \
     modules as processor_module_mappings
+from granule_ingester.preprocessors import get_preprocessor
 from granule_ingester.processors.TileProcessor import TileProcessor
 from granule_ingester.slicers import TileSlicer
 from granule_ingester.writers import DataStore, MetadataStore
@@ -95,13 +96,16 @@ class Pipeline:
                  data_store_factory,
                  metadata_store_factory,
                  tile_processors: List[TileProcessor],
-                 max_concurrency: int):
+                 max_concurrency: int,
+                 preprocessor=None
+                 ):
         self._granule_loader = granule_loader
         self._tile_processors = tile_processors
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
         self._max_concurrency = max_concurrency
+        self._preprocessor = preprocessor
 
         # Create a SyncManager so that we can to communicate exceptions from the
         # worker processes back to the main process.
@@ -142,6 +146,9 @@ class Pipeline:
         try:
             granule_loader = GranuleLoader(**config['granule'])
 
+            if 'preprocess' in config:
+                preprocessor = get_preprocessor(config['preprocess'])
+
             slicer_config = config['slicer']
             slicer = cls._parse_module(slicer_config, module_mappings)
 
@@ -155,7 +162,9 @@ class Pipeline:
                        data_store_factory,
                        metadata_store_factory,
                        tile_processors,
-                       max_concurrency)
+                       max_concurrency,
+                       preprocessor
+                       )
         except PipelineBuildingError:
             raise
         except KeyError as e:
@@ -181,6 +190,9 @@ class Pipeline:
     async def run(self):
         async with self._granule_loader as (dataset, granule_name):
             start = time.perf_counter()
+
+            if self._preprocessor is not None:
+                dataset = self._preprocessor(dataset)
 
             shared_memory = self._manager.Namespace()
             async with Pool(initializer=_init_worker,
