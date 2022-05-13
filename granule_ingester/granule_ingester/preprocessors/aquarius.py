@@ -16,7 +16,7 @@ def run_preprocess(dataset):
     dataset = dataset.rename_dims(dim_translations)
 
     # Generate lat/lon variables
-    lat_data = np.array([i for i in range(-90, 90)], np.int_)
+    lat_data = np.array([i for i in range(90, -90, -1)], np.int_)
     lat = xr.Variable('lat', lat_data, {
         'standard_name': 'latitude',
         'long_name': 'latitude',
