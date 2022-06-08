@@ -84,8 +84,9 @@ class CollectionWatcher:
             for collection_dict in collections_yaml['collections']:
                 try:
                     collection = Collection.from_dict(collection_dict)
-                    self._validate_collection(collection)
-                    self._collections_by_dir[collection.directory()].add(collection)
+                    if collection.storage_type() != CollectionStorageType.REMOTE:
+                        self._validate_collection(collection)
+                        self._collections_by_dir[collection.directory()].add(collection)
                 except MissingValueCollectionError as e:
                     logger.error(f"A collection is missing '{e.missing_value}'. Ignoring this collection for now.")
                 except RelativePathCollectionError as e:
