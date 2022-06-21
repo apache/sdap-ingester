@@ -6,4 +6,4 @@ pysolr==3.9.0
 kazoo==2.8.0
 aio-pika==6.7.1
 elasticsearch[async]
-urllib3==1.26.2
+urllib3==1.26.5
