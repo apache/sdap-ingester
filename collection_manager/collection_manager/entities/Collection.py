@@ -14,9 +14,11 @@ from collection_manager.entities.exceptions import MissingValueCollectionError
 
 logger = logging.getLogger(__name__)
 
+
 class CollectionStorageType(Enum):
     LOCAL = 1
     S3 = 2
+    REMOTE = 3
 
 
 @dataclass(frozen=True)
@@ -78,6 +80,8 @@ class Collection:
     def storage_type(self):
         if urlparse(self.path).scheme == 's3':
             return CollectionStorageType.S3
+        elif urlparse(self.path).scheme in {'http', 'https'}:
+            return CollectionStorageType.REMOTE
         else:
             return CollectionStorageType.LOCAL
 
