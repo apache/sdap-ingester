@@ -7,6 +7,9 @@ python /sdap/granule_ingester/main.py \
   $([[ ! -z "$RABBITMQ_USERNAME" ]] && echo --rabbitmq-username=$RABBITMQ_USERNAME) \
   $([[ ! -z "$RABBITMQ_PASSWORD" ]] && echo --rabbitmq-password=$RABBITMQ_PASSWORD) \
   $([[ ! -z "$RABBITMQ_QUEUE" ]] && echo --rabbitmq-queue=$RABBITMQ_QUEUE) \
+  $([[ ! -z "$DATA_STORE" ]] && echo --data-store=$DATA_STORE) \
+  $([[ ! -z "$OBJ_STORE_BUCKET" ]] && echo --object-store-bucket=$OBJ_STORE_BUCKET) \
+  $([[ ! -z "$OBJ_STORE_REGION" ]] && echo --object-store-region=$OBJ_STORE_REGION) \
   $([[ ! -z "$CASSANDRA_CONTACT_POINTS" ]] && echo --cassandra-contact-points=$CASSANDRA_CONTACT_POINTS) \
   $([[ ! -z "$CASSANDRA_PORT" ]] && echo --cassandra-port=$CASSANDRA_PORT) \
   $([[ ! -z "$CASSANDRA_KEYSPACE" ]] && echo --cassandra-keyspace=$CASSANDRA_KEYSPACE) \
