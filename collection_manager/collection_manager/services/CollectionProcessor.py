@@ -14,7 +14,7 @@ from collection_manager.services.history_manager.IngestionHistory import \
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5']
+SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5', '.bz2']
 
 
 class CollectionProcessor:

@@ -30,6 +30,7 @@ class Collection:
     path: str
     historical_priority: int
     forward_processing_priority: Optional[int] = None
+    preprocess: Optional[str] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
 
@@ -71,6 +72,7 @@ class Collection:
                                     path=properties['path'],
                                     historical_priority=properties['priority'],
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
+                                    preprocess=properties.get('preprocess', None),
                                     date_to=date_to,
                                     date_from=date_from)
             return collection
