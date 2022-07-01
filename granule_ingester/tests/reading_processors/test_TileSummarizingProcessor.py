@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import unittest
 from os import path
@@ -109,3 +110,38 @@ class TestTileSummarizingProcessor(unittest.TestCase):
             self.assertEqual('[null, null, null, null, null, null, null, null, null, null, null]', new_tile.summary.standard_name, f'wrong new_tile.summary.standard_name')
             self.assertEqual([None for _ in range(11)], json.loads(new_tile.summary.standard_name), f'unable to convert new_tile.summary.standard_name from JSON')
             self.assertTrue(abs(new_tile.summary.stats.mean - 0.26523) < 0.001, f'mean value is not close expected: 0.26523. actual: {new_tile.summary.stats.mean}')
+
+    def test_get_time_from_granule(self):
+        """
+        Test that TileSummarizingProcessor gets time from granule filename when time is not
+        present in the tile.
+        """
+        reading_processor = GridReadingProcessor(
+            variable='chlor_a',
+            latitude='lat',
+            longitude='lon',
+            tile='tile'
+        )
+        relative_path = '../granules/A2017005.L3m_CHL_chlor_a_4km.nc'
+        granule_path = path.join(path.dirname(__file__), relative_path)
+
+        tile_summary = nexusproto.TileSummary()
+        tile_summary.granule = granule_path
+        tile_summary.data_var_name = json.dumps('chlor_a')
+
+        input_tile = nexusproto.NexusTile()
+        input_tile.summary.CopyFrom(tile_summary)
+
+        dims = {
+            'lat': slice(0, 30),
+            'lon': slice(0, 30),
+            'tile': slice(10, 11),
+        }
+
+
+        with xr.open_dataset(granule_path, decode_cf=True) as ds:
+            output_tile = reading_processor._generate_tile(ds, dims, input_tile)
+            tile_summary_processor = TileSummarizingProcessor('test')
+            new_tile = tile_summary_processor.process(tile=output_tile, dataset=ds)
+            self.assertEqual(new_tile.summary.stats.min_time, new_tile.summary.stats.max_time)
+            self.assertEqual(new_tile.summary.stats.min_time, int(datetime(2017, 1, 5).timestamp()))
