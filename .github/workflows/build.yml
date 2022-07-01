@@ -1,0 +1,146 @@
+name: build
+on: push
+jobs:
+  build:
+    name: Build, Test, Verify, Publish
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sdap-nexus
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Install miniconda
+      run: |
+        curl -o /tmp/miniconda.sh "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+        bash /tmp/miniconda.sh -b -p /opt/miniconda
+        echo "/opt/miniconda/condabin" >> $GITHUB_PATH  # Preserve conda's PATH across jobs
+        /opt/miniconda/condabin/conda init bash
+    - name: Setup environments and install dependencies
+      run: |
+        conda config -q --add channels conda-forge
+        conda config -q --set channel_priority strict
+        conda create -qyn sdap-granule-ingester --file granule_ingester/conda-requirements.txt pip
+        # setuptools >= 58.0.0 dropped 2to3 support; required for pystache
+        # https://setuptools.pypa.io/en/latest/history.html#v58-0-0
+        conda create -qyn sdap-collection-manager pip setuptools\<=57.5.0  # cm manages its own dependencies with PyPI
+    - name: Install modules
+      shell: bash -ieo pipefail {0}
+      run: |
+        conda activate sdap-granule-ingester
+        pip install common/ granule_ingester/
+
+        conda activate sdap-collection-manager
+        pip install common/ collection_manager/
+    - name: Install pipeline tools
+      run: |
+        conda install -qyn sdap-granule-ingester pylint flake8 pytest
+        conda install -qyn sdap-collection-manager pylint flake8 pytest
+    - name: Lint
+      shell: bash -ieo pipefail {0}
+      continue-on-error: true
+      run: |
+        conda activate sdap-granule-ingester
+        pylint granule_ingester
+        flake8 granule_ingester
+
+        conda activate sdap-collection-manager
+        pylint collection_manager
+        flake8 collection_manager
+    - name: Test and coverage
+      continue-on-error: true
+      shell: bash -ieo pipefail {0}
+      run: |
+        conda activate sdap-granule-ingester
+        pytest granule_ingester/tests/
+
+        conda activate sdap-collection-manager
+        pytest collection_manager/tests/
+    - name: Get module commits relative to develop
+      if: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/master' }}
+      run: |
+        echo "BRANCH=origin/develop" >> $GITHUB_ENV
+    - name: Get module commits relative to master
+      if: ${{ github.ref == 'refs/heads/develop' }}
+      run: |
+        echo "BRANCH=origin/master" >> $GITHUB_ENV
+    - name: Get module commits relative to latest tag
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        echo "BRANCH=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+    - name: Get module commits
+      id: get_module_commits
+      run: |
+        COLLECTION_MANAGER_COMMITS=$(git rev-list $BRANCH -- collection_manager | wc -l | awk '{print $1}')
+        GRANULE_INGESTER_COMMITS=$(git rev-list $BRANCH -- granule_ingester | wc -l | awk '{print $1}')
+
+        echo "collection_manager commits: $COLLECTION_MANAGER_COMMITS"
+        echo "granule_ingester commits: $GRANULE_INGESTER_COMMITS"
+
+        echo "::set-output name=collection_manager_commits::$DATA_ACCESS_COMMITS"
+        echo "::set-output name=granule_ingester_commits::$GRANULE_INGESTER_COMMITS"
+    - name: Bump pre-alpha version
+      if: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/master' }}
+      run: |
+        echo "PHASE=pre-alpha" >> $GITHUB_ENV
+        echo "VALUE=$(git rev-parse --short ${GITHUB_SHA})" >> $GITHUB_ENV
+    - name: Bump alpha version
+      if: ${{ github.ref == 'refs/heads/develop' }}
+      run: |
+        echo "PHASE=alpha" >> $GITHUB_ENV
+        echo "VALUE=auto" >> $GITHUB_ENV
+    - name: Bump release version
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        echo "PHASE=patch" >> $GITHUB_ENV
+        echo "VALUE=auto" >> $GITHUB_ENV
+    - name: Bump versions
+      id: bump_versions
+      run: |
+        if [ ${{steps.get_module_commits.outputs.collection_manager_commits}} -gt 0 ]; then
+          COLLECTION_MANAGER_VERSION=$(python3 .github/workflows/version.py collection_manager/VERSION.txt --phase $PHASE --value $VALUE)
+        else
+          COLLECTION_MANAGER_VERSION=$(python3 .github/workflows/version.py collection_manager/VERSION.txt)
+        fi
+        if [ ${{steps.get_module_commits.outputs.granule_ingester_commits}} -gt 0 ]; then
+          GRANULE_INGESTER_VERSION=$(python3 .github/workflows/version.py collection_manager/VERSION.txt --phase $PHASE --value $VALUE)
+        else
+          GRANULE_INGESTER_VERSION=$(python3 .github/workflows/version.py collection_manager/VERSION.txt)
+        fi
+        echo "collection_manager: $COLLECTION_MANAGER_VERSION"
+        echo "granule_ingester: $GRANULE_INGESTER_VERSION"
+
+        echo "::set-output name=collection_manager_version::$COLLECTION_MANAGER_VERSION"
+        echo "::set-output name=granule_ingester_version::$GRANULE_INGESTER_VERSION"
+    - name: Commit version bump + tag
+      if: |
+        github.ref == 'refs/heads/develop' ||
+        github.ref == 'refs/heads/master'    ||
+        startsWith(github.ref, 'refs/heads/release')
+      run: |
+        git config --global user.name 'sdap-nexus bot'
+        git config --global user.email 'sdap-nexus@noreply.github.com'
+
+        CONCATED_VERSION="c.${{steps.bump_versions.outputs.collection_manager_version}}-g.${{steps.bump_versions.outputs.granule_ingester_version}}"
+        git commit -am "/version $CONCATED_VERSION"
+        git tag -a "$CONCATED_VERSION"
+        git push origin
+        git push origin "$CONCATED_VERSION"
+    - name: Log in to the Container registry
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and push collection_manager
+      id: build_collection_manager
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        file: 'collection_manager/docker/Dockerfile'
+        tags: nexusjpl/collection-manager:${{ steps.bump_versions.outputs.collection_manager_version }}
+    - name: Build and push granule_ingester
+      id: build_granule_ingester
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        file: 'granule_ingester/docker/Dockerfile'
+        tags: nexusjpl/granule-ingester:${{ steps.bump_versions.outputs.granule_ingester_version }}

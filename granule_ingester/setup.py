@@ -5,12 +5,13 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     pip_requirements = f.readlines()
 
+with open('VERSION.txt', 'r') as f:
+    __version__ = f.readline()
+
 try:
     check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
 except (CalledProcessError, IOError) as e:
     raise EnvironmentError("Error installing conda packages", e)
-
-__version__ = '1.0.0-SNAPSHOT'
 
 setup(
     name='sdap_granule_ingester',
