@@ -8,9 +8,6 @@ pyyaml==5.3.1
 aiohttp==3.6.2
 tenacity
 requests==2.27.1
-<<<<<<< HEAD
 
-=======
 numcodecs==0.9.1
 zarr
->>>>>>> 7c1367b (Loose Local Implementation of LZA)
