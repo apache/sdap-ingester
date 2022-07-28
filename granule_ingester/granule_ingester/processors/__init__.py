@@ -5,3 +5,4 @@ from granule_ingester.processors.TileSummarizingProcessor import TileSummarizing
 from granule_ingester.processors.kelvintocelsius import KelvinToCelsius
 from granule_ingester.processors.Subtract180FromLongitude import Subtract180FromLongitude
 from granule_ingester.processors.ForceAscendingLatitude import ForceAscendingLatitude
+from granule_ingester.processors.NetCDFProcessor import NetCDFProcessor
