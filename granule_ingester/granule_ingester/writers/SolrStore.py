@@ -16,6 +16,7 @@
 import asyncio
 import functools
 import json
+import netCDF4
 import logging
 from asyncio import AbstractEventLoop
 from datetime import datetime
@@ -111,6 +112,11 @@ class SolrStore(MetadataStore):
         logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
+    async def save_metadata_cdfDS(self, ds: netCDF4._netCDF4) -> None:
+            solr_doc = self._build_solr_doc(nexus_tile)
+            logger.debug(f'solr_doc: {solr_doc}')
+            await self._save_document(solr_doc)
+            
     @run_in_executor
     def _save_document(self, doc: dict):
         try:
@@ -120,6 +126,22 @@ class SolrStore(MetadataStore):
             raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:
+        
+    #{
+        #"id": "MUR25-JPL-L4-GLOB-v04.2",
+        #"latest_update_l": 1637629358,
+        #"_version_": 1718445323844583426,
+        #"dataset_s": "MUR25-JPL-L4-GLOB-v04.2",
+        #"variables": [{
+            #"name_s": "analysed_sst",
+            #"fill_d": -32768
+        #}],
+        #"s3_uri_s": "s3://cdms-dev-zarr/MUR25-JPL-L4-GLOB-v04.2/",
+        #"public_b": false,
+        #"type_s": "gridded",
+        #"chunk_shape": [30, 120, 240]
+    #}      
+        
         summary: TileSummary = tile.summary
         bbox: TileSummary.BBox = summary.bbox
         stats: TileSummary.DataStats = summary.stats

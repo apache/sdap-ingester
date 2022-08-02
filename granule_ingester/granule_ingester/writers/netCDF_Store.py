@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-import netCDF4
+import xarray as xr
 
 from granule_ingester.healthcheck import HealthCheck
 
@@ -8,6 +8,6 @@ from granule_ingester.healthcheck import HealthCheck
 class netCDF_Store(ABC):
 
     @abstractmethod
-    def save_data(self, ds: netCDF4._netCDF4) -> None:
+    def save_data(self, ds: xr.Dataset) -> None:
         pass
     

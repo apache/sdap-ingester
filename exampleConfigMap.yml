@@ -1,0 +1,424 @@
+apiVersion: v1
+data:
+  collections.yml: |2
+          - id: ECCO_v4_r4_EVELMASS_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/EVELMASSv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              depth: Z
+              time: time
+              variable: EVELMASS
+            slices:
+              time: 1
+              i: 30
+              j: 30
+              k: 1
+
+          - id: ECCO_v4_r4_ETAN_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/ETANv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: ETAN
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_EXFqnet_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/EXFqnetv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: EXFqnet
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_EXFtaue_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/EXFtauev4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: EXFtaue
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_EXFtaun_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/EXFtaunv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: EXFtaun
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_OBP_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/OBPv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: OBP
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_OBPNOPAB_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/OBPNOPABv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: OBPNOPAB
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_oceQnet_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/oceQnetv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: oceQnet
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_oceTAUE_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/oceTAUEv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: oceTAUE
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_oceTAUN_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/oceTAUNv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: oceTAUN
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_PHIBOT_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/PHIBOTv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: PHIBOT
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SALT_SURFACE_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SALTv4r4_layer_0/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SALT
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SIarea_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SIareav4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SIarea
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SIheff_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SIheffv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SIheff
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SIhsnow_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SIhsnowv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SIhsnow
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SSH_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SSHv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SSH
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_SSHDYN_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/SSHDYNv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: SSHDYN
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_TFLUX_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/TFLUXv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: TFLUX
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_THETA_SURFACE_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/THETAv4r4_layer_0/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              time: time
+              variable: THETA
+            slices:
+              time: 1
+              i: 30
+              j: 30
+
+          - id: ECCO_v4_r4_UVELMASS_latlon
+            path: /data/datasets/ecco-distribution-archive/nexus-ingest/UVELMASSv4r4/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: Grid
+            dimensionNames:
+              latitude: latitude
+              longitude: longitude
+              depth: Z
+              time: time
+              variable: UVELMASS
+            slices:
+              time: 1
+              i: 30
+              j: 30
+              k: 1
+
+          - id: eccov4r4-obp
+            path: /data/datasets/ECCOv4r4/nctiles_daily/OBP/*.nc
+            priority: 6
+            forward-processing-priority: 7
+            projection: ECCO
+            dimensionNames:
+              latitude: YC
+              longitude: XC
+              time: time
+              tile: tile
+              variable: OBP
+            slices:
+              time: 1
+              tile: 1
+              i: 30
+              j: 30
+
+          - id: mur25-jpl-l4-glob-v41-analysed-sst
+            path: /data/datasets/MUR25_L4_GLOB_V4.1/daily_data/*.nc
+            priority: 2
+            forward-processing-priority: 5
+            projection: Grid
+            dimensionNames:
+              latitude: lat
+              longitude: lon
+              time: time
+              variable: analysed_sst
+            slices:
+              time: 1
+              lat: 30
+              lon: 30
+
+
+          - id: smap-l2b-sss-daily-smap-sss
+            path: /data/datasets/SMAP_L2B_SSS/daily_data/SMAP_L2B_SSS_*.h5
+            priority: 4
+            forward-processing-priority: 5
+            projection: Grid
+            dimensionNames:
+              latitude: lat
+              longitude: lon
+              time: row_time
+              variable: smap_sss
+            slices:
+              phony_dim_0: 30
+              phony_dim_1: 30
+
+          - id: modis-l3-aqua-11um-v2014-0-4km-daily-sst
+            path: /data/datasets/MODIS_L3_AQUA_11UM_V2014.0_4KM_DAILY/daily_data/A*.L3m_DAY_SST_sst_4km.nc
+            priority: 3
+            forward-processing-priority: 5
+            projection: Grid
+            dimensionNames:
+              latitude: lat
+              longitude: lon
+              variable: sst
+            slices:
+              lat: 30
+              lon: 30
+
+          - id: avhrr-l4-glob-v2-daily-ncei-ghrsst-sstblend-avhrr-oi-glob-v020-fv020
+            path: /data/datasets/AVHRR_L4_GLOB_V2/daily_data/*-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0.nc
+            priority: 3
+            forward-processing-priority: 5
+            projection: Grid
+            dimensionNames:
+              latitude: lat
+              longitude: lon
+              time: time
+              variable: analysed_sst
+            slices:
+              lat: 30
+              lon: 30
+              time: 1
+
+          - id: avhrr-l4-glob-v2-clim-seasonal-ncei-ghrsst-sstblend-avhrr-oi-glob-v020-fv020
+            path: /data/datasets/AVHRR_L4_GLOB_V2/climatology_seasonal/ncei_*.nc
+            priority: 1
+            forward-processing-priority: 5
+            projection: Grid
+            dimensionNames:
+              latitude: lat
+              longitude: lon
+              variable: mean_sst
+            slices:
+              lat: 30
+              lon: 30
+
+          - id: HLS-test
+            path: /data/datasets/HLS/HLS.S30.T06VUM.2015319.v1.4.h5
+            priority: 1
+            projection: Grid
+            dimensionNames:
+              latitude: YDim_Grid
+              longitude: XDim_Grid
+              variable: B01
+            slices:
+              YDim_Grid: 30
+              XDim_Grid: 30
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2021-03-01T17:33:54Z"
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        .: {}
+        f:collections.yml: {}
+    manager: kubectl-create
+    operation: Update
+    time: "2021-03-01T17:33:54Z"
+  name: collections-config
+  namespace: default
+  resourceVersion: "72403500"
+  selfLink: /api/v1/namespaces/default/configmaps/collections-config
+  uid: ec7ba7cd-07ba-464f-b30d-89d2585f8f42
