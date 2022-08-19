@@ -10,16 +10,16 @@ from collection_manager.services import MessagePublisher
 from collection_manager.services.history_manager import (GranuleStatus,
                                                          IngestionHistory)
 from collection_manager.services.history_manager.IngestionHistory import \
-    ZarrIngestionHistoryBuilder
+    IngestionHistoryBuilder
 
 logger = logging.getLogger(__name__)
 
 SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5']
 
-# TODO generate tests for Zarr Collection Processor
+# TODO generate tests ()
 class ZarrCollectionProcessor:
 
-    def __init__(self, message_publisher: MessagePublisher, history_manager_builder: ZarrIngestionHistoryBuilder):
+    def __init__(self, message_publisher: MessagePublisher, history_manager_builder: IngestionHistoryBuilder):
         self._publisher = message_publisher
         self._history_manager_builder = history_manager_builder
         self._history_manager_cache: Dict[str, IngestionHistory] = {}

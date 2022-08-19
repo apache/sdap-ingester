@@ -15,6 +15,7 @@
 
 from .CollectionProcessor import CollectionProcessor
 from .ZarrCollectionProcessor import ZarrCollectionProcessor
+from .CollectionProcessor import CollectionProcessor
 from .CollectionWatcher import CollectionWatcher
 from .MessagePublisher import MessagePublisher
 from .S3Observer import S3Observer
