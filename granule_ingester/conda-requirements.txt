@@ -8,6 +8,6 @@ pyyaml==5.3.1
 aiohttp==3.6.2
 tenacity
 requests==2.27.1
-
+pathtools==0.1.2
 numcodecs==0.9.1
 zarr

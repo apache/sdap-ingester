@@ -41,7 +41,7 @@ class GranuleLoader:
     async def __aexit__(self, type, value, traceback):
         if self._granule_temp_file:
             self._granule_temp_file.close()
-    # @TODO causes error. Test to see if Tuple change works with code 
+    # @TODO causes error. Test to see if this Tuple change works with code 
     async def open(self) -> Tuple[xr.Dataset, str]:
         resource_url = parse.urlparse(self._resource)
         if resource_url.scheme == 's3':
