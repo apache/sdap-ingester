@@ -18,6 +18,8 @@ import asyncio
 import logging
 import uuid
 
+from tenacity import retry, stop_after_attempt, wait_exponential
+
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster, Session, NoHostAvailable
 from cassandra.cqlengine import columns
@@ -80,6 +82,7 @@ class CassandraStore(DataStore):
         if self._session:
             self._session.shutdown()
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
     async def save_data(self, tile: NexusTile) -> None:
         try:
             tile_id = uuid.UUID(tile.summary.tile_id)
@@ -88,6 +91,7 @@ class CassandraStore(DataStore):
             await self._execute_query_async(self._session, prepared_query,
                                             [tile_id, bytearray(serialized_tile_data)])
         except NoHostAvailable:
+            logger.warning("Failed to save tile data to Cassandra")
             raise CassandraLostConnectionError(f"Lost connection to Cassandra, and cannot save tiles.")
 
     @staticmethod

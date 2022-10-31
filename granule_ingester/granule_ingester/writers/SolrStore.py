@@ -25,6 +25,7 @@ from typing import Dict
 import pysolr
 from kazoo.exceptions import NoNodeError
 from kazoo.handlers.threading import KazooTimeoutError
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from common.async_utils.AsyncUtils import run_in_executor
 from granule_ingester.exceptions import (SolrFailedHealthCheckError,
@@ -106,6 +107,7 @@ class SolrStore(MetadataStore):
         except KazooTimeoutError:
             raise SolrFailedHealthCheckError("Cannot connect to Zookeeper!")
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         solr_doc = self._build_solr_doc(nexus_tile)
         logger.debug(f'solr_doc: {solr_doc}')
@@ -116,7 +118,8 @@ class SolrStore(MetadataStore):
         try:
             self._solr.add([doc])
         except pysolr.SolrError as e:
-            logger.exception(f'Lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
+            logger.warning("Failed to save metadata document to Solr")
+            logger.exception(f'May have lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
             raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:

@@ -10,6 +10,10 @@ from nexusproto.DataTile_pb2 import NexusTile, TileSummary
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+
+logger = logging.getLogger(__name__)
 
 
 class ElasticsearchStore(MetadataStore):
@@ -45,6 +49,7 @@ class ElasticsearchStore(MetadataStore):
         if not connection.ping():
             raise ElasticsearchFailedHealthCheckError
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         es_doc = self.build_es_doc(nexus_tile)
         await self.save_document(es_doc)
@@ -54,6 +59,7 @@ class ElasticsearchStore(MetadataStore):
         try:
             self.elastic.index(self.index, doc)
         except:
+            logger.warning("Failed to save metadata document to Elasticsearch")
             raise ElasticsearchLostConnectionError
 
     def build_es_doc(self, tile: NexusTile) -> Dict:
