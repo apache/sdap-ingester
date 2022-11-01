@@ -62,6 +62,8 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
     _worker_dataset = dataset
     _shared_memory = shared_memory
 
+    logger.debug("worker init")
+
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
