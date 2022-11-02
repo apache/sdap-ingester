@@ -20,7 +20,7 @@ import logging
 from asyncio import AbstractEventLoop
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Union
 
 import pysolr
 from kazoo.exceptions import NoNodeError
@@ -113,10 +113,21 @@ class SolrStore(MetadataStore):
         logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
+    async def save_batch(self, tiles: List[NexusTile]) -> None:
+        solr_docs = [self._build_solr_doc(nexus_tile) for nexus_tile in tiles]
+        logger.info(f'Writing {len(solr_docs)} metadata items to Solr')
+        thetime = datetime.now()
+        await self._save_document(solr_docs)
+        logger.info(f'Wrote {len(solr_docs)} metadata items to Solr in {str(datetime.now() - thetime)} seconds')
+
     @run_in_executor
-    def _save_document(self, doc: dict):
+    def _save_document(self, doc: Union[dict, list]):
         try:
-            self._solr.add([doc])
+            if not isinstance(doc, list):
+                doc = [doc]
+
+            self._solr.add(doc)
         except pysolr.SolrError as e:
             logger.warning("Failed to save metadata document to Solr")
             logger.exception(f'May have lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
