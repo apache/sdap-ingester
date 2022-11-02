@@ -27,8 +27,8 @@ class GridReadingProcessor(TileReadingProcessor):
         lon_subset = np.ma.filled(np.squeeze(lon_subset), np.NaN)
 
         data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable],
-                                                                        dimensions_to_slices)]
-        data_subset = np.ma.filled(np.squeeze(data_subset), np.NaN)
+                                                                        dimensions_to_slices)].data
+        data_subset = np.array(np.squeeze(data_subset))
 
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],
