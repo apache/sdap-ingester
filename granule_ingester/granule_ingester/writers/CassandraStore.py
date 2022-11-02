@@ -105,7 +105,6 @@ class CassandraStore(DataStore):
         #batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
 
         #TODO: Investigate batching & if it's needed
-        #TODO: Why are logging statements not being printed???
 
         logger.info(f'Writing {len(tiles)} tiles to Cassandra')
         thetime = datetime.now()

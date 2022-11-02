@@ -48,41 +48,17 @@ _shared_memory = None
 
 
 def _init_worker(processor_list, dataset, data_store_factory, metadata_store_factory, shared_memory):
-    global _worker_data_store
-    global _worker_metadata_store
     global _worker_processor_list
     global _worker_dataset
     global _shared_memory
 
     # _worker_data_store and _worker_metadata_store open multiple TCP sockets from each worker process;
     # however, these sockets will be automatically closed by the OS once the worker processes die so no need to worry.
-    _worker_data_store = data_store_factory()
-    _worker_metadata_store = metadata_store_factory()
     _worker_processor_list = processor_list
     _worker_dataset = dataset
     _shared_memory = shared_memory
 
     logger.debug("worker init")
-
-
-def _init_write_worker(data_store_factory, metadata_store_factory):
-    global _worker_metadata_store
-    global _worker_processor_list
-
-    _worker_data_store = data_store_factory()
-    _worker_metadata_store = metadata_store_factory()
-
-
-async def _write_tile_batch(tiles: str):
-    print(type(tiles[0]), flush=True)
-
-    print(tiles)
-
-    deserialized_tiles = [nexusproto.NexusTile.FromString(t) for t in tiles]
-
-    # await _worker_data_store.save_batch(deserialized_tiles)
-    await _worker_metadata_store.save_batch(deserialized_tiles)
-
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
@@ -92,9 +68,6 @@ async def _process_tile_in_worker(serialized_input_tile: str):
         processed_tile: nexusproto = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
         if processed_tile:
-            # await _worker_data_store.save_data(processed_tile)
-            # await _worker_metadata_store.save_metadata(processed_tile)
-
             return nexusproto.NexusTile.SerializeToString(processed_tile)
         else:
             return None
@@ -221,10 +194,6 @@ class Pipeline:
                 # aiomultiprocess is built on top of the stdlib multiprocessing library, which has the limitation that
                 # a queue can't have more than 2**15-1 tasks. So, we have to batch it.
 
-                tile_gen_end = time.perf_counter()
-
-                logger.info(f"Finished generating tiles in {start - tile_gen_end}")
-
                 results = []
 
                 for chunk in self._chunk_list(serialized_tiles, MAX_CHUNK_SIZE):
@@ -239,9 +208,13 @@ class Pipeline:
                         # await asyncio.sleep(1)
                         raise pickle.loads(shared_memory.error)
 
-                await self._metadata_store_factory().save_batch(results)
-                await self._data_store_factory().save_batch(results)
+                tile_gen_end = time.perf_counter()
 
+                logger.info(f"Finished generating tiles in {tile_gen_end - start}")
+                logger.info(f"Now writing generated tiles...")
+
+                await self._data_store_factory().save_batch(results)
+                await self._metadata_store_factory().save_batch(results)
 
         end = time.perf_counter()
         logger.info("Pipeline finished in {} seconds".format(end - start))

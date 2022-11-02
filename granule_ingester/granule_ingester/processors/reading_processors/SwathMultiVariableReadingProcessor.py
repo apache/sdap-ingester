@@ -36,6 +36,7 @@ class SwathMultiVariableReadingProcessor(TileReadingProcessor):
 
         data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
         updated_dims, updated_dims_indices = MultiBandUtils.move_band_dimension(list(data_subset[0].dims))
+        data_subset = [ds.data for ds in data_subset]
         if isinstance(data_subset, xr.DataArray):
             data_subset = data_subset.data
         else:
