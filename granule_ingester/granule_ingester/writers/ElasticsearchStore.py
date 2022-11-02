@@ -9,7 +9,7 @@ from granule_ingester.exceptions import (ElasticsearchFailedHealthCheckError, El
 from nexusproto.DataTile_pb2 import NexusTile, TileSummary
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
@@ -54,6 +54,12 @@ class ElasticsearchStore(MetadataStore):
         es_doc = self.build_es_doc(nexus_tile)
         await self.save_document(es_doc)
     
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
+    async def save_batch(self, tiles: List[NexusTile]) -> None:
+        for tile in tiles:
+            await self.save_metadata(tile)
+        #TODO: Implement write batching for ES
+
     @run_in_executor
     def save_document(self, doc: dict):
         try:
