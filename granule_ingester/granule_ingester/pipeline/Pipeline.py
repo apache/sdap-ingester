@@ -38,7 +38,11 @@ logger = logging.getLogger(__name__)
 
 # The aiomultiprocessing library has a bug where it never closes out the pool if there are more than a certain
 # number of items to process. The exact number is unknown, but 2**8-1 is safe.
-MAX_CHUNK_SIZE = 2 ** 8 - 1
+# MAX_CHUNK_SIZE = 2 ** 8 - 1
+
+# Could not find any info on the aforementioned bug; though I did find that macos restricts the queue size to 2**15-1.
+# Trying to bump this size up a bit as it seems to cause a performance bottleneck when handling a lot of tiles.
+MAX_CHUNK_SIZE = 2 ** 14 - 1
 
 _worker_data_store: DataStore = None
 _worker_metadata_store: MetadataStore = None
@@ -62,15 +66,24 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
+        logger.info('Starting tile creation subprocess')
         logger.debug(f'serialized_input_tile: {serialized_input_tile}')
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
-        logger.debug(f'_recurse params: _worker_processor_list = {_worker_processor_list}, _worker_dataset = {_worker_dataset}, input_tile = {input_tile}')
+        # logger.debug(f'_recurse params: _worker_processor_list = {_worker_processor_list}, _worker_dataset = {_worker_dataset}, input_tile = {input_tile}')
+        logger.info(f'Creating tile for slice {input_tile.summary.section_spec}')
         processed_tile: nexusproto = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
-        if processed_tile:
-            return nexusproto.NexusTile.SerializeToString(processed_tile)
-        else:
+        if processed_tile is None:
+            logger.info('Processed tile is empty; sending None result back to pool')
             return None
+
+        logger.info('Tile processing complete; serializing output tile')
+
+        serialized_output_tile = nexusproto.NexusTile.SerializeToString(processed_tile)
+
+        logger.info('Sending serialized result back to pool')
+
+        return serialized_output_tile
     except Exception as e:
         pickling_support.install(e)
         _shared_memory.error = pickle.dumps(e)
@@ -99,7 +112,7 @@ class Pipeline:
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
-        self._max_concurrency = max_concurrency
+        self._max_concurrency = int(max_concurrency)
 
         # Create a SyncManager so that we can to communicate exceptions from the
         # worker processes back to the main process.
@@ -198,11 +211,14 @@ class Pipeline:
 
                 for chunk in self._chunk_list(serialized_tiles, MAX_CHUNK_SIZE):
                     try:
+                        logger.info(f'Starting batch of {len(chunk)} tasks in worker pool')
                         for r in await pool.map(_process_tile_in_worker, chunk):
                             if r is not None:
                                 results.append(nexusproto.NexusTile.FromString(r))
+                        logger.info(f'Finished batch of {len(chunk)} tasks in worker pool')
 
                     except ProxyException:
+                        logger.info(f'Finished batch of {len(chunk)} tasks in worker pool with error')
                         pool.terminate()
                         # Give the shared memory manager some time to write the exception
                         # await asyncio.sleep(1)

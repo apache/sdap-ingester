@@ -35,6 +35,8 @@ from nexusproto.DataTile_pb2 import NexusTile, TileSummary
 
 logger = logging.getLogger(__name__)
 
+MAX_BATCH_SIZE = 128
+
 
 class SolrStore(MetadataStore):
     def __init__(self, solr_url=None, zk_url=None):
@@ -118,7 +120,12 @@ class SolrStore(MetadataStore):
         solr_docs = [self._build_solr_doc(nexus_tile) for nexus_tile in tiles]
         logger.info(f'Writing {len(solr_docs)} metadata items to Solr')
         thetime = datetime.now()
-        await self._save_document(solr_docs)
+
+        batches = [solr_docs[i:i+MAX_BATCH_SIZE] for i in range(0, len(solr_docs), MAX_BATCH_SIZE)]
+
+        for batch in batches:
+            logger.info(f"Writing batch of {len(batch)} documents")
+            await self._save_document(batch)
         logger.info(f'Wrote {len(solr_docs)} metadata items to Solr in {str(datetime.now() - thetime)} seconds')
 
     @run_in_executor
