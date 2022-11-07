@@ -123,8 +123,13 @@ class SolrStore(MetadataStore):
 
         batches = [solr_docs[i:i+MAX_BATCH_SIZE] for i in range(0, len(solr_docs), MAX_BATCH_SIZE)]
 
+        n_tiles = len(tiles)
+        writing = 0
+
         for batch in batches:
-            logger.info(f"Writing batch of {len(batch)} documents")
+            writing += len(batch)
+
+            logger.info(f"Writing batch of {len(batch)} documents | ({writing}/{n_tiles})")
             await self._save_document(batch)
         logger.info(f'Wrote {len(solr_docs)} metadata items to Solr in {str(datetime.now() - thetime)} seconds')
 

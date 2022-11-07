@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 # Could not find any info on the aforementioned bug; though I did find that macos restricts the queue size to 2**15-1.
 # Trying to bump this size up a bit as it seems to cause a performance bottleneck when handling a lot of tiles.
 MAX_CHUNK_SIZE = 2 ** 14 - 1
+BATCH_SIZE = 256
 
 _worker_data_store: DataStore = None
 _worker_metadata_store: MetadataStore = None
@@ -74,20 +75,33 @@ async def _process_tile_in_worker(serialized_input_tile: str):
         processed_tile: nexusproto = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
         if processed_tile is None:
-            logger.info('Processed tile is empty; sending None result back to pool')
+            logger.info('Processed tile is empty; adding None result to return')
             return None
 
         logger.info('Tile processing complete; serializing output tile')
 
         serialized_output_tile = nexusproto.NexusTile.SerializeToString(processed_tile)
 
-        logger.info('Sending serialized result back to pool')
+        logger.info('Adding serialized result to return')
 
         return serialized_output_tile
     except Exception as e:
         pickling_support.install(e)
         _shared_memory.error = pickle.dumps(e)
         raise
+
+async def _process_tile_batch_in_worker(tile_list:List[str]):
+    logger.info('Starting tile creation batch')
+
+    result = []
+
+    for tile in tile_list:
+        output = await _process_tile_in_worker(tile)
+        result.append(output)
+
+    logger.info('Batch complete! Sending results back to pool')
+
+    return result
 
 
 def _recurse(processor_list: List[TileProcessor],
@@ -209,12 +223,15 @@ class Pipeline:
 
                 results = []
 
-                for chunk in self._chunk_list(serialized_tiles, MAX_CHUNK_SIZE):
+                batches = self._chunk_list(serialized_tiles, BATCH_SIZE)
+
+                for chunk in self._chunk_list(batches, MAX_CHUNK_SIZE):
                     try:
                         logger.info(f'Starting batch of {len(chunk)} tasks in worker pool')
-                        for r in await pool.map(_process_tile_in_worker, chunk):
-                            if r is not None:
-                                results.append(nexusproto.NexusTile.FromString(r))
+                        for rb in await pool.map(_process_tile_batch_in_worker, chunk):
+                            for r in rb:
+                                if r is not None:
+                                    results.append(nexusproto.NexusTile.FromString(r))
                         logger.info(f'Finished batch of {len(chunk)} tasks in worker pool')
 
                     except ProxyException:
