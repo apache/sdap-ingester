@@ -243,7 +243,7 @@ class Pipeline:
 
                 tile_gen_end = time.perf_counter()
 
-                logger.info(f"Finished generating tiles in {tile_gen_end - start}")
+                logger.info(f"Finished generating tiles in {tile_gen_end - start} seconds")
                 logger.info(f"Now writing generated tiles...")
 
                 await self._data_store_factory().save_batch(results)
