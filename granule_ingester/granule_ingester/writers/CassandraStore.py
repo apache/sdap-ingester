@@ -118,7 +118,7 @@ class CassandraStore(DataStore):
 
             writing += len(batch)
 
-            logger.info(f'Writing batch of {len(batch)} tiles to Cassandra | ({writing}/{n_tiles})')
+            logger.info(f'Writing batch of {len(batch)} tiles to Cassandra | ({writing}/{n_tiles}) [{writing/n_tiles*100:7.3f}%]')
 
             for tile in batch:
                 tile_id = uuid.UUID(tile.summary.tile_id)
