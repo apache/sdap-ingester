@@ -208,13 +208,13 @@ class Pipeline:
             start = time.perf_counter()
 
             shared_memory = self._manager.Namespace()
-            async with Pool(initializer=_init_worker,
+            async with Pool(processes=self._max_concurrency,
+                            initializer=_init_worker,
                             initargs=(self._tile_processors,
                                       dataset,
                                       self._data_store_factory,
                                       self._metadata_store_factory,
                                       shared_memory),
-                            maxtasksperchild=self._max_concurrency,
                             childconcurrency=self._max_concurrency) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
                                     self._slicer.generate_tiles(dataset, granule_name)]

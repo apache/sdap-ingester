@@ -134,6 +134,7 @@ class SolrStore(MetadataStore):
         logger.info(f'Wrote {len(solr_docs)} metadata items to Solr in {str(datetime.now() - thetime)} seconds')
 
     @run_in_executor
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
     def _save_document(self, doc: Union[dict, list]):
         try:
             if not isinstance(doc, list):
