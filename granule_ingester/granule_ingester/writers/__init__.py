@@ -2,3 +2,6 @@ from granule_ingester.writers.DataStore import DataStore
 from granule_ingester.writers.MetadataStore import MetadataStore
 from granule_ingester.writers.SolrStore import SolrStore
 from granule_ingester.writers.CassandraStore import CassandraStore
+from granule_ingester.writers.netCDF_Store import netCDF_Store
+from granule_ingester.writers.LocalStore import LocalStore
+from granule_ingester.writers.netCDF_Store import netCDF_Store

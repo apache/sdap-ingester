@@ -30,7 +30,7 @@ class CollectionWatcher:
                  s3_bucket: Optional[str] = None,
                  collections_refresh_interval: float = 30):
         if not os.path.isabs(collections_path):
-            raise RelativePathError("Collections config  path must be an absolute path.")
+            raise RelativePathError("Collections config path must be an absolute path.")
 
         self._collections_path = collections_path
         self._granule_updated_callback = granule_updated_callback

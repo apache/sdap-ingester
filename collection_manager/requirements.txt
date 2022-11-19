@@ -1,5 +1,5 @@
 PyYAML==5.3.1
-pystache==0.5.4
+pystache==0.6.0
 pysolr==3.9.0
 watchdog==0.10.2
 requests==2.23.0
@@ -7,3 +7,4 @@ tenacity==6.2.0
 aioboto3==8.0.5
 aiohttp==3.7.2
 aio-pika==6.7.1
+#setuptools==57.5.0

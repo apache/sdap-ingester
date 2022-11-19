@@ -16,6 +16,7 @@
 import logging
 import os
 import tempfile
+from typing import Tuple
 from urllib import parse
 
 import aioboto3
@@ -40,8 +41,8 @@ class GranuleLoader:
     async def __aexit__(self, type, value, traceback):
         if self._granule_temp_file:
             self._granule_temp_file.close()
-
-    async def open(self) -> (xr.Dataset, str):
+    # @TODO causes error. Test to see if this Tuple change works with code 
+    async def open(self) -> Tuple[xr.Dataset, str]:
         resource_url = parse.urlparse(self._resource)
         if resource_url.scheme == 's3':
             # We need to save a reference to the temporary granule file so we can delete it when the context manager
