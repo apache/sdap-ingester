@@ -6,6 +6,7 @@ ENV PATH="/opt/conda/bin:$PATH"
 
 RUN apk update --no-cache && apk add --no-cache --virtual .build-deps git openjdk8
 
+COPY VERSION.txt /VERSION.txt
 COPY common /common
 COPY granule_ingester/granule_ingester /sdap/granule_ingester
 COPY granule_ingester/setup.py /sdap/setup.py
