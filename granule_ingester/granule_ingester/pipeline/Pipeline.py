@@ -36,10 +36,6 @@ from tblib import pickling_support
 
 logger = logging.getLogger(__name__)
 
-# The aiomultiprocessing library has a bug where it never closes out the pool if there are more than a certain
-# number of items to process. The exact number is unknown, but 2**8-1 is safe.
-# MAX_CHUNK_SIZE = 2 ** 8 - 1
-
 # Could not find any info on the aforementioned bug; though I did find that macos restricts the queue size to 2**15-1.
 # Trying to bump this size up a bit as it seems to cause a performance bottleneck when handling a lot of tiles.
 MAX_CHUNK_SIZE = 2 ** 14 - 1
@@ -70,7 +66,6 @@ async def _process_tile_in_worker(serialized_input_tile: str):
         logger.info('Starting tile creation subprocess')
         logger.debug(f'serialized_input_tile: {serialized_input_tile}')
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
-        # logger.debug(f'_recurse params: _worker_processor_list = {_worker_processor_list}, _worker_dataset = {_worker_dataset}, input_tile = {input_tile}')
         logger.info(f'Creating tile for slice {input_tile.summary.section_spec}')
         processed_tile: nexusproto = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
