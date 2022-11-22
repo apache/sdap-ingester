@@ -20,11 +20,12 @@ import logging
 from asyncio import AbstractEventLoop
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Union
 
 import pysolr
 from kazoo.exceptions import NoNodeError
 from kazoo.handlers.threading import KazooTimeoutError
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from common.async_utils.AsyncUtils import run_in_executor
 from granule_ingester.exceptions import (SolrFailedHealthCheckError,
@@ -33,6 +34,8 @@ from granule_ingester.writers.MetadataStore import MetadataStore
 from nexusproto.DataTile_pb2 import NexusTile, TileSummary
 
 logger = logging.getLogger(__name__)
+
+MAX_BATCH_SIZE = 128
 
 
 class SolrStore(MetadataStore):
@@ -106,17 +109,41 @@ class SolrStore(MetadataStore):
         except KazooTimeoutError:
             raise SolrFailedHealthCheckError("Cannot connect to Zookeeper!")
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
     async def save_metadata(self, nexus_tile: NexusTile) -> None:
         solr_doc = self._build_solr_doc(nexus_tile)
         logger.debug(f'solr_doc: {solr_doc}')
         await self._save_document(solr_doc)
 
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
+    async def save_batch(self, tiles: List[NexusTile]) -> None:
+        solr_docs = [self._build_solr_doc(nexus_tile) for nexus_tile in tiles]
+        logger.info(f'Writing {len(solr_docs)} metadata items to Solr')
+        thetime = datetime.now()
+
+        batches = [solr_docs[i:i+MAX_BATCH_SIZE] for i in range(0, len(solr_docs), MAX_BATCH_SIZE)]
+
+        n_tiles = len(tiles)
+        writing = 0
+
+        for batch in batches:
+            writing += len(batch)
+
+            logger.info(f"Writing batch of {len(batch)} documents | ({writing}/{n_tiles}) [{writing/n_tiles*100:7.3f}%]")
+            await self._save_document(batch)
+        logger.info(f'Wrote {len(solr_docs)} metadata items to Solr in {str(datetime.now() - thetime)} seconds')
+
     @run_in_executor
-    def _save_document(self, doc: dict):
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=1, max=12))
+    def _save_document(self, doc: Union[dict, list]):
         try:
-            self._solr.add([doc])
+            if not isinstance(doc, list):
+                doc = [doc]
+
+            self._solr.add(doc)
         except pysolr.SolrError as e:
-            logger.exception(f'Lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
+            logger.warning("Failed to save metadata document to Solr")
+            logger.exception(f'May have lost connection to Solr, and cannot save tiles. cause: {e}. creating SolrLostConnectionError')
             raise SolrLostConnectionError(f'Lost connection to Solr, and cannot save tiles. cause: {e}')
 
     def _build_solr_doc(self, tile: NexusTile) -> Dict:

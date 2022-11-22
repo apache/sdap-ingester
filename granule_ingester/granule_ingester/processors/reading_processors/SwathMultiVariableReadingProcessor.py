@@ -36,8 +36,8 @@ class SwathMultiVariableReadingProcessor(TileReadingProcessor):
 
         data_subset = [ds[k][type(self)._slices_for_variable(ds[k], dimensions_to_slices)] for k in self.variable]
         updated_dims, updated_dims_indices = MultiBandUtils.move_band_dimension(list(data_subset[0].dims))
-        logger.debug(f'filling the data_subset with NaN')
-        data_subset = np.ma.filled(data_subset, np.NaN)
+        data_subset = [ds.data for ds in data_subset]
+        data_subset = np.array(data_subset)
         logger.debug(f'transposing data_subset')
         data_subset = data_subset.transpose(updated_dims_indices)
         logger.debug(f'adding summary.data_dim_names')

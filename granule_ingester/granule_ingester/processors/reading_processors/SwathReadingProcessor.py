@@ -29,8 +29,8 @@ class SwathReadingProcessor(TileReadingProcessor):
         time_subset = np.ma.filled(type(self)._convert_to_timestamp(time_subset), np.NaN)
 
         data_subset = ds[data_variable][type(self)._slices_for_variable(ds[data_variable],
-                                                                                dimensions_to_slices)]
-        data_subset = np.ma.filled(data_subset, np.NaN)
+                                                                                dimensions_to_slices)].data
+        data_subset = np.array(data_subset)
 
         if self.depth:
             depth_dim, depth_slice = list(type(self)._slices_for_variable(ds[self.depth],

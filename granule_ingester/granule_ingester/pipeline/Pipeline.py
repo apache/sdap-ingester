@@ -36,9 +36,10 @@ from tblib import pickling_support
 
 logger = logging.getLogger(__name__)
 
-# The aiomultiprocessing library has a bug where it never closes out the pool if there are more than a certain
-# number of items to process. The exact number is unknown, but 2**8-1 is safe.
-MAX_CHUNK_SIZE = 2 ** 8 - 1
+# Could not find any info on the aforementioned bug; though I did find that macos restricts the queue size to 2**15-1.
+# Trying to bump this size up a bit as it seems to cause a performance bottleneck when handling a lot of tiles.
+MAX_CHUNK_SIZE = 2 ** 14 - 1
+BATCH_SIZE = 256
 
 _worker_data_store: DataStore = None
 _worker_metadata_store: MetadataStore = None
@@ -48,35 +49,54 @@ _shared_memory = None
 
 
 def _init_worker(processor_list, dataset, data_store_factory, metadata_store_factory, shared_memory):
-    global _worker_data_store
-    global _worker_metadata_store
     global _worker_processor_list
     global _worker_dataset
     global _shared_memory
 
     # _worker_data_store and _worker_metadata_store open multiple TCP sockets from each worker process;
     # however, these sockets will be automatically closed by the OS once the worker processes die so no need to worry.
-    _worker_data_store = data_store_factory()
-    _worker_metadata_store = metadata_store_factory()
     _worker_processor_list = processor_list
     _worker_dataset = dataset
     _shared_memory = shared_memory
 
+    logger.debug("worker init")
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
+        logger.info('Starting tile creation subprocess')
         logger.debug(f'serialized_input_tile: {serialized_input_tile}')
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
-        logger.debug(f'_recurse params: _worker_processor_list = {_worker_processor_list}, _worker_dataset = {_worker_dataset}, input_tile = {input_tile}')
-        processed_tile = _recurse(_worker_processor_list, _worker_dataset, input_tile)
+        logger.info(f'Creating tile for slice {input_tile.summary.section_spec}')
+        processed_tile: nexusproto = _recurse(_worker_processor_list, _worker_dataset, input_tile)
 
-        if processed_tile:
-            await _worker_data_store.save_data(processed_tile)
-            await _worker_metadata_store.save_metadata(processed_tile)
+        if processed_tile is None:
+            logger.info('Processed tile is empty; adding None result to return')
+            return None
+
+        logger.info('Tile processing complete; serializing output tile')
+
+        serialized_output_tile = nexusproto.NexusTile.SerializeToString(processed_tile)
+
+        logger.info('Adding serialized result to return')
+
+        return serialized_output_tile
     except Exception as e:
         pickling_support.install(e)
         _shared_memory.error = pickle.dumps(e)
         raise
+
+async def _process_tile_batch_in_worker(tile_list:List[str]):
+    logger.info('Starting tile creation batch')
+
+    result = []
+
+    for tile in tile_list:
+        output = await _process_tile_in_worker(tile)
+        result.append(output)
+
+    logger.info('Batch complete! Sending results back to pool')
+
+    return result
 
 
 def _recurse(processor_list: List[TileProcessor],
@@ -101,7 +121,7 @@ class Pipeline:
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
-        self._max_concurrency = max_concurrency
+        self._max_concurrency = int(max_concurrency)
 
         # Create a SyncManager so that we can to communicate exceptions from the
         # worker processes back to the main process.
@@ -183,26 +203,46 @@ class Pipeline:
             start = time.perf_counter()
 
             shared_memory = self._manager.Namespace()
-            async with Pool(initializer=_init_worker,
+            async with Pool(processes=self._max_concurrency,
+                            initializer=_init_worker,
                             initargs=(self._tile_processors,
                                       dataset,
                                       self._data_store_factory,
                                       self._metadata_store_factory,
                                       shared_memory),
-                            maxtasksperchild=self._max_concurrency,
                             childconcurrency=self._max_concurrency) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
                                     self._slicer.generate_tiles(dataset, granule_name)]
                 # aiomultiprocess is built on top of the stdlib multiprocessing library, which has the limitation that
                 # a queue can't have more than 2**15-1 tasks. So, we have to batch it.
-                for chunk in self._chunk_list(serialized_tiles, MAX_CHUNK_SIZE):
+
+                results = []
+
+                batches = self._chunk_list(serialized_tiles, BATCH_SIZE)
+
+                for chunk in self._chunk_list(batches, MAX_CHUNK_SIZE):
                     try:
-                        await pool.map(_process_tile_in_worker, chunk)
+                        logger.info(f'Starting batch of {len(chunk)} tasks in worker pool')
+                        for rb in await pool.map(_process_tile_batch_in_worker, chunk):
+                            for r in rb:
+                                if r is not None:
+                                    results.append(nexusproto.NexusTile.FromString(r))
+                        logger.info(f'Finished batch of {len(chunk)} tasks in worker pool')
+
                     except ProxyException:
+                        logger.info(f'Finished batch of {len(chunk)} tasks in worker pool with error')
                         pool.terminate()
                         # Give the shared memory manager some time to write the exception
                         # await asyncio.sleep(1)
                         raise pickle.loads(shared_memory.error)
+
+                tile_gen_end = time.perf_counter()
+
+                logger.info(f"Finished generating tiles in {tile_gen_end - start} seconds")
+                logger.info(f"Now writing generated tiles...")
+
+                await self._data_store_factory().save_batch(results)
+                await self._metadata_store_factory().save_batch(results)
 
         end = time.perf_counter()
         logger.info("Pipeline finished in {} seconds".format(end - start))

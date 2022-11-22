@@ -32,7 +32,7 @@ class KelvinToCelsius(TileProcessor):
             copied_variable_name = [copied_variable_name]
         for each in copied_variable_name:
             try:
-                logger.info(f'for ds.variables[each].attrs : {ds.variables[each].attrs}')
+                logger.debug(f'for ds.variables[each].attrs : {ds.variables[each].attrs}')
                 for unit_attr in ('units', 'Units', 'UNITS'):
                     if unit_attr in ds.variables[each].attrs:
                         if isinstance(ds.variables[each].attrs[unit_attr], list):
