@@ -13,8 +13,6 @@ try:
 except (CalledProcessError, IOError) as e:
     raise EnvironmentError("Error installing conda packages", e)
 
-__version__ = '1.0.0-SNAPSHOT'
-
 setup(
     name='sdap_granule_ingester',
     version=__version__,
