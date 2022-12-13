@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Removed unnecessary function call. Removed an unneeded function call that seemed to be consuming a lot of pipeline runtime.
    - Batched tasks submitted to executors in pool. Saves wasted time switching between completed & new tasks.
 - Added missing ASF headers to all .py files in this repository.
+- Added ASF `README` for release.
 ### Deprecated
 ### Removed
 ### Fixed
