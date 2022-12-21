@@ -231,6 +231,14 @@ class SolrStore(MetadataStore):
             geo = 'LINESTRING({} {}, {} {})'.format(lon_min_str, lat_min_str, lon_max_str, lat_min_str)
         # All other cases should use POLYGON
         else:
+            if lon_min_str == lon_max_str:
+                lon_min_str = str(bbox.lon_min)
+                lon_max_str = str(bbox.lon_max)
+
+            if lat_min_str == lat_max_str:
+                lat_min_str = str(bbox.lat_min)
+                lat_max_str = str(bbox.lat_max)
+
             geo = 'POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(lon_min_str, lat_min_str,
                                                                         lon_max_str, lat_min_str,
                                                                         lon_max_str, lat_max_str,
