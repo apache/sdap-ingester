@@ -15,6 +15,7 @@
 
 import asyncio
 import functools
+import math
 import json
 import logging
 from asyncio import AbstractEventLoop
@@ -208,8 +209,13 @@ class SolrStore(MetadataStore):
         return input_document
 
     @staticmethod
-    def _format_latlon_string(value):
-        rounded_value = round(value, 3)
+    def _format_latlon_string(value, rounding=0):
+        if rounding == 0:
+            rounded_value = round(value, 3)
+        elif rounding == 1:
+            rounded_value = math.ceil(value * 1000)/1000.0
+        else:
+            rounded_value = math.floor(value * 1000) / 1000.0
         return '{:.3f}'.format(rounded_value)
 
     @classmethod
@@ -228,16 +234,27 @@ class SolrStore(MetadataStore):
         # If lat min = lat max but lon min != lon max, or lon min = lon max but lat min != lat max,
         # then we essentially have a line.
         elif bbox.lat_min == bbox.lat_max or bbox.lon_min == bbox.lon_max:
+            # If the rounding makes the non-equal coordinates equal, ensure they're expanded so we have a line and not
+            # a point
+            if bbox.lat_min == bbox.lat_max and lon_min_str == lon_max_str:
+                lon_min_str = cls._format_latlon_string(bbox.lon_min, rounding=-1)
+                lon_max_str = cls._format_latlon_string(bbox.lon_max, rounding=1)
+            elif bbox.lon_min == bbox.lon_max and lat_min_str == lat_max_str:
+                lat_min_str = cls._format_latlon_string(bbox.lat_min, rounding=-1)
+                lat_max_str = cls._format_latlon_string(bbox.lat_max, rounding=1)
+
             geo = 'LINESTRING({} {}, {} {})'.format(lon_min_str, lat_min_str, lon_max_str, lat_min_str)
         # All other cases should use POLYGON
         else:
+            # If the rounding makes any min/max coord pairs equal, expand them so the polygon doesn't collapse into a
+            # line
             if lon_min_str == lon_max_str:
-                lon_min_str = str(bbox.lon_min)
-                lon_max_str = str(bbox.lon_max)
+                lon_min_str = cls._format_latlon_string(bbox.lon_min, rounding=-1)
+                lon_max_str = cls._format_latlon_string(bbox.lon_max, rounding=1)
 
             if lat_min_str == lat_max_str:
-                lat_min_str = str(bbox.lat_min)
-                lat_max_str = str(bbox.lat_max)
+                lat_min_str = cls._format_latlon_string(bbox.lat_min, rounding=-1)
+                lat_max_str = cls._format_latlon_string(bbox.lat_max, rounding=1)
 
             geo = 'POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(lon_min_str, lat_min_str,
                                                                         lon_max_str, lat_min_str,
