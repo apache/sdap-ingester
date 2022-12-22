@@ -243,7 +243,7 @@ class SolrStore(MetadataStore):
                 lat_min_str = cls._format_latlon_string(bbox.lat_min, rounding=-1)
                 lat_max_str = cls._format_latlon_string(bbox.lat_max, rounding=1)
 
-            geo = 'LINESTRING({} {}, {} {})'.format(lon_min_str, lat_min_str, lon_max_str, lat_min_str)
+            geo = 'LINESTRING({} {}, {} {})'.format(lon_min_str, lat_min_str, lon_max_str, lat_max_str)
         # All other cases should use POLYGON
         else:
             # If the rounding makes any min/max coord pairs equal, expand them so the polygon doesn't collapse into a
