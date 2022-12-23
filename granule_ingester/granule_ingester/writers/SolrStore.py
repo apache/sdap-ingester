@@ -50,7 +50,6 @@ class SolrStore(MetadataStore):
         self.geo_precision: int = 3
         self._collection: str = "nexustiles"
         self.log: logging.Logger = logging.getLogger(__name__)
-        self.log.setLevel(logging.DEBUG)
         self._solr = None
 
     def _get_collections(self, zk, parent_nodes):

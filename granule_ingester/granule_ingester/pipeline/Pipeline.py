@@ -21,7 +21,6 @@ from typing import List
 
 import xarray as xr
 import yaml
-
 from aiomultiprocess import Pool
 from aiomultiprocess.types import ProxyException
 from granule_ingester.exceptions import PipelineBuildingError
@@ -48,7 +47,7 @@ _worker_dataset = None
 _shared_memory = None
 
 
-def _init_worker(processor_list, dataset, data_store_factory, metadata_store_factory, shared_memory):
+def _init_worker(processor_list, dataset, data_store_factory, metadata_store_factory, shared_memory, log_level):
     global _worker_processor_list
     global _worker_dataset
     global _shared_memory
@@ -58,6 +57,13 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
     _worker_processor_list = processor_list
     _worker_dataset = dataset
     _shared_memory = shared_memory
+
+    logging.basicConfig(level=log_level)
+
+    logging.getLogger("").setLevel(log_level)
+    loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+    for logger in loggers:
+        logger.setLevel(log_level)
 
     logger.debug("worker init")
 
@@ -115,13 +121,15 @@ class Pipeline:
                  data_store_factory,
                  metadata_store_factory,
                  tile_processors: List[TileProcessor],
-                 max_concurrency: int):
+                 max_concurrency: int,
+                 log_level=logging.INFO):
         self._granule_loader = granule_loader
         self._tile_processors = tile_processors
         self._slicer = slicer
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
         self._max_concurrency = int(max_concurrency)
+        self._level = log_level
 
         # Create a SyncManager so that we can to communicate exceptions from the
         # worker processes back to the main process.
@@ -129,6 +137,9 @@ class Pipeline:
 
     def __del__(self):
         self._manager.shutdown()
+
+    def set_log_level(self, level):
+        self._level = level
 
     @classmethod
     def from_string(cls, config_str: str, data_store_factory, metadata_store_factory, max_concurrency: int = 16):
@@ -209,7 +220,8 @@ class Pipeline:
                                       dataset,
                                       self._data_store_factory,
                                       self._metadata_store_factory,
-                                      shared_memory),
+                                      shared_memory,
+                                      self._level),
                             childconcurrency=self._max_concurrency) as pool:
                 serialized_tiles = [nexusproto.NexusTile.SerializeToString(tile) for tile in
                                     self._slicer.generate_tiles(dataset, granule_name)]
