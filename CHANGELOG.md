@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDAP-417: Fixed bug where very spatially narrow tiles would have their WKT for the geo field represent the incorrect shape (ie a very narrow polygon being rounded to a line), which would cause an error on write to Solr.
 ### Security
 
-## [1.0.0] - 2022-11-22
+## [1.0.0] - 2022-12-05
 ### Added
 ### Changed
  - SDAP-408: Improve L2 satellite data ingestion speed
@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Batched writes: Reduced the number of network IO operations by consolidating writes of tile data + metadata.
    - Removed unnecessary function call. Removed an unneeded function call that seemed to be consuming a lot of pipeline runtime.
    - Batched tasks submitted to executors in pool. Saves wasted time switching between completed & new tasks.
+- Added missing ASF headers to all .py files in this repository.
+- Added ASF `README` for release.
 ### Deprecated
 ### Removed
 ### Fixed
