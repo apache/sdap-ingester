@@ -140,6 +140,7 @@ async def main(loop):
 
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=logging_level)
+    logging.getLogger("").setLevel(logging_level)
     loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
     for logger in loggers:
         logger.setLevel(logging_level)
@@ -175,7 +176,8 @@ async def main(loop):
                                                               cassandra_keyspace,
                                                               cassandra_username,
                                                               cassandra_password),
-                                   metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port))
+                                   metadata_store_factory=partial(solr_factory, solr_host_and_port, zk_host_and_port),
+                                   log_level=logging_level)
         try:
             solr_store = SolrStore(zk_url=zk_host_and_port) if zk_host_and_port else SolrStore(solr_url=solr_host_and_port)
             await run_health_checks([CassandraStore(cassandra_contact_points,
