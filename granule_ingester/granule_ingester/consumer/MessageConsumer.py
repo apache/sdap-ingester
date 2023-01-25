@@ -16,7 +16,6 @@
 import logging
 
 import aio_pika
-
 from granule_ingester.exceptions import PipelineBuildingError, PipelineRunningError, RabbitMQLostConnectionError, \
     RabbitMQFailedHealthCheckError, LostConnectionError
 from granule_ingester.healthcheck import HealthCheck
@@ -33,7 +32,8 @@ class MessageConsumer(HealthCheck):
                  rabbitmq_password,
                  rabbitmq_queue,
                  data_store_factory,
-                 metadata_store_factory):
+                 metadata_store_factory,
+                 log_level=logging.INFO):
         self._rabbitmq_queue = rabbitmq_queue
         self._data_store_factory = data_store_factory
         self._metadata_store_factory = metadata_store_factory
@@ -42,6 +42,7 @@ class MessageConsumer(HealthCheck):
                                                                                 password=rabbitmq_password,
                                                                                 host=rabbitmq_host)
         self._connection: aio_pika.Connection = None
+        self._level = log_level
 
     async def health_check(self) -> bool:
         try:
@@ -67,7 +68,8 @@ class MessageConsumer(HealthCheck):
     async def _received_message(message: aio_pika.IncomingMessage,
                                 data_store_factory,
                                 metadata_store_factory,
-                                pipeline_max_concurrency: int):
+                                pipeline_max_concurrency: int,
+                                log_level=logging.INFO):
         logger.info("Received a job from the queue. Starting pipeline.")
         try:
             config_str = message.body.decode("utf-8")
@@ -76,6 +78,7 @@ class MessageConsumer(HealthCheck):
                                             data_store_factory=data_store_factory,
                                             metadata_store_factory=metadata_store_factory,
                                             max_concurrency=pipeline_max_concurrency)
+            pipeline.set_log_level(log_level)
             await pipeline.run()
             await message.ack()
         except PipelineBuildingError as e:
@@ -102,7 +105,8 @@ class MessageConsumer(HealthCheck):
                 await self._received_message(message,
                                              self._data_store_factory,
                                              self._metadata_store_factory,
-                                             pipeline_max_concurrency)
+                                             pipeline_max_concurrency,
+                                             self._level)
             except aio_pika.exceptions.MessageProcessError:
                 # Do not try to close() the queue iterator! If we get here, that means the RabbitMQ
                 # connection has died, and attempting to close the queue will only raise another exception.
