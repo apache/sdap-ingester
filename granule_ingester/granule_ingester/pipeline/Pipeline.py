@@ -171,7 +171,10 @@ class Pipeline:
                         module_mappings: dict,
                         max_concurrency: int):
         try:
-            granule_loader = GranuleLoader(**config['granule'])
+            if 'squeeze' in config:
+                granule_loader = GranuleLoader(**config['granule'], **{'squeeze': config['squeeze']})
+            else:
+                granule_loader = GranuleLoader(**config['granule'])
 
             slicer_config = config['slicer']
             slicer = cls._parse_module(slicer_config, module_mappings)
