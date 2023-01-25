@@ -122,6 +122,10 @@ class CollectionProcessor:
             },
             'processors': CollectionProcessor._get_default_processors(collection)
         }
+
+        if collection.squeeze is not None:
+            config_dict['squeeze'] = list(collection.squeeze)
+
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")
         return config_str

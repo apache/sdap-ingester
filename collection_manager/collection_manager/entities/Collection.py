@@ -47,6 +47,7 @@ class Collection:
     forward_processing_priority: Optional[int] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
+    squeeze: Optional[frozenset] = None
 
     @staticmethod
     def __decode_dimension_names(dimension_names_dict):
@@ -79,6 +80,14 @@ class Collection:
             date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
+            if 'squeeze' in properties:
+                if type(properties['squeeze']) == list:
+                    squeeze = frozenset(properties['squeeze'])
+                else:
+                    squeeze = frozenset([properties['squeeze']])
+            else:
+                squeeze = None
+
             collection = Collection(dataset_id=properties['id'],
                                     projection=properties['projection'],
                                     dimension_names=frozenset(Collection.__decode_dimension_names(properties['dimensionNames'])),
@@ -87,7 +96,8 @@ class Collection:
                                     historical_priority=properties['priority'],
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
                                     date_to=date_to,
-                                    date_from=date_from)
+                                    date_from=date_from,
+                                    squeeze=squeeze)
             return collection
         except KeyError as e:
             raise MissingValueCollectionError(missing_value=e.args[0])
