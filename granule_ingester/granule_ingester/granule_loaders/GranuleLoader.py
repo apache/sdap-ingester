@@ -29,10 +29,11 @@ logger = logging.getLogger(__name__)
 class GranuleLoader:
 
     def __init__(self, resource: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        # super().__init__(*args, **kwargs)
 
         self._granule_temp_file = None
         self._resource = resource
+        self._squeeze_dims = kwargs.get('squeeze', None)
 
     async def __aenter__(self):
         return await self.open()
@@ -55,7 +56,12 @@ class GranuleLoader:
 
         granule_name = os.path.basename(self._resource)
         try:
-            return xr.open_dataset(file_path, lock=False), granule_name
+            ds = xr.open_dataset(file_path, lock=False)
+            if self._squeeze_dims is None:
+                return ds, granule_name
+            else:
+                logger.debug(f'Squeezing dims: {self._squeeze_dims}')
+                return ds.squeeze(self._squeeze_dims), granule_name
         except FileNotFoundError:
             raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
         except Exception:
