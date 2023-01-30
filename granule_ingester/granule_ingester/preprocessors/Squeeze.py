@@ -14,7 +14,10 @@
 # limitations under the License.
 
 import xarray as xr
+import logging
 from granule_ingester.preprocessors.GranulePreprocessor import GranulePreprocessor
+
+logger = logging.getLogger(__name__)
 
 
 class Squeeze(GranulePreprocessor):
@@ -22,4 +25,7 @@ class Squeeze(GranulePreprocessor):
         self._dimensions = dimensions
 
     def process(self, input_dataset: xr.Dataset, *args, **kwargs):
-        return input_dataset.squeeze(self._dimensions)
+        logger.debug(f'Squeezing dimensions {self._dimensions}')
+        output_ds = input_dataset.squeeze(self._dimensions)
+        logger.debug(f'Squeezed dimensions: {input_dataset.dims} -> {output_ds.dims}')
+        return output_ds
