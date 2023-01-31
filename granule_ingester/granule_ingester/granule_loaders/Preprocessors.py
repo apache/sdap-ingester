@@ -15,9 +15,9 @@
 
 from typing import Dict, Type
 
-from granule_ingester.preprocessors import (GranulePreprocessor)
+from granule_ingester.preprocessors import (GranulePreprocessor, Squeeze)
 
 
 modules: Dict[str, Type[GranulePreprocessor]] = {
-    'squeeze': GranulePreprocessor
+    'squeeze': Squeeze
 }
