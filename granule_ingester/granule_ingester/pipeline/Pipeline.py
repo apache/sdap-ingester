@@ -16,7 +16,6 @@
 import logging
 import pickle
 import time
-import json
 from multiprocessing import Manager
 from typing import List
 
@@ -174,8 +173,6 @@ class Pipeline:
         try:
             if 'preprocess' in config:
                 granule_loader = GranuleLoader(**config['granule'], **{'preprocess': config['preprocess']})
-            elif 'squeeze' in config:
-                granule_loader = GranuleLoader(**config['granule'], **{'squeeze': config['squeeze']})
             else:
                 granule_loader = GranuleLoader(**config['granule'])
 

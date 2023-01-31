@@ -21,8 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from fnmatch import fnmatch
-from glob import glob
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 from collection_manager.entities.exceptions import MissingValueCollectionError
@@ -47,7 +46,6 @@ class Collection:
     forward_processing_priority: Optional[int] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
-    squeeze: Optional[frozenset] = None
     preprocess: str = None
 
     @staticmethod
@@ -81,14 +79,6 @@ class Collection:
             date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
-            if 'squeeze' in properties:
-                if type(properties['squeeze']) == list:
-                    squeeze = frozenset(properties['squeeze'])
-                else:
-                    squeeze = frozenset([properties['squeeze']])
-            else:
-                squeeze = None
-
             preprocess = json.dumps(properties['preprocess']) if 'preprocess' in properties else None
 
             collection = Collection(dataset_id=properties['id'],
@@ -100,7 +90,6 @@ class Collection:
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
                                     date_to=date_to,
                                     date_from=date_from,
-                                    squeeze=squeeze,
                                     preprocess=preprocess)
             return collection
         except KeyError as e:

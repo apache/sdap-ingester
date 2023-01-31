@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import json
+import logging
 import os.path
-from glob import glob
 from typing import Dict
-from datetime import datetime
 
 import yaml
 from collection_manager.entities import Collection
@@ -123,9 +121,6 @@ class CollectionProcessor:
             },
             'processors': CollectionProcessor._get_default_processors(collection)
         }
-
-        if collection.squeeze is not None:
-            config_dict['squeeze'] = list(collection.squeeze)
 
         if collection.preprocess is not None:
             config_dict['preprocess'] = json.loads(collection.preprocess)

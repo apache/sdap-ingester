@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import xarray as xr
 import logging
+
+import xarray as xr
 from granule_ingester.preprocessors.GranulePreprocessor import GranulePreprocessor
 
 logger = logging.getLogger(__name__)

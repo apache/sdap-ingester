@@ -20,7 +20,6 @@ from urllib import parse
 
 import aioboto3
 import xarray as xr
-
 from granule_ingester.exceptions import GranuleLoadingError, PipelineBuildingError
 from granule_ingester.granule_loaders.Preprocessors import modules as module_mappings
 from granule_ingester.preprocessors import GranulePreprocessor
@@ -31,11 +30,8 @@ logger = logging.getLogger(__name__)
 class GranuleLoader:
 
     def __init__(self, resource: str, *args, **kwargs):
-        # super().__init__(*args, **kwargs)
-
         self._granule_temp_file = None
         self._resource = resource
-        self._squeeze_dims = kwargs.get('squeeze', None)
         self._preprocess = None
 
         if 'preprocess' in kwargs:
@@ -72,12 +68,6 @@ class GranuleLoader:
                     ds = preprocessor.process(ds)
 
             return ds, granule_name
-
-            # if self._squeeze_dims is None:
-            #     return ds, granule_name
-            # else:
-            #     logger.debug(f'Squeezing dims: {self._squeeze_dims}')
-            #     return ds.squeeze(self._squeeze_dims), granule_name
         except FileNotFoundError:
             raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
         except Exception:

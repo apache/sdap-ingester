@@ -20,10 +20,9 @@ from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
-from nexusproto import DataTile_pb2 as nexusproto
-
 from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.processors.TileProcessor import TileProcessor
+from nexusproto import DataTile_pb2 as nexusproto
 
 logger = logging.getLogger(__name__)
 
