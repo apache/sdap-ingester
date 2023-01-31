@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import json
 import os.path
 from glob import glob
 from typing import Dict
@@ -125,6 +126,9 @@ class CollectionProcessor:
 
         if collection.squeeze is not None:
             config_dict['squeeze'] = list(collection.squeeze)
+
+        if collection.preprocess is not None:
+            config_dict['preprocess'] = json.loads(collection.preprocess)
 
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")

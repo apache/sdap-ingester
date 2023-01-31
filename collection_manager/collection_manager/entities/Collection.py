@@ -48,6 +48,7 @@ class Collection:
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
     squeeze: Optional[frozenset] = None
+    preprocess: str = None
 
     @staticmethod
     def __decode_dimension_names(dimension_names_dict):
@@ -88,6 +89,8 @@ class Collection:
             else:
                 squeeze = None
 
+            preprocess = json.dumps(properties['preprocess']) if 'preprocess' in properties else None
+
             collection = Collection(dataset_id=properties['id'],
                                     projection=properties['projection'],
                                     dimension_names=frozenset(Collection.__decode_dimension_names(properties['dimensionNames'])),
@@ -97,7 +100,8 @@ class Collection:
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
                                     date_to=date_to,
                                     date_from=date_from,
-                                    squeeze=squeeze)
+                                    squeeze=squeeze,
+                                    preprocess=preprocess)
             return collection
         except KeyError as e:
             raise MissingValueCollectionError(missing_value=e.args[0])
