@@ -61,7 +61,7 @@ class GranuleLoader:
             ds = xr.open_dataset(file_path, lock=False)
 
             if self._preprocess is not None:
-                logger.debug(f'There are {len(self._preprocess)} preprocessors to run')
+                logger.info(f'There are {len(self._preprocess)} preprocessors to apply for granule {self._resource}')
                 while len(self._preprocess) > 0:
                     preprocessor: GranulePreprocessor = self._preprocess.pop(0)
 
