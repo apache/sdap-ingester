@@ -20,8 +20,9 @@ from urllib import parse
 
 import aioboto3
 import xarray as xr
-
-from granule_ingester.exceptions import GranuleLoadingError
+from granule_ingester.exceptions import GranuleLoadingError, PipelineBuildingError
+from granule_ingester.granule_loaders.Preprocessors import modules as module_mappings
+from granule_ingester.preprocessors import GranulePreprocessor
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,12 @@ logger = logging.getLogger(__name__)
 class GranuleLoader:
 
     def __init__(self, resource: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
         self._granule_temp_file = None
         self._resource = resource
+        self._preprocess = None
+
+        if 'preprocess' in kwargs:
+            self._preprocess = [GranuleLoader._parse_module(module) for module in kwargs['preprocess']]
 
     async def __aenter__(self):
         return await self.open()
@@ -55,7 +58,16 @@ class GranuleLoader:
 
         granule_name = os.path.basename(self._resource)
         try:
-            return xr.open_dataset(file_path, lock=False), granule_name
+            ds = xr.open_dataset(file_path, lock=False)
+
+            if self._preprocess is not None:
+                logger.info(f'There are {len(self._preprocess)} preprocessors to apply for granule {self._resource}')
+                while len(self._preprocess) > 0:
+                    preprocessor: GranulePreprocessor = self._preprocess.pop(0)
+
+                    ds = preprocessor.process(ds)
+
+            return ds, granule_name
         except FileNotFoundError:
             raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
         except Exception:
@@ -76,3 +88,18 @@ class GranuleLoader:
         fp.write(data)
         logger.info("Saved downloaded file to {}.".format(fp.name))
         return fp
+
+    @staticmethod
+    def _parse_module(module_config: dict):
+        module_name = module_config.pop('name')
+        try:
+            module_class = module_mappings[module_name]
+            logger.debug("Loaded preprocessor {}.".format(module_class))
+            processor_module = module_class(**module_config)
+        except KeyError:
+            raise PipelineBuildingError(f"'{module_name}' is not a valid preprocessor.")
+        except Exception as e:
+            raise PipelineBuildingError(f"Parsing module '{module_name}' failed because of the following error: {e}")
+
+        return processor_module
+

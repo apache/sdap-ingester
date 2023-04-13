@@ -69,7 +69,7 @@ def _init_worker(processor_list, dataset, data_store_factory, metadata_store_fac
 
 async def _process_tile_in_worker(serialized_input_tile: str):
     try:
-        logger.info('Starting tile creation subprocess')
+        logger.debug('Starting tile creation subprocess')
         logger.debug(f'serialized_input_tile: {serialized_input_tile}')
         input_tile = nexusproto.NexusTile.FromString(serialized_input_tile)
         logger.info(f'Creating tile for slice {input_tile.summary.section_spec}')
@@ -79,11 +79,11 @@ async def _process_tile_in_worker(serialized_input_tile: str):
             logger.info('Processed tile is empty; adding None result to return')
             return None
 
-        logger.info('Tile processing complete; serializing output tile')
+        logger.debug('Tile processing complete; serializing output tile')
 
         serialized_output_tile = nexusproto.NexusTile.SerializeToString(processed_tile)
 
-        logger.info('Adding serialized result to return')
+        logger.debug('Adding serialized result to return')
 
         return serialized_output_tile
     except Exception as e:
@@ -171,7 +171,10 @@ class Pipeline:
                         module_mappings: dict,
                         max_concurrency: int):
         try:
-            granule_loader = GranuleLoader(**config['granule'])
+            if 'preprocess' in config:
+                granule_loader = GranuleLoader(**config['granule'], **{'preprocess': config['preprocess']})
+            else:
+                granule_loader = GranuleLoader(**config['granule'])
 
             slicer_config = config['slicer']
             slicer = cls._parse_module(slicer_config, module_mappings)

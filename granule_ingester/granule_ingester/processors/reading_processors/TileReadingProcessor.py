@@ -20,10 +20,9 @@ from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
-from nexusproto import DataTile_pb2 as nexusproto
-
 from granule_ingester.exceptions import TileProcessingError
 from granule_ingester.processors.TileProcessor import TileProcessor
+from nexusproto import DataTile_pb2 as nexusproto
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +52,7 @@ class TileReadingProcessor(TileProcessor, ABC):
 
             return self._generate_tile(dataset, dimensions_to_slices, output_tile)
         except Exception as e:
+            logger.exception(e)
             raise TileProcessingError(f"Could not generate tiles from the granule because of the following error: {e}.")
 
     @abstractmethod
@@ -86,5 +86,12 @@ class TileReadingProcessor(TileProcessor, ABC):
     def _convert_to_timestamp(times: xr.DataArray) -> xr.DataArray:
         if times.dtype == np.float32:
             return times
+        elif times.dtype.type == np.timedelta64:    # If time is an array of offsets from a fixed reference
+            reference = times.time.item() / 1e9     # Get the base time in seconds
+
+            times = (times / 1e9).astype(int)       # Convert offset array to seconds
+            times = times.where(times != -9223372036854775808)  # Replace NaT values with NaN
+
+            return times + reference    # Add base to offsets
         epoch = np.datetime64(datetime.datetime(1970, 1, 1, 0, 0, 0))
         return ((times - epoch) / 1e9).astype(int)

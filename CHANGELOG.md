@@ -6,12 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- SDAP-437: Added support for preprocessing of input granules. Initial implementation contains one preprocessor implementation for squeezing one or more dimensions to ensure the dataset is shaped as needed.
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 - SDAP-423: Fixed verbosity settings not propagating to ingester subprocesses
 - SDAP-417: Fixed bug where very spatially narrow tiles would have their WKT for the geo field represent the incorrect shape (ie a very narrow polygon being rounded to a line), which would cause an error on write to Solr.
+- SDAP-435: Added case for handling time arrays of type `np.timedelta64`
 ### Security
 
 ## [1.0.0] - 2022-12-05
