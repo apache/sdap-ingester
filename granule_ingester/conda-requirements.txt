@@ -22,5 +22,5 @@ xarray
 pyyaml==5.3.1
 aiohttp==3.6.2
 tenacity
-requests==2.27.1
+requests==2.31.0
 
