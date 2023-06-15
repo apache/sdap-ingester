@@ -125,6 +125,9 @@ class CollectionProcessor:
         if collection.preprocess is not None:
             config_dict['preprocess'] = json.loads(collection.preprocess)
 
+        if collection.processors is not None:
+            config_dict['processors'].extend(json.loads(collection.processors))
+
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")
         return config_str

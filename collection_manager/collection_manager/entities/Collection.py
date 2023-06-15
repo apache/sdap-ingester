@@ -47,6 +47,7 @@ class Collection:
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
     preprocess: str = None
+    processors: str = None
 
     @staticmethod
     def __decode_dimension_names(dimension_names_dict):
@@ -80,6 +81,7 @@ class Collection:
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
             preprocess = json.dumps(properties['preprocess']) if 'preprocess' in properties else None
+            extra_processors = json.dumps(properties['processors']) if 'processors' in properties else None
 
             collection = Collection(dataset_id=properties['id'],
                                     projection=properties['projection'],
@@ -90,7 +92,8 @@ class Collection:
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
                                     date_to=date_to,
                                     date_from=date_from,
-                                    preprocess=preprocess)
+                                    preprocess=preprocess,
+                                    processors=extra_processors)
             return collection
         except KeyError as e:
             raise MissingValueCollectionError(missing_value=e.args[0])

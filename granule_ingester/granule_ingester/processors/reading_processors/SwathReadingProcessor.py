@@ -55,7 +55,8 @@ class SwathReadingProcessor(TileReadingProcessor):
                 raise RuntimeError(
                     "Depth slices must have length 1, but '{dim}' has length {dim_len}.".format(dim=depth_dim,
                                                                                                 dim_len=depth_slice_len))
-            new_tile.depth = ds[self.depth][depth_slice].item()
+            new_tile.min_depth = ds[self.depth][depth_slice].item()
+            new_tile.max_depth = ds[self.depth][depth_slice].item()
 
         new_tile.latitude.CopyFrom(to_shaped_array(lat_subset))
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))

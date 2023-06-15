@@ -79,7 +79,8 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
                 raise RuntimeError(
                     "Depth slices must have length 1, but '{dim}' has length {dim_len}.".format(dim=depth_dim,
                                                                                                 dim_len=depth_slice_len))
-            new_tile.depth = ds[self.depth][depth_slice].item()
+            new_tile.min_depth = ds[self.depth][depth_slice].item()
+            new_tile.max_depth = ds[self.depth][depth_slice].item()
 
         if self.time:
             time_slice = dimensions_to_slices[self.time]
