@@ -14,11 +14,6 @@
 # limitations under the License.
 
 import logging
-import warnings
-
-import numpy
-from nexusproto import DataTile_pb2 as nexusproto
-from nexusproto.serialization import from_shaped_array
 
 from granule_ingester.processors.TileProcessor import TileProcessor
 
