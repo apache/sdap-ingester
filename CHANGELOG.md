@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- SDAP-469: Additions to support height/depth dimensions on input
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.1.0] - 2023-04-26
 ### Added
 - SDAP-437: Added support for preprocessing of input granules. Initial implementation contains one preprocessor implementation for squeezing one or more dimensions to ensure the dataset is shaped as needed.
