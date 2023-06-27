@@ -84,14 +84,15 @@ class TileReadingProcessor(TileProcessor, ABC):
 
     @staticmethod
     def _convert_to_timestamp(times: xr.DataArray) -> xr.DataArray:
-        if times.dtype == np.float32:
-            return times
-        elif times.dtype.type == np.timedelta64:    # If time is an array of offsets from a fixed reference
-            reference = times.time.item() / 1e9     # Get the base time in seconds
+        if times.dtype.type == np.timedelta64:  # If time is an array of offsets from a fixed reference
+            reference = times.time.item() / 1e9  # Get the base time in seconds
 
-            times = (times / 1e9).astype(int)       # Convert offset array to seconds
+            times = (times / 1e9).astype(int)  # Convert offset array to seconds
             times = times.where(times != -9223372036854775808)  # Replace NaT values with NaN
 
-            return times + reference    # Add base to offsets
+            return times + reference  # Add base to offsets
+        elif np.issubdtype(times.dtype, np.number):
+            return times
+
         epoch = np.datetime64(datetime.datetime(1970, 1, 1, 0, 0, 0))
         return ((times - epoch) / 1e9).astype(int)
