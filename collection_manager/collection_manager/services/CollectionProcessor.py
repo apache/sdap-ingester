@@ -104,15 +104,15 @@ class CollectionProcessor:
                 'name': 'kelvinToCelsius'
             },
             {
+                'name': 'verifyShape'
+            },
+            {
                 'name': 'tileSummary',
                 'dataset_name': collection.dataset_id
             },
             {
                 'name': 'generateTileId'
             },
-            {
-                'name': 'verifyShape'
-            }
         ])
 
         return processors
