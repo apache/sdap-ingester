@@ -91,7 +91,8 @@ class SolrIngestionHistory(IngestionHistory):
                     'dataset_s': dataset_id,
                     'latest_update_l': int(datetime.now().timestamp()),
                     'store_type_s': type,
-                    'config': config
+                    'config': config,
+                    'source_s:': 'collection_config'
                 }])
                 self._solr_datasets.commit()
 
