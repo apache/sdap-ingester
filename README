@@ -12,3 +12,7 @@ https://incubator-sdap-nexus.readthedocs.io/en/latest/build.html
 
 Further information about Apache SDAP is available at its web site,
 https://sdap.incubator.apache.org.
+
+This product includes test data sourced from NASA's Earth
+Observing System Data and Information System (EOSDIS). For more 
+information, visit: https://www.earthdata.nasa.gov/
