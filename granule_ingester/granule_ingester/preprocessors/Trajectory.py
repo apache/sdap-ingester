@@ -31,4 +31,4 @@ class Trajectory(GranulePreprocessor):
         window = ceil(sqrt(length))
 
         return input_dataset.coarsen(**{self._dim: window}, boundary='pad')\
-            .construct(**{self._dim: ('ROWS', 'COLS')})
+            .construct(**{self._dim: ('ROWS', 'COLS')}, keep_attrs=True)
