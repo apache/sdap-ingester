@@ -156,6 +156,7 @@ class SolrIngestionHistory(IngestionHistory):
                 self._add_field(schema_endpoint, "dataset_s", "string")
                 self._add_field(schema_endpoint, "latest_update_l", "TrieLongField")
                 self._add_field(schema_endpoint, "store_type_s", "string", True)
+                self._add_field(schema_endpoint, "source_s", "string", True)
                 self._add_field(schema_endpoint, "config", "text_general", True)
 
         except requests.exceptions.RequestException as e:
