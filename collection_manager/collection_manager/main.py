@@ -24,7 +24,7 @@ from collection_manager.services.history_manager import (
     FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
     md5sum_from_filepath)
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
 logging.getLogger("pika").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
