@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2023-04-26
 ### Added
 - SDAP-437: Added support for preprocessing of input granules. Initial implementation contains one preprocessor implementation for squeezing one or more dimensions to ensure the dataset is shaped as needed.
+- SDAP-483: Added `.asf.yaml` to configure Jira auto-linking.
 ### Changed
 ### Deprecated
 ### Removed
