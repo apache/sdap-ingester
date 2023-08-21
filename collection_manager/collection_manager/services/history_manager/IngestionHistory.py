@@ -61,7 +61,7 @@ class IngestionHistory(ABC):
         :param file_path: The full path to the file to record.
         :return: None
         """
-        file_name = IngestionHistory._get_standardized_path(file_path)
+        file_name = IngestionHistory.get_standardized_path(file_path)
         signature = self._signature_fun(file_path) if self._signature_fun else str(modified_timestamp)
         await self._push_record(file_name, signature)
 
@@ -100,7 +100,7 @@ class IngestionHistory(ABC):
         else:
             return GranuleStatus.UNDESIRED
 
-    def _get_standardized_path(file_path: str):
+    def get_standardized_path(file_path: str):
         file_path = file_path.strip()
         # TODO: Why do we need to record the basename of the path, instead of just the full path?
         # The only reason this is here right now is for backwards compatibility to avoid triggering a full reingestion.
@@ -125,7 +125,7 @@ class IngestionHistory(ABC):
         :param file_path: The full path of a file to search for in the history.
         :return: A boolean indicating whether this file has already been ingested or not
         """
-        file_name = IngestionHistory._get_standardized_path(file_path)
+        file_name = IngestionHistory.get_standardized_path(file_path)
         return signature == await self._get_signature(file_name)
 
     @abstractmethod

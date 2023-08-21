@@ -29,7 +29,7 @@ from collection_manager.services.history_manager.IngestionHistory import \
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5']
+SUPPORTED_FILE_EXTENSIONS = ['.nc', '.nc4', '.h5', '.tif']
 
 
 class CollectionProcessor:
@@ -81,7 +81,7 @@ class CollectionProcessor:
         if isinstance(history_manager, SolrIngestionHistory):
             collection_config = {
                 'path': collection.path,
-                'config': collection.config
+                'config': dict(collection.config)
             }
 
             collection_dimensions = dict(collection.dimension_names)
@@ -105,6 +105,9 @@ class CollectionProcessor:
 
     @staticmethod
     def _get_default_processors(collection: Collection):
+        if collection.store_type != 'nexusproto':
+            return []
+
         processors = [
             {
                 'name': collection.projection,
@@ -130,8 +133,10 @@ class CollectionProcessor:
     def _generate_ingestion_message(granule_path: str, collection: Collection) -> str:
 
         config_dict = {
+            'pipeline_type': collection.store_type,
             'granule': {
-                'resource': granule_path
+                'resource': granule_path,
+                'granule_s': IngestionHistory.get_standardized_path(granule_path)
             },
             'slicer': {
                 'name': 'sliceFileByStepSize',

@@ -83,20 +83,20 @@ class Collection:
             date_to = datetime.fromisoformat(properties['to']) if 'to' in properties else None
             date_from = datetime.fromisoformat(properties['from']) if 'from' in properties else None
 
-            store_type = properties.get('storeType')
+            store_type = properties.get('storeType', 'nexusproto')
 
             slices = properties.get('slices', {})
 
             preprocess = json.dumps(properties['preprocess']) if 'preprocess' in properties else None
             extra_processors = json.dumps(properties['processors']) if 'processors' in properties else None
-            config = properties['config'] if 'config' in properties else None
+            config = properties['config'] if 'config' in properties else {}
 
             projection = properties['projection'] if 'projection' in properties else None
 
             collection = Collection(dataset_id=properties['id'],
                                     projection=projection,
                                     dimension_names=frozenset(Collection.__decode_dimension_names(properties['dimensionNames'])),
-                                    slices=frozenset(slices),
+                                    slices=frozenset(slices.items()),
                                     path=properties['path'],
                                     historical_priority=properties['priority'],
                                     forward_processing_priority=properties.get('forward-processing-priority', None),
@@ -105,7 +105,7 @@ class Collection:
                                     preprocess=preprocess,
                                     processors=extra_processors,
                                     store_type=store_type,
-                                    config=config
+                                    config=frozenset(config.items())
                                     )
             return collection
         except KeyError as e:
