@@ -29,7 +29,16 @@ logger = logging.getLogger(__name__)
 
 class TileReadingProcessor(TileProcessor, ABC):
 
-    def __init__(self, variable: Union[str, list], latitude: str, longitude: str, *args, **kwargs):
+    def __init__(
+            self,
+            variable: Union[str, list],
+            latitude: str,
+            longitude: str,
+            height: str = None,
+            depth: str = None,
+            *args,
+            **kwargs
+    ):
         try:
             self.variable = json.loads(variable)
         except Exception as e:
@@ -40,6 +49,20 @@ class TileReadingProcessor(TileProcessor, ABC):
             raise RuntimeError(f'variable list is empty: {self.variable}')
         self.latitude = latitude
         self.longitude = longitude
+
+        if height:
+            self.height = height
+            self.invert_z = False
+            if depth:
+                logger.warning('Both height and depth dimensions were specified. Favoring height')
+        elif depth:
+            self.height = depth
+            self.invert_z = True
+        else:
+            self.height = None
+            self.invert_z = None
+
+        # self.invert_z: if depth is specified instead of height, multiply it by -1, so it becomes height
 
     def process(self, tile, dataset: xr.Dataset, *args, **kwargs):
         logger.debug(f'Reading Processor: {type(self)}')
