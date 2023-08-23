@@ -20,6 +20,7 @@ from granule_ingester.processors import (GenerateTileId,
                                          Subtract180FromLongitude,
                                          ForceAscendingLatitude,
                                          DepthBounds,
+                                         HeightOffset,
                                          VerifyProcessor)
 from granule_ingester.processors.reading_processors import (EccoReadingProcessor,
                                                             GridReadingProcessor,
@@ -46,5 +47,6 @@ modules = {
     "subtract180FromLongitude": Subtract180FromLongitude,
     "forceAscendingLatitude": ForceAscendingLatitude,
     "depthBounds": DepthBounds,
+    "heightOffset": HeightOffset,
     "verifyShape": VerifyProcessor
 }

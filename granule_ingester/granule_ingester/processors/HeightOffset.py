@@ -43,8 +43,8 @@ class HeightOffset(TileProcessor):
 
             if v[0] == self.offset_dimension:
                 height_index = int(v[1])
-            elif v[0] in self.base_dimension.dims:
-                slice_dims[v[0]] = slice(v[1], v[2])
+            elif v[0] in dataset[self.base_dimension].dims:
+                slice_dims[v[0]] = slice(int(v[1]), int(v[2]))
 
         if height_index is None:
             logger.warning(f"Cannot compute heights for tile {str(tile.summary.tile_id)}. Unable to determine height index from spec")
