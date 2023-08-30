@@ -92,7 +92,7 @@ class SolrIngestionHistory(IngestionHistory):
                     'latest_update_l': int(datetime.now().timestamp()),
                     'store_type_s': type,
                     'config': config,
-                    'source_s:': 'collection_config'
+                    'source_s': 'collection_config'
                 }])
                 self._solr_datasets.commit()
 
