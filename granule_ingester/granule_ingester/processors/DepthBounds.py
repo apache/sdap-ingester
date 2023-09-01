@@ -16,6 +16,9 @@
 import logging
 
 from granule_ingester.processors.TileProcessor import TileProcessor
+import numpy as np
+from nexusproto.serialization import from_shaped_array, to_shaped_array
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +52,22 @@ class DepthBounds(TileProcessor):
 
         bounds = dataset[self.coordinate][depth_index]
 
-        tile_data.max_depth = bounds[0].item()
-        tile_data.min_depth = bounds[1].item()
+        if tile_type in ['GridTile', 'GridMultiVariableTile']:
+            elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
+        else:
+            elev_shape = from_shaped_array(tile_data.latitude).shape
+
+        tile_data.elevation.CopyFrom(
+            to_shaped_array(
+                np.full(
+                    elev_shape,
+                    tile_data.min_elevation
+                )
+            )
+        )
+
+        tile_data.max_elevation = bounds[0].item()
+        tile_data.min_elevation = bounds[1].item()
 
         return tile
 

@@ -64,8 +64,8 @@ class GridReadingProcessor(TileReadingProcessor):
             if self.invert_z:
                 ds[self.height] = ds[self.height] * -1
 
-            new_tile.min_depth = ds[self.height][depth_slice].item()
-            new_tile.max_depth = ds[self.height][depth_slice].item()
+            new_tile.min_elevation = ds[self.height][depth_slice].item()
+            new_tile.max_elevation = ds[self.height][depth_slice].item()
 
         if self.time:
             time_slice = dimensions_to_slices[self.time]

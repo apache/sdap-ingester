@@ -17,6 +17,8 @@ import logging
 
 from granule_ingester.processors.TileProcessor import TileProcessor
 import numpy as np
+from nexusproto.serialization import from_shaped_array, to_shaped_array
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +58,17 @@ class HeightOffset(TileProcessor):
 
         computed_height = base_height + height
 
-        tile_data.max_depth = np.nanmax(computed_height).item()
-        tile_data.min_depth = np.nanmin(computed_height).item()
+        # if tile_type in ['GridTile', 'GridMultiVariableTile']:
+        #     elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
+        # else:
+        #     elev_shape = from_shaped_array(tile_data.latitude).shape
+
+        tile_data.elevation.CopyFrom(
+            to_shaped_array(computed_height)
+        )
+
+        tile_data.max_elevation = np.nanmax(computed_height).item()
+        tile_data.min_elevation = np.nanmin(computed_height).item()
 
         return tile
 
