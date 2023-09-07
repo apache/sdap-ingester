@@ -48,6 +48,7 @@ class Collection:
     date_to: Optional[datetime] = None
     preprocess: str = None
     processors: str = None
+    group: str = None
 
     @staticmethod
     def __decode_dimension_names(dimension_names_dict):
@@ -93,7 +94,8 @@ class Collection:
                                     date_to=date_to,
                                     date_from=date_from,
                                     preprocess=preprocess,
-                                    processors=extra_processors)
+                                    processors=extra_processors,
+                                    group=properties.get('group'))
             return collection
         except KeyError as e:
             raise MissingValueCollectionError(missing_value=e.args[0])

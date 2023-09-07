@@ -138,6 +138,9 @@ class CollectionProcessor:
         if collection.processors is not None:
             config_dict['processors'].extend(json.loads(collection.processors))
 
+        if collection.group is not None:
+            config_dict['granule']['group'] = collection.group
+
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")
         return config_str

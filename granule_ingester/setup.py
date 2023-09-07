@@ -40,7 +40,7 @@ setup(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests", "scripts"]),
     test_suite="tests",
     platforms='any',
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     classifiers=[
         'Development Status :: 1 - Pre-Alpha',
         'Intended Audience :: Developers',
