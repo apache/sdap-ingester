@@ -13,7 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from granule_ingester.preprocessors.GranulePreprocessor import GranulePreprocessor
-from granule_ingester.preprocessors.Squeeze import Squeeze
-from granule_ingester.preprocessors.Trajectory import Trajectory
+import logging
 
+import xarray as xr
+from granule_ingester.preprocessors.GranulePreprocessor import GranulePreprocessor
+from math import sqrt, ceil
+
+logger = logging.getLogger(__name__)
+
+
+class Trajectory(GranulePreprocessor):
+    def __init__(self, dimension: str):
+        self._dim = dimension
+
+    def process(self, input_dataset: xr.Dataset, *args, **kwargs):
+        length = len(input_dataset[self._dim])
+        window = ceil(sqrt(length))
+
+        return input_dataset.coarsen(**{self._dim: window}, boundary='pad')\
+            .construct(**{self._dim: ('ROWS', 'COLS')}, keep_attrs=True)

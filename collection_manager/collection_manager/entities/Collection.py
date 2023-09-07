@@ -49,6 +49,7 @@ class Collection:
     date_to: Optional[datetime] = None
     preprocess: str = None
     processors: str = None
+    group: str = None
     store_type: str = None
     config: str = None
 
@@ -104,6 +105,7 @@ class Collection:
                                     date_from=date_from,
                                     preprocess=preprocess,
                                     processors=extra_processors,
+                                    group=properties.get('group'),
                                     store_type=store_type,
                                     config=config
                                     )
