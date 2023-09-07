@@ -19,8 +19,8 @@ from granule_ingester.processors import (GenerateTileId,
                                          KelvinToCelsius,
                                          Subtract180FromLongitude,
                                          ForceAscendingLatitude,
-                                         DepthBounds,
-                                         HeightOffset,
+                                         ElevationBounds,
+                                         ElevationOffset,
                                          VerifyProcessor)
 from granule_ingester.processors.reading_processors import (EccoReadingProcessor,
                                                             GridReadingProcessor,
@@ -46,7 +46,7 @@ modules = {
     "kelvinToCelsius": KelvinToCelsius,
     "subtract180FromLongitude": Subtract180FromLongitude,
     "forceAscendingLatitude": ForceAscendingLatitude,
-    "depthBounds": DepthBounds,
-    "heightOffset": HeightOffset,
+    "depthBounds": ElevationBounds,
+    "heightOffset": ElevationOffset,
     "verifyShape": VerifyProcessor
 }

@@ -23,14 +23,12 @@ from nexusproto.serialization import from_shaped_array, to_shaped_array
 logger = logging.getLogger(__name__)
 
 
-class HeightOffset(TileProcessor):
-    def __init__(self, base, offset):
-        self.base_dimension = base
-        self.offset_dimension = offset
+class ElevationBounds(TileProcessor):
+    def __init__(self, reference_dimension, bounds_coordinate):
+        self.dimension = reference_dimension
+        self.coordinate = bounds_coordinate
 
     def process(self, tile, dataset):
-        slice_dims = {}
-
         tile_type = tile.tile.WhichOneof("tile_type")
         tile_data = getattr(tile.tile, tile_type)
 
@@ -38,37 +36,38 @@ class HeightOffset(TileProcessor):
 
         spec_list = tile_summary.section_spec.split(',')
 
-        height_index = None
+        depth_index = None
 
         for spec in spec_list:
             v = spec.split(':')
 
-            if v[0] == self.offset_dimension:
-                height_index = int(v[1])
-            elif v[0] in dataset[self.base_dimension].dims:
-                slice_dims[v[0]] = slice(int(v[1]), int(v[2]))
+            if v[0] == self.dimension:
+                depth_index = int(v[1])
+                break
 
-        if height_index is None:
-            logger.warning(f"Cannot compute heights for tile {str(tile.summary.tile_id)}. Unable to determine height index from spec")
+        if depth_index is None:
+            logger.warning(f"Cannot compute depth bounds for tile {str(tile.summary.tile_id)}. Unable to determine depth index from spec")
 
             return tile
 
-        height = dataset[self.offset_dimension][height_index].item()
-        base_height = dataset[self.base_dimension].isel(slice_dims).data
+        bounds = dataset[self.coordinate][depth_index]
 
-        computed_height = base_height + height
-
-        # if tile_type in ['GridTile', 'GridMultiVariableTile']:
-        #     elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
-        # else:
-        #     elev_shape = from_shaped_array(tile_data.latitude).shape
+        if tile_type in ['GridTile', 'GridMultiVariableTile']:
+            elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
+        else:
+            elev_shape = from_shaped_array(tile_data.latitude).shape
 
         tile_data.elevation.CopyFrom(
-            to_shaped_array(computed_height)
+            to_shaped_array(
+                np.full(
+                    elev_shape,
+                    tile_data.min_elevation
+                )
+            )
         )
 
-        tile_data.max_elevation = np.nanmax(computed_height).item()
-        tile_data.min_elevation = np.nanmin(computed_height).item()
+        tile_data.max_elevation = bounds[0].item()
+        tile_data.min_elevation = bounds[1].item()
 
         return tile
 
