@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class ElevationOffset(TileProcessor):
-    def __init__(self, base, offset):
+    def __init__(self, base, offset, **kwargs):
         self.base_dimension = base
         self.offset_dimension = offset
+        self.flip_lat = kwargs.get('flipLatitude', False)
 
     def process(self, tile, dataset):
         slice_dims = {}
@@ -62,6 +63,9 @@ class ElevationOffset(TileProcessor):
         #     elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
         # else:
         #     elev_shape = from_shaped_array(tile_data.latitude).shape
+
+        if self.flip_lat:
+            computed_height = np.flip(computed_height, axis=0)
 
         tile_data.elevation.CopyFrom(
             to_shaped_array(computed_height)
