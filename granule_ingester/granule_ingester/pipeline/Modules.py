@@ -46,7 +46,7 @@ modules = {
     "kelvinToCelsius": KelvinToCelsius,
     "subtract180FromLongitude": Subtract180FromLongitude,
     "forceAscendingLatitude": ForceAscendingLatitude,
-    "depthBounds": ElevationBounds,
-    "heightOffset": ElevationOffset,
+    "elevationBounds": ElevationBounds,
+    "elevationOffset": ElevationOffset,
     "verifyShape": VerifyProcessor
 }

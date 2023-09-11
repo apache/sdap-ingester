@@ -34,6 +34,7 @@ from granule_ingester.exceptions import CassandraFailedHealthCheckError, Cassand
 from granule_ingester.writers.DataStore import DataStore
 
 from typing import List
+from time import sleep
 
 logging.getLogger('cassandra').setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
@@ -119,24 +120,35 @@ class CassandraStore(DataStore):
         writing = 0
 
         for batch in batches:
-            futures = []
-
             writing += len(batch)
 
             logger.info(f'Writing batch of {len(batch)} tiles to Cassandra | ({writing}/{n_tiles}) [{writing/n_tiles*100:7.3f}%]')
 
-            for tile in batch:
-                tile_id = uuid.UUID(tile.summary.tile_id)
-                serialized_tile_data = TileData.SerializeToString(tile.tile)
+            while len(batch) > 0:
+                futures = []
+                failed = []
 
-                cassandra_future = self._session.execute_async(prepared_query, [tile_id, bytearray(serialized_tile_data)])
-                asyncio_future = asyncio.Future()
-                cassandra_future.add_callbacks(asyncio_future.set_result, asyncio_future.set_exception)
+                for tile in batch:
+                    tile_id = uuid.UUID(tile.summary.tile_id)
+                    serialized_tile_data = TileData.SerializeToString(tile.tile)
 
-                futures.append(asyncio_future)
+                    cassandra_future = self._session.execute_async(prepared_query, [tile_id, bytearray(serialized_tile_data)])
+                    asyncio_future = asyncio.Future()
+                    cassandra_future.add_callbacks(asyncio_future.set_result, asyncio_future.set_exception)
 
-            for f in futures:
-                await f
+                    futures.append((tile, asyncio_future))
+
+                for t, f in futures:
+                    try:
+                        await f
+                    except Exception:
+                        failed.append(t)
+
+                if len(failed) > 0:
+                    logger.warning(f'Need to retry {len(failed)} tiles')
+                    sleep(10)
+
+                batch = failed
 
         logger.info(f'Wrote {len(tiles)} tiles to Cassandra in {str(datetime.now() - thetime)} seconds')
 
