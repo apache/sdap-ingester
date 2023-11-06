@@ -24,7 +24,7 @@ with open('../VERSION.txt', 'r') as f:
     __version__ = f.readline()
 
 try:
-    check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
+    check_call(['mamba', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
 except (CalledProcessError, IOError) as e:
     raise EnvironmentError("Error installing conda packages", e)
 
