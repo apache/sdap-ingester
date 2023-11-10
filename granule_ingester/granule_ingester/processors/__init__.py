@@ -23,3 +23,4 @@ from granule_ingester.processors.ForceAscendingLatitude import ForceAscendingLat
 from granule_ingester.processors.ElevationBounds import ElevationBounds
 from granule_ingester.processors.VerifyProcessor import VerifyProcessor
 from granule_ingester.processors.ElevationOffset import ElevationOffset
+from granule_ingester.processors.ElevationRange import ElevationRange

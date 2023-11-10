@@ -13,21 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from granule_ingester.processors import (GenerateTileId,
-                                         TileSummarizingProcessor,
-                                         EmptyTileFilter,
-                                         KelvinToCelsius,
-                                         Subtract180FromLongitude,
-                                         ForceAscendingLatitude,
-                                         ElevationBounds,
-                                         ElevationOffset,
-                                         VerifyProcessor)
-from granule_ingester.processors.reading_processors import (EccoReadingProcessor,
-                                                            GridReadingProcessor,
-                                                            SwathReadingProcessor,
-                                                            TimeSeriesReadingProcessor,
-                                                            GridMultiVariableReadingProcessor,
-                                                            SwathMultiVariableReadingProcessor)
+from granule_ingester.processors import *
+from granule_ingester.processors.reading_processors import *
 from granule_ingester.slicers import SliceFileByStepSize
 from granule_ingester.granule_loaders import GranuleLoader
 
@@ -48,5 +35,6 @@ modules = {
     "forceAscendingLatitude": ForceAscendingLatitude,
     "elevationBounds": ElevationBounds,
     "elevationOffset": ElevationOffset,
+    "elevationRange": ElevationRange,
     "verifyShape": VerifyProcessor
 }
