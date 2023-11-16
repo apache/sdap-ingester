@@ -31,7 +31,7 @@ class ElevationRange(TileProcessor):
         self.stop = float(stop)
         self.step = float(step)
 
-        self.e = list(np.arange(self.start, self.stop, self.step))
+        self.e = list(np.arange(self.start, self.stop + self.step, self.step))
 
     def process(self, tile, dataset):
         tile_type = tile.tile.WhichOneof("tile_type")
