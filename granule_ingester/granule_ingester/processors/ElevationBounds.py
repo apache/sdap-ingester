@@ -52,10 +52,12 @@ class ElevationBounds(TileProcessor):
 
         bounds = dataset[self.coordinate][depth_index]
 
-        if tile_type in ['GridTile', 'GridMultiVariableTile']:
-            elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
-        else:
-            elev_shape = from_shaped_array(tile_data.latitude).shape
+        # if tile_type in ['GridTile', 'GridMultiVariableTile']:
+        #     elev_shape = (len(from_shaped_array(tile_data.latitude)), len(from_shaped_array(tile_data.longitude)))
+        # else:
+        #     elev_shape = from_shaped_array(tile_data.latitude).shape
+
+        elev_shape = from_shaped_array(tile_data.variable_data).shape
 
         tile_data.elevation.CopyFrom(
             to_shaped_array(
