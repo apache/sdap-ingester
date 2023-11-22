@@ -35,8 +35,13 @@ ARG APACHE_NEXUSPROTO=https://github.com/apache/incubator-sdap-nexusproto.git
 ARG APACHE_NEXUSPROTO_BRANCH=master
 
 RUN ./install_nexusproto.sh
-RUN cd /common && python setup.py install
-RUN cd /sdap && python setup.py install
+RUN cd /common && python setup.py install clean
+
+RUN pip uninstall -y chardet
+
+RUN conda install -n base --override-channels -c conda-forge -c defaults mamba libarchive=3.5.2=hb890918_3 && conda clean -afy
+
+RUN cd /sdap && python setup.py install clean && mamba clean -afy
 
 RUN pip install boto3==1.16.10
 
