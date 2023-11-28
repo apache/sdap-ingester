@@ -57,6 +57,14 @@ class ElevationOffset(TileProcessor):
         height = dataset[self.offset_dimension][height_index].item()
         base_height = dataset[self.base_dimension].isel(slice_dims).data
 
+        try:
+            flip_lat, lat_axis = dataset.attrs.pop('_FlippedLat')
+        except KeyError:
+            flip_lat, lat_axis = (False, None)
+
+        if flip_lat:
+            base_height = np.flip(base_height, axis=lat_axis)
+
         computed_height = base_height + height
 
         # if tile_type in ['GridTile', 'GridMultiVariableTile']:
