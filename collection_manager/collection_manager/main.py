@@ -24,8 +24,21 @@ from collection_manager.services.history_manager import (
     FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
     md5sum_from_filepath)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
-logging.getLogger("pika").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
+
+SUPPRESS = [
+    'botocore',
+    's3transfer',
+    'urllib3',
+    'pika',
+    'boto3',
+    'aioboto3'
+]
+
+for logger_name in SUPPRESS:
+    logging.getLogger(logger_name).setLevel(logging.WARNING)
+
+
 logger = logging.getLogger(__name__)
 
 
