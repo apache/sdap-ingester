@@ -24,7 +24,18 @@ from collection_manager.services.history_manager import (
     FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
     md5sum_from_filepath)
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
+
+log_level = os.getenv('LOG_LEVEL', 'INFO')
+
+if log_level in ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']:
+    log_level = getattr(logging, log_level)
+else:
+    try:
+        log_level = int(log_level)
+    except:
+        log_level = logging.INFO
+
+logging.basicConfig(level=log_level, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
 
 SUPPRESS = [
     'botocore',
@@ -125,4 +136,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(), debug=False)
