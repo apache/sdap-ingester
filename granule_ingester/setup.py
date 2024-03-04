@@ -23,14 +23,10 @@ with open('requirements.txt') as f:
 with open('../VERSION.txt', 'r') as f:
     __version__ = f.readline()
 
-try:
-    check_call(['mamba', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
-except (CalledProcessError, IOError) as e:
-    print('Failed install with mamba; falling back to conda')
-    try:
-        check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
-    except (CalledProcessError, IOError) as e:
-        raise EnvironmentError("Error installing conda packages", e)
+# try:
+#     check_call(['conda', 'install', '-y', '-c', 'conda-forge', '--file', 'conda-requirements.txt'])
+# except (CalledProcessError, IOError) as e:
+#     raise EnvironmentError("Error installing conda packages", e)
 
 setup(
     name='sdap_granule_ingester',

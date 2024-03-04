@@ -13,19 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM eclipse-temurin:8
+FROM continuumio/miniconda3:4.8.2-alpine
 
 USER root
 
-COPY --chmod=755 granule_ingester/docker/install_python.sh /install_python.sh
+ENV PATH="/opt/conda/bin:$PATH"
 
-# Install python
-RUN /install_python.sh
-RUN ln -s /opt/python/3.7.6/bin/python3.7  /opt/python/3.7.6/bin/python
-
-ENV PATH="/opt/python/3.7.6/bin:$PATH"
-
-#RUN apk update --no-cache && apk add --no-cache --virtual .build-deps git openjdk8
+RUN apk update --no-cache && apk add --no-cache --virtual .build-deps git openjdk8
 
 COPY VERSION.txt /VERSION.txt
 COPY common /common
@@ -41,14 +35,11 @@ ARG APACHE_NEXUSPROTO=https://github.com/apache/incubator-sdap-nexusproto.git
 ARG APACHE_NEXUSPROTO_BRANCH=master
 
 RUN ./install_nexusproto.sh
-RUN cd /common && python setup.py install clean
-
-RUN pip uninstall -y chardet
-
-RUN conda install -n base --override-channels -c conda-forge -c defaults mamba libarchive=3.5.2=hb890918_3 && conda clean -afy
-
-RUN cd /sdap && python setup.py install clean && mamba clean -afy
+RUN cd /common && python setup.py install
+RUN cd /sdap && python setup.py install
 
 RUN pip install boto3==1.16.10
+
+RUN apk del .build-deps
 
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
