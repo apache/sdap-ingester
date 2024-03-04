@@ -27,22 +27,22 @@ rm -rf /var/lib/apt/lists/*
 echo "Downloading & extracting source tarball"
 
 cd /tmp/
-wget https://www.python.org/ftp/python/3.7.6/Python-3.7.6.tgz
-tar xzf Python-3.7.6.tgz
-cd Python-3.7.6
+wget https://www.python.org/ftp/python/3.8.17/Python-3.8.17.tgz
+tar xzf Python-3.8.17.tgz
+cd Python-3.8.17
 
 echo "Running install"
 
-./configure --prefix=/opt/python/3.7.6/ --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi
+./configure --prefix=/opt/python/3.8.17/ --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi
 make -j "$(nproc)"
 make altinstall
 
 echo "Cleaning up install dir"
 
-rm /tmp/Python-3.7.6.tgz
+rm /tmp/Python-3.8.17.tgz
 cd /tmp/
-rm -rf Python-3.7.6
+rm -rf Python-3.8.17
 
 echo "Final steps..."
 
-/opt/python/3.7.6/bin/python3.7 -m pip install --upgrade pip setuptools wheel
+/opt/python/3.8.17/bin/python3.8 -m pip install --upgrade pip setuptools wheel

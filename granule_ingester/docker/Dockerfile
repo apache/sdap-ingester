@@ -21,9 +21,9 @@ COPY --chmod=755 granule_ingester/docker/install_python.sh /install_python.sh
 
 # Install python
 RUN /install_python.sh
-RUN ln -s /opt/python/3.7.6/bin/python3.7  /opt/python/3.7.6/bin/python
+RUN ln -s /opt/python/3.8.17/bin/python3.8  /opt/python/3.8.17/bin/python
 
-ENV PATH="/opt/python/3.7.6/bin:$PATH"
+ENV PATH="/opt/python/3.8.17/bin:$PATH"
 
 COPY VERSION.txt /VERSION.txt
 COPY common /common
