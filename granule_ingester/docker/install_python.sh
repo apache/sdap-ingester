@@ -45,4 +45,4 @@ rm -rf Python-3.7.6
 
 echo "Final steps..."
 
-/opt/python/3.7.6/bin/python3.9 -m pip install --upgrade pip setuptools wheel
+/opt/python/3.7.6/bin/python3.7 -m pip install --upgrade pip setuptools wheel
