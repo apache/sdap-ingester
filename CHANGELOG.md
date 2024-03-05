@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDAP-501: Updated dependencies to remove `chardet`
 ### Fixed
 - SDAP-488: Workaround to build issue on Apple Silicon (M1/M2). GI image build installs nexusproto through PyPI instead of building from source. A build arg `BUILD_NEXUSPROTO` was defined to allow building from source if desired/
+- Fixed install of `kubectl` in Collection Manager image build
 ### Security
 
 ## [1.1.0] - 2023-04-26
