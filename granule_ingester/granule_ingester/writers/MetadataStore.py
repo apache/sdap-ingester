@@ -41,3 +41,6 @@ class MetadataStore(HealthCheck, ABC):
     def close(self) -> None:
         pass
 
+    def __del__(self):
+        self.close()
+

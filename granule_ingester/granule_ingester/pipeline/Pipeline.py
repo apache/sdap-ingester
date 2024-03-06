@@ -257,11 +257,12 @@ class Pipeline:
                 logger.info(f"Now writing generated tiles...")
 
                 await self._data_store_factory().save_batch(results)
+                await self._metadata_store_factory().save_batch(results)
 
-                metadata_store = self._metadata_store_factory()
-                await metadata_store.save_batch(results)
-
-                metadata_store.close()
+                # metadata_store = self._metadata_store_factory()
+                # await metadata_store.save_batch(results)
+                #
+                # metadata_store.close()
 
         end = time.perf_counter()
         logger.info("Pipeline finished in {} seconds".format(end - start))
