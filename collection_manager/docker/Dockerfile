@@ -29,8 +29,6 @@ COPY collection_manager/README.md /collection_manager/README.md
 COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
 
 RUN cd /common && python setup.py install 
-RUN cd /collection_manager && python setup.py install
-
-RUN pip install boto3==1.16.10
+RUN cd /collection_manager && python setup.py install && pip uninstall -y chardet  && pip install boto3==1.16.10 requests==2.26.0
 
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
