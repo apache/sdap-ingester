@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDAP-478: Add support to user to select subgroup of interest in input granules
 ### Changed
 - Changed granule ingester setup to use mamba instead of conda
+- Improved Collection Manager logging
+  - Inhibited overly verbose loggers
+  - Logging verbosity configurable by environment
+- Improved concurrency for monitoring S3 collections
 ### Deprecated
 ### Removed
 - SDAP-501: Updated dependencies to remove `chardet`
