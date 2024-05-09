@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 - SDAP-512: Fixed Granule Ingester not closing connections to Zookeeper/Solr/Cassandra, eventually exhausting network resources and requiring a restart
+- SDAP-502: Fix for rare bug where gridded tiles generated from inputs where there is a dimension length where `dimensionLength mod tileSliceLength == 1` would cause tile generation to fail. This is because `np.squeeze` is used on the coordinate arrays, which, if the generated tile has only a single lat or lon, would squeeze the corresponding coordinate into a dimensionless array, which would raise an error down the line when `len` was called with it. Added a check for this case that both the coordinate arrays and data array will have correct dimensionality after squeezing out any extra dimensions. 
 ### Security
 
 ## [1.2.0] - 2023-11-22
