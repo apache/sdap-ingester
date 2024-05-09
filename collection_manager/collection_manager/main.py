@@ -24,8 +24,32 @@ from collection_manager.services.history_manager import (
     FileIngestionHistoryBuilder, SolrIngestionHistoryBuilder,
     md5sum_from_filepath)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
-logging.getLogger("pika").setLevel(logging.WARNING)
+
+log_level = os.getenv('LOG_LEVEL', 'INFO')
+
+if log_level in ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']:
+    log_level = getattr(logging, log_level)
+else:
+    try:
+        log_level = int(log_level)
+    except:
+        log_level = logging.INFO
+
+logging.basicConfig(level=log_level, format="%(asctime)s [%(levelname)s] [%(name)s::%(lineno)d] %(message)s")
+
+SUPPRESS = [
+    'botocore',
+    's3transfer',
+    'urllib3',
+    'pika',
+    'boto3',
+    'aioboto3'
+]
+
+for logger_name in SUPPRESS:
+    logging.getLogger(logger_name).setLevel(logging.WARNING)
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +120,7 @@ async def main():
                                                        history_manager_builder=history_manager_builder)
             collection_watcher = CollectionWatcher(collections_path=options.collections_path,
                                                    granule_updated_callback=collection_processor.process_granule,
+                                                   dataset_added_callback=collection_processor.add_plugin_collection,
                                                    collections_refresh_interval=int(options.refresh),
                                                    s3_bucket=options.s3_bucket)
 
@@ -112,4 +137,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(), debug=False)
