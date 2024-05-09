@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- SDAP-472: Added support for defining Zarr collections in the collection config
 ### Changed
 - Improved Collection Manager logging
   - Inhibited overly verbose loggers
@@ -21,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - SDAP-477: Added preprocessor to properly shape incoming data
 - SDAP-478: Add support to user to select subgroup of interest in input granules
-- SDAP-472: Added support for defining Zarr collections in the collection config
 ### Changed
 - Changed granule ingester setup to use mamba instead of conda (superseded by SDAP-511)
 - SDAP-511: Switched package management to use Poetry instead of conda/mamba
