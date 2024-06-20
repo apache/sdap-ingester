@@ -23,6 +23,11 @@ COPY --chmod=755 granule_ingester/docker/install_python.sh /install_python.sh
 RUN /install_python.sh
 RUN ln -s /opt/python/3.8.17/bin/python3.8  /opt/python/3.8.17/bin/python
 
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV PATH="/opt/python/3.8.17/bin:$PATH"
 
 COPY VERSION.txt /VERSION.txt
