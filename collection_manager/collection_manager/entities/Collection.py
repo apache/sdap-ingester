@@ -88,7 +88,7 @@ class Collection:
 
             store_type = properties.get('storeType')
 
-            slices = properties.get('slices', {})
+            slices = properties.get('slices', {}).items()
 
             preprocess = json.dumps(properties['preprocess']) if 'preprocess' in properties else None
             extra_processors = json.dumps(properties['processors']) if 'processors' in properties else None

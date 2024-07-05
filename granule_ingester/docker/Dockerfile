@@ -36,7 +36,7 @@ COPY granule_ingester/granule_ingester /sdap/granule_ingester
 COPY granule_ingester/docker/install_nexusproto.sh /sdap/install_nexusproto.sh
 COPY granule_ingester/docker/entrypoint.sh /entrypoint.sh
 
-COPY granule_ingester/README.md README DISCLAIMER LICENSE.txt NOTICE /sdap/
+COPY granule_ingester/README.md README LICENSE.txt NOTICE /sdap/
 
 ENV PYTHONUNBUFFERED=1 \
     # prevents python creating .pyc files
