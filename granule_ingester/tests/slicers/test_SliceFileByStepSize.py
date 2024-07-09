@@ -48,7 +48,15 @@ class TestSliceFileByStepSize(unittest.TestCase):
                 'depth:2:4,latitude:180:360,longitude:540:720,nv:0:2,time:0:1'
             ]
 
-            self.assertEqual(expected_slices, slices)
+            # Neither the order of slices, nor the order of dimensions within the slices matter
+
+            self.assertEqual(len(expected_slices), len(slices))
+
+            def slice_spec_to_tuples(s):
+                return tuple([(name, slc) for name, slc in sorted([dim.split(':', 1) for dim in s.split(',')])])
+
+            self.assertSetEqual(set([slice_spec_to_tuples(ex) for ex in expected_slices]),
+                                set([slice_spec_to_tuples(s) for s in slices]))
 
     def test_generate_slices_indexed(self):
         netcdf_path = path.join(path.dirname(__file__), '../granules/SMAP_L2B_SSS_04892_20160101T005507_R13080.h5')

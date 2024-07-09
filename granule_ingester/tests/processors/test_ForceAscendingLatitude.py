@@ -18,6 +18,7 @@ import unittest
 import xarray as xr
 import numpy as np
 from os import path
+import warnings
 
 from granule_ingester.processors.reading_processors import GridMultiVariableReadingProcessor, GridReadingProcessor
 from nexusproto import DataTile_pb2 as nexusproto
@@ -41,20 +42,22 @@ class TestForceAscendingLatitude(unittest.TestCase):
             'lon': slice(0, 30)
         }
 
-        with xr.open_dataset(granule_path) as ds:
-            tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
-            flipped_tile = ForceAscendingLatitude().process(tile)
-            the_flipped_tile_type = flipped_tile.tile.WhichOneof("tile_type")
-            self.assertEqual(the_flipped_tile_type, 'grid_multi_variable_tile', f'wrong tile type')
-            the_flipped_tile_data = getattr(flipped_tile.tile, the_flipped_tile_type)
-            self.assertEqual([1, 30, 30, 2], the_flipped_tile_data.variable_data.shape)
-            flipped_latitudes = from_shaped_array(the_flipped_tile_data.latitude)
-            original_lat_data = ds['lat'].values
-            np.testing.assert_almost_equal(flipped_latitudes[0], original_lat_data[29], decimal=5, err_msg='wrong first vs last latitude', verbose=True)
-            np.testing.assert_almost_equal(flipped_latitudes[1], original_lat_data[28], decimal=5, err_msg='wrong latitude', verbose=True)
-            flipped_data = from_shaped_array(the_flipped_tile_data.variable_data)
-            original_b04_data = ds['B04'].values
-            np.testing.assert_almost_equal(original_b04_data[0][0][0], flipped_data[0][29][0][1], decimal=4, err_msg='wrong first vs last data', verbose=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            with xr.open_dataset(granule_path) as ds:
+                tile = reading_processor._generate_tile(ds, dimensions_to_slices, input_tile)
+                flipped_tile = ForceAscendingLatitude().process(tile)
+                the_flipped_tile_type = flipped_tile.tile.WhichOneof("tile_type")
+                self.assertEqual(the_flipped_tile_type, 'grid_multi_variable_tile', f'wrong tile type')
+                the_flipped_tile_data = getattr(flipped_tile.tile, the_flipped_tile_type)
+                self.assertEqual([1, 30, 30, 2], the_flipped_tile_data.variable_data.shape)
+                flipped_latitudes = from_shaped_array(the_flipped_tile_data.latitude)
+                original_lat_data = ds['lat'].values
+                np.testing.assert_almost_equal(flipped_latitudes[0], original_lat_data[29], decimal=5, err_msg='wrong first vs last latitude', verbose=True)
+                np.testing.assert_almost_equal(flipped_latitudes[1], original_lat_data[28], decimal=5, err_msg='wrong latitude', verbose=True)
+                flipped_data = from_shaped_array(the_flipped_tile_data.variable_data)
+                original_b04_data = ds['B04'].values
+                np.testing.assert_almost_equal(original_b04_data[0][0][0], flipped_data[0][29][0][1], decimal=4, err_msg='wrong first vs last data', verbose=True)
         return
 
     def test_02_grid_single_band_data(self):
