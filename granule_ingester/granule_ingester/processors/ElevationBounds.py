@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class ElevationBounds(TileProcessor):
-    def __init__(self, reference_dimension, bounds_coordinate):
+    def __init__(self, reference_dimension, bounds_coordinate, **kwargs):
         self.dimension = reference_dimension
         self.coordinate = bounds_coordinate
+        self.flip_min_max = kwargs.get('flip_min_max', False)
 
     def process(self, tile, dataset):
         tile_type = tile.tile.WhichOneof("tile_type")
@@ -68,8 +69,11 @@ class ElevationBounds(TileProcessor):
             )
         )
 
-        tile_data.max_elevation = bounds[0].item()
-        tile_data.min_elevation = bounds[1].item()
+        tile_data.min_elevation = bounds[0].item()
+        tile_data.max_elevation = bounds[1].item()
+
+        if self.flip_min_max:
+            tile_data.min_elevation, tile_data.max_elevation = tile_data.max_elevation, tile_data.min_elevation
 
         return tile
 

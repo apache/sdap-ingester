@@ -53,7 +53,16 @@ pyyaml = "5.3.1"
 aiohttp = ">=3.8.0"
 tenacity = "8.2.3"
 requests = ">=2.27.1"
+nexusproto = {path = "../../incubator-sdap-nexusproto/build/python/nexusproto"}
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

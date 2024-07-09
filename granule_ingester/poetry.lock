@@ -314,13 +314,13 @@ graph = ["gremlinpython (==3.3.4)"]
 
 [[package]]
 name = "certifi"
-version = "2024.6.2"
+version = "2024.7.4"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "certifi-2024.6.2-py3-none-any.whl", hash = "sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56"},
-    {file = "certifi-2024.6.2.tar.gz", hash = "sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516"},
+    {file = "certifi-2024.7.4-py3-none-any.whl", hash = "sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"},
+    {file = "certifi-2024.7.4.tar.gz", hash = "sha256:5a1e7645bc0ec61a09e26c36f6106dd4cf40c6db3a1fb6352b0244e7fb057c7b"},
 ]
 
 [[package]]
@@ -526,6 +526,20 @@ async = ["aiohttp (>=3,<4)"]
 requests = ["requests (>=2.4.0,<3.0.0)"]
 
 [[package]]
+name = "exceptiongroup"
+version = "1.2.1"
+description = "Backport of PEP 654 (exception groups)"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
+    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
+]
+
+[package.extras]
+test = ["pytest (>=6)"]
+
+[[package]]
 name = "frozenlist"
 version = "1.4.1"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -645,6 +659,17 @@ python-versions = ">=3.5"
 files = [
     {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
     {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.0.0"
+description = "brain-dead simple config-ini parsing"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
+    {file = "iniconfig-2.0.0.tar.gz", hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3"},
 ]
 
 [[package]]
@@ -820,6 +845,22 @@ cftime = "*"
 numpy = ">=1.7"
 
 [[package]]
+name = "nexusproto"
+version = "1.1.0"
+description = "Protobufs used while ingesting NEXUS tiles."
+optional = false
+python-versions = "*"
+files = []
+develop = false
+
+[package.dependencies]
+protobuf = "3.2.0"
+
+[package.source]
+type = "directory"
+url = "../../incubator-sdap-nexusproto/build/python/nexusproto"
+
+[[package]]
 name = "numpy"
 version = "1.21.6"
 description = "NumPy is the fundamental package for array computing with Python."
@@ -932,6 +973,41 @@ pytz = ">=2017.3"
 test = ["hypothesis (>=3.58)", "pytest (>=6.0)", "pytest-xdist"]
 
 [[package]]
+name = "pluggy"
+version = "1.5.0"
+description = "plugin and hook calling mechanisms for python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669"},
+    {file = "pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1"},
+]
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "protobuf"
+version = "3.2.0"
+description = "Protocol Buffers"
+optional = false
+python-versions = "*"
+files = [
+    {file = "protobuf-3.2.0-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:3c1e93adccb6df731b003993e1f094221a18694cb767f9a31fa41cc8965c1f80"},
+    {file = "protobuf-3.2.0-cp33-cp33m-manylinux1_x86_64.whl", hash = "sha256:af61de46537670c0929c74961409935afbefd1a4b77fe17344e83a2854c79ebd"},
+    {file = "protobuf-3.2.0-cp34-cp34m-manylinux1_x86_64.whl", hash = "sha256:b1b7af2e12c8ec41b12791b6300a418573a0ee4c561e1b28fc9dc42dcc4c0ff5"},
+    {file = "protobuf-3.2.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:8d742c2517e54eed287b3fe397140b386763a7b822357a413b3012372657f80b"},
+    {file = "protobuf-3.2.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:58abae3c80f93881a803e8e3a669f8c0e437fa00096e3ef6e16b19543da6b836"},
+    {file = "protobuf-3.2.0-py2.py3-none-any.whl", hash = "sha256:55030bccd91a54836b9c551b99234f5efbc9721c8b93c80569fbe94aca0b9c35"},
+    {file = "protobuf-3.2.0.tar.gz", hash = "sha256:a48475035c42d13284fd7bf3a2ffa193f8c472ad1e8539c8444ea7e2d25823a1"},
+]
+
+[package.dependencies]
+setuptools = "*"
+six = ">=1.9"
+
+[[package]]
 name = "pysolr"
 version = "3.9.0"
 description = "Lightweight Python client for Apache Solr"
@@ -946,6 +1022,28 @@ requests = ">=2.9.1"
 
 [package.extras]
 solrcloud = ["kazoo (>=2.5.0)"]
+
+[[package]]
+name = "pytest"
+version = "7.4.4"
+description = "pytest: simple powerful testing with Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pytest-7.4.4-py3-none-any.whl", hash = "sha256:b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8"},
+    {file = "pytest-7.4.4.tar.gz", hash = "sha256:2cf0005922c6ace4a3e2ec8b4080eb0d9753fdc93107415332f50ce9e7994280"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
+iniconfig = "*"
+packaging = "*"
+pluggy = ">=0.12,<2.0"
+tomli = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
+
+[package.extras]
+testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "python-dateutil"
@@ -1071,6 +1169,21 @@ files = [
 numpy = ">=1.16.5,<1.23.0"
 
 [[package]]
+name = "setuptools"
+version = "70.2.0"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "setuptools-70.2.0-py3-none-any.whl", hash = "sha256:b8b8060bb426838fbe942479c90296ce976249451118ef566a5a0b7d8b78fb05"},
+    {file = "setuptools-70.2.0.tar.gz", hash = "sha256:bd63e505105011b25c3c11f753f7e3b8465ea739efddaccef8f0efac2137bac1"},
+]
+
+[package.extras]
+doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1105,6 +1218,17 @@ files = [
 
 [package.extras]
 doc = ["reno", "sphinx", "tornado (>=4.5)"]
+
+[[package]]
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
 
 [[package]]
 name = "typing-extensions"
@@ -1342,4 +1466,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.17,<3.11"
-content-hash = "736dd4c128dcb7349d27dae753789c26d6bb63a63d09fb129c74958336831f7a"
+content-hash = "b49098c56d9ed864856219509407d2ea5dc4e963e1af66ce49b12c7eeef34f97"

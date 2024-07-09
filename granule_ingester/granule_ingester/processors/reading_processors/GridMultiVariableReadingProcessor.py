@@ -103,6 +103,13 @@ class GridMultiVariableReadingProcessor(TileReadingProcessor):
             new_tile.min_elevation = ds[self.height][depth_slice].item()
             new_tile.max_elevation = ds[self.height][depth_slice].item()
 
+            new_tile.elevation.CopyFrom(to_shaped_array(
+                np.full(
+                    data_subset.shape,
+                    ds[self.height][depth_slice].item()
+                )
+            ))
+
         if self.time:
             time_slice = dimensions_to_slices[self.time]
             time_slice_len = time_slice.stop - time_slice.start

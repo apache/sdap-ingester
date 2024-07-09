@@ -70,6 +70,13 @@ class SwathReadingProcessor(TileReadingProcessor):
             new_tile.min_elevation = ds[self.height][depth_slice].item()
             new_tile.max_elevation = ds[self.height][depth_slice].item()
 
+            new_tile.elevation.CopyFrom(to_shaped_array(
+                np.full(
+                    data_subset.shape,
+                    ds[self.height][depth_slice].item()
+                )
+            ))
+
         new_tile.latitude.CopyFrom(to_shaped_array(lat_subset))
         new_tile.longitude.CopyFrom(to_shaped_array(lon_subset))
         new_tile.variable_data.CopyFrom(to_shaped_array(data_subset))
