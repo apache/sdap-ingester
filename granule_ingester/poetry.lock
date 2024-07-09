@@ -845,22 +845,6 @@ cftime = "*"
 numpy = ">=1.7"
 
 [[package]]
-name = "nexusproto"
-version = "1.1.0"
-description = "Protobufs used while ingesting NEXUS tiles."
-optional = false
-python-versions = "*"
-files = []
-develop = false
-
-[package.dependencies]
-protobuf = "3.2.0"
-
-[package.source]
-type = "directory"
-url = "../../incubator-sdap-nexusproto/build/python/nexusproto"
-
-[[package]]
 name = "numpy"
 version = "1.21.6"
 description = "NumPy is the fundamental package for array computing with Python."
@@ -986,26 +970,6 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
-
-[[package]]
-name = "protobuf"
-version = "3.2.0"
-description = "Protocol Buffers"
-optional = false
-python-versions = "*"
-files = [
-    {file = "protobuf-3.2.0-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:3c1e93adccb6df731b003993e1f094221a18694cb767f9a31fa41cc8965c1f80"},
-    {file = "protobuf-3.2.0-cp33-cp33m-manylinux1_x86_64.whl", hash = "sha256:af61de46537670c0929c74961409935afbefd1a4b77fe17344e83a2854c79ebd"},
-    {file = "protobuf-3.2.0-cp34-cp34m-manylinux1_x86_64.whl", hash = "sha256:b1b7af2e12c8ec41b12791b6300a418573a0ee4c561e1b28fc9dc42dcc4c0ff5"},
-    {file = "protobuf-3.2.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:8d742c2517e54eed287b3fe397140b386763a7b822357a413b3012372657f80b"},
-    {file = "protobuf-3.2.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:58abae3c80f93881a803e8e3a669f8c0e437fa00096e3ef6e16b19543da6b836"},
-    {file = "protobuf-3.2.0-py2.py3-none-any.whl", hash = "sha256:55030bccd91a54836b9c551b99234f5efbc9721c8b93c80569fbe94aca0b9c35"},
-    {file = "protobuf-3.2.0.tar.gz", hash = "sha256:a48475035c42d13284fd7bf3a2ffa193f8c472ad1e8539c8444ea7e2d25823a1"},
-]
-
-[package.dependencies]
-setuptools = "*"
-six = ">=1.9"
 
 [[package]]
 name = "pysolr"
@@ -1167,21 +1131,6 @@ files = [
 
 [package.dependencies]
 numpy = ">=1.16.5,<1.23.0"
-
-[[package]]
-name = "setuptools"
-version = "70.2.0"
-description = "Easily download, build, install, upgrade, and uninstall Python packages"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "setuptools-70.2.0-py3-none-any.whl", hash = "sha256:b8b8060bb426838fbe942479c90296ce976249451118ef566a5a0b7d8b78fb05"},
-    {file = "setuptools-70.2.0.tar.gz", hash = "sha256:bd63e505105011b25c3c11f753f7e3b8465ea739efddaccef8f0efac2137bac1"},
-]
-
-[package.extras]
-doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
-test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
 name = "six"
@@ -1466,4 +1415,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.17,<3.11"
-content-hash = "b49098c56d9ed864856219509407d2ea5dc4e963e1af66ce49b12c7eeef34f97"
+content-hash = "17f79ab6d4a186eb5d68e81f8222ed2051db753c0c9e32156dc9f24427494f5d"
