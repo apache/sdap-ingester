@@ -167,7 +167,7 @@ class TestElevationProcessors(unittest.TestCase):
             self.assertEqual(expected_min_max[i][0], processed_tile.tile.grid_tile.min_elevation)
             self.assertEqual(expected_min_max[i][1], processed_tile.tile.grid_tile.max_elevation)
 
-    def test_elevaton_range(self):
+    def test_elevation_range(self):
         tiles, ds = self.read_tiles_no_coord()
 
         expected_elevations = [10, 20, 30]
