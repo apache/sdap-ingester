@@ -14,6 +14,7 @@
 # limitations under the License.
 import json
 import unittest
+import warnings
 from os import path
 
 import numpy as np
@@ -185,13 +186,15 @@ class TestCalendars(unittest.TestCase):
         tile = nexusproto.NexusTile()
 
         with xr.open_dataset(granule_path, decode_cf=True) as ds:
-            reading_processor = GridMultiVariableReadingProcessor(
-                data_vars,
-                lat_var,
-                lon_var,
-                time=time_var
-            )
-            tile = reading_processor._generate_tile(ds, dimensions_to_slices, tile)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', RuntimeWarning)
+                reading_processor = GridMultiVariableReadingProcessor(
+                    data_vars,
+                    lat_var,
+                    lon_var,
+                    time=time_var
+                )
+                tile = reading_processor._generate_tile(ds, dimensions_to_slices, tile)
             assert tile.tile.grid_multi_variable_tile.time
 
     def test_julian_calendar_tile(self):

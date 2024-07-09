@@ -62,8 +62,13 @@ class TileSummarizingProcessor(TileProcessor):
         tile_summary.bbox.lat_max = numpy.nanmax(latitudes).item()
         tile_summary.bbox.lon_min = numpy.nanmin(longitudes).item()
         tile_summary.bbox.lon_max = numpy.nanmax(longitudes).item()
-        tile_summary.stats.min = numpy.nanmin(data).item()
-        tile_summary.stats.max = numpy.nanmax(data).item()
+
+        if all(numpy.isnan(data).flatten()):
+            tile_summary.stats.min = numpy.nan
+            tile_summary.stats.max = numpy.nan
+        else:
+            tile_summary.stats.min = numpy.nanmin(data).item()
+            tile_summary.stats.max = numpy.nanmax(data).item()
         tile_summary.stats.count = data.size - numpy.count_nonzero(numpy.isnan(data))
         logger.debug(f'set summary fields')
 
