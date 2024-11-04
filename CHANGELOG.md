@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2024-11-04
+### Added
+- SDAP-469: Additions to support height/depth dimensions on input
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- SDAP-523: Fixes for test case failures and excessive warnings in Ingester unit tests
+### Security
+
 ## [1.3.0] - 2024-06-10
 ### Added
 - SDAP-472: Added support for defining Zarr collections in the collection config

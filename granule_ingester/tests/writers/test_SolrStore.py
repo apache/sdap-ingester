@@ -43,7 +43,8 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.max_time = 694310400
         tile.summary.standard_name = json.dumps('sea_surface_temperature')
 
-        tile.tile.ecco_tile.depth = 10.5
+        tile.tile.grid_tile.min_elevation = -10.5
+        tile.tile.grid_tile.max_elevation = 0
 
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
@@ -68,7 +69,8 @@ class TestSolrStore(unittest.TestCase):
         self.assertAlmostEqual(25.5, solr_doc['tile_max_val_d'])
         self.assertAlmostEqual(12.5, solr_doc['tile_avg_val_d'])
         self.assertEqual(100, solr_doc['tile_count_i'])
-        self.assertAlmostEqual(10.5, solr_doc['tile_depth'])
+        self.assertAlmostEqual(-10.5, solr_doc['tile_min_elevation_d'])
+        self.assertAlmostEqual(0, solr_doc['tile_max_elevation_d'])
 
     def test_build_solr_doc_no_standard_name_02(self):
         tile = nexusproto.NexusTile()
@@ -89,7 +91,8 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.stats.min_time = 694224000
         tile.summary.stats.max_time = 694310400
 
-        tile.tile.ecco_tile.depth = 10.5
+        tile.tile.grid_tile.min_elevation = -10.5
+        tile.tile.grid_tile.max_elevation = 0
 
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
@@ -113,7 +116,8 @@ class TestSolrStore(unittest.TestCase):
         self.assertAlmostEqual(25.5, solr_doc['tile_max_val_d'])
         self.assertAlmostEqual(12.5, solr_doc['tile_avg_val_d'])
         self.assertEqual(100, solr_doc['tile_count_i'])
-        self.assertAlmostEqual(10.5, solr_doc['tile_depth'])
+        self.assertAlmostEqual(-10.5, solr_doc['tile_min_elevation_d'])
+        self.assertAlmostEqual(0, solr_doc['tile_max_elevation_d'])
 
     def test_build_solr_doc_no_standard_name(self):
         """
@@ -123,7 +127,8 @@ class TestSolrStore(unittest.TestCase):
         tile = nexusproto.NexusTile()
         tile.summary.tile_id = 'test_id'
         tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
-        tile.tile.ecco_tile.depth = 10.5
+        tile.tile.grid_tile.min_elevation = -10.5
+        tile.tile.grid_tile.max_elevation = 0
 
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
@@ -142,7 +147,8 @@ class TestSolrStore(unittest.TestCase):
         tile.summary.tile_id = 'test_id'
         tile.summary.data_var_name = json.dumps(['test_variable', 'test_variable_02'])
         tile.summary.standard_name = json.dumps(['sea_surface_temperature', None])
-        tile.tile.ecco_tile.depth = 10.5
+        tile.tile.grid_tile.min_elevation = -10.5
+        tile.tile.grid_tile.max_elevation = 0
 
         metadata_store = SolrStore()
         solr_doc = metadata_store._build_solr_doc(tile)
