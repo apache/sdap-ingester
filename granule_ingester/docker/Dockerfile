@@ -17,6 +17,8 @@ FROM eclipse-temurin:8
 
 USER root
 
+ENV LD_LIBRARY_PATH="/usr/lib:/usr/local/lib/"
+
 COPY --chmod=755 granule_ingester/docker/install_python.sh /install_python.sh
 
 # Install python
@@ -27,6 +29,9 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+COPY --chmod=755 granule_ingester/docker/install_gdal.sh /sdap/install_gdal.sh
+RUN /sdap/install_gdal.sh
 
 ENV PATH="/opt/python/3.8.17/bin:$PATH"
 
