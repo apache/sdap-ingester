@@ -42,7 +42,7 @@ class GranuleLoader:
         if 'preprocess' in kwargs:
             self._preprocess = [GranuleLoader._parse_module(module) for module in kwargs['preprocess']]
 
-        self._group_vars = kwargs.get('grouped_vars', {})
+        self._group_vars = kwargs.get('grouped_vars', [])
 
     async def __aenter__(self):
         return await self.open()
