@@ -42,6 +42,8 @@ class GranuleLoader:
         if 'preprocess' in kwargs:
             self._preprocess = [GranuleLoader._parse_module(module) for module in kwargs['preprocess']]
 
+        self._group_vars = kwargs.get('grouped_vars', [])
+
     async def __aenter__(self):
         return await self.open()
 
@@ -69,6 +71,15 @@ class GranuleLoader:
                 additional_params['group'] = self._group
 
             ds = xr.open_dataset(file_path, lock=False, **additional_params)
+
+            for group_var in self._group_vars:
+                parts = group_var.split('/')
+
+                group = '/'.join(parts[:-1])
+                var_name = parts[-1]
+
+                ds_grp = xr.open_dataset(file_path, lock=False, group=group)
+                ds[group_var] = ds_grp[var_name]
 
             if self._preprocess is not None:
                 logger.info(f'There are {len(self._preprocess)} preprocessors to apply for granule {self._resource}')

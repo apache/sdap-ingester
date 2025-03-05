@@ -151,6 +151,23 @@ class CollectionProcessor:
             'processors': CollectionProcessor._get_default_processors(collection)
         }
 
+        group_vars = []
+
+        for name, value in collection.dimension_names:
+            if name != 'variable':
+                continue
+            else:
+                value = json.loads(value)
+
+                if isinstance(value, str):
+                    value = [value]
+
+                for v in value:
+                    parts = v.split('/')
+
+                    if len(parts) > 1:
+                        group_vars.append(v)
+
         if collection.preprocess is not None:
             config_dict['preprocess'] = json.loads(collection.preprocess)
 
@@ -159,6 +176,9 @@ class CollectionProcessor:
 
         if collection.group is not None:
             config_dict['granule']['group'] = collection.group
+
+        if len(group_vars) > 0:
+            config_dict['granule']['grouped_vars'] = group_vars
 
         config_str = yaml.dump(config_dict)
         logger.debug(f"Templated dataset config:\n{config_str}")
