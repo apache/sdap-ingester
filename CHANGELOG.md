@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixed issue with Collection Manager Docker build failing due to setuptools issue
 ### Security
 
 ## [1.4.0] - 2024-11-04
