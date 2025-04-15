@@ -1,18 +1,3 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import logging
 import os
 import tempfile
@@ -34,15 +19,11 @@ class GranuleLoader:
         self._resource = resource
         self._preprocess = None
 
-        if 'group' in kwargs:
-            self._group = kwargs['group']
-        else:
-            self._group = None
+        self._group = kwargs.get('group', None)
+        self._group_vars = kwargs.get('grouped_vars', [])
 
         if 'preprocess' in kwargs:
             self._preprocess = [GranuleLoader._parse_module(module) for module in kwargs['preprocess']]
-
-        self._group_vars = kwargs.get('grouped_vars', [])
 
     async def __aenter__(self):
         return await self.open()
@@ -53,61 +34,56 @@ class GranuleLoader:
 
     async def open(self) -> (xr.Dataset, str):
         resource_url = parse.urlparse(self._resource)
+
         if resource_url.scheme == 's3':
-            # We need to save a reference to the temporary granule file so we can delete it when the context manager
-            # closes. The file needs to be kept around until nothing is reading the dataset anymore.
             self._granule_temp_file = await self._download_s3_file(self._resource)
             file_path = self._granule_temp_file.name
-        elif resource_url.scheme == '':
-            file_path = self._resource
         else:
-            raise RuntimeError("Granule path scheme '{}' is not supported.".format(resource_url.scheme))
+            # Local file → Use raw path directly
+            file_path = self._resource
 
         granule_name = os.path.basename(self._resource)
+
         try:
             additional_params = {}
-
             if self._group is not None:
                 additional_params['group'] = self._group
 
-            ds = xr.open_dataset(file_path, lock=False, **additional_params)
+            ds = xr.open_dataset(file_path, lock=False, engine="netcdf4", **additional_params)
 
             for group_var in self._group_vars:
                 parts = group_var.split('/')
-
                 group = '/'.join(parts[:-1])
                 var_name = parts[-1]
-
-                ds_grp = xr.open_dataset(file_path, lock=False, group=group)
+                ds_grp = xr.open_dataset(file_path, lock=False, group=group, engine="netcdf4")
                 ds[group_var] = ds_grp[var_name]
 
-            if self._preprocess is not None:
-                logger.info(f'There are {len(self._preprocess)} preprocessors to apply for granule {self._resource}')
-                while len(self._preprocess) > 0:
+            if self._preprocess:
+                logger.info(f'Applying {len(self._preprocess)} preprocessors to granule {self._resource}')
+                while self._preprocess:
                     preprocessor: GranulePreprocessor = self._preprocess.pop(0)
-
                     ds = preprocessor.process(ds)
 
             return ds, granule_name
+
         except FileNotFoundError:
             raise GranuleLoadingError(f"The granule file {self._resource} does not exist.")
-        except Exception:
+        except Exception as e:
+            logger.exception("Failed to open NetCDF file")
             raise GranuleLoadingError(f"The granule {self._resource} is not a valid NetCDF file.")
 
     @staticmethod
     async def _download_s3_file(url: str):
         parsed_url = parse.urlparse(url)
-        logger.info(
-            "Downloading S3 file from bucket '{}' with key '{}'".format(parsed_url.hostname, parsed_url.path[1:]))
+        logger.info(f"Downloading S3 file from bucket '{parsed_url.hostname}' with key '{parsed_url.path[1:]}'")
         async with aioboto3.resource("s3") as s3:
             obj = await s3.Object(bucket_name=parsed_url.hostname, key=parsed_url.path[1:])
             response = await obj.get()
             data = await response['Body'].read()
-            logger.info("Finished downloading S3 file.")
 
         fp = tempfile.NamedTemporaryFile()
         fp.write(data)
-        logger.info("Saved downloaded file to {}.".format(fp.name))
+        logger.info(f"Saved downloaded file to {fp.name}.")
         return fp
 
     @staticmethod
@@ -115,12 +91,9 @@ class GranuleLoader:
         module_name = module_config.pop('name')
         try:
             module_class = module_mappings[module_name]
-            logger.debug("Loaded preprocessor {}.".format(module_class))
-            processor_module = module_class(**module_config)
+            logger.debug(f"Loaded preprocessor {module_class}.")
+            return module_class(**module_config)
         except KeyError:
             raise PipelineBuildingError(f"'{module_name}' is not a valid preprocessor.")
         except Exception as e:
-            raise PipelineBuildingError(f"Parsing module '{module_name}' failed because of the following error: {e}")
-
-        return processor_module
-
+            raise PipelineBuildingError(f"Parsing module '{module_name}' failed: {e}")

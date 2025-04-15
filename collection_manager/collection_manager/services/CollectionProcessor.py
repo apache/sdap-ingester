@@ -142,7 +142,8 @@ class CollectionProcessor:
 
         config_dict = {
             'granule': {
-                'resource': granule_path
+                # Path Issue Quickfix for windows
+                'resource': f'file:///{granule_path.replace("\\\\", "/").replace("\\", "/")}'
             },
             'slicer': {
                 'name': 'sliceFileByStepSize',

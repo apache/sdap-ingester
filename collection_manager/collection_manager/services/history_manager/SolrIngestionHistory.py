@@ -46,6 +46,7 @@ class SolrIngestionHistory(IngestionHistory):
     _req_session = None
 
     def __init__(self, solr_url: str, dataset_id: str, signature_fun=None):
+       
         try:
             self._url_prefix = f"{solr_url.strip('/')}/solr"
             self._create_collection_if_needed()

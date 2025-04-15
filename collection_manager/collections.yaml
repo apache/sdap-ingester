@@ -1,0 +1,15 @@
+collections:
+  - id: AVHRR_OI_L4_GHRSST_NCEI
+    path: C:/Users/rodri/nexus-quickstart/data/avhrr-granules/*AVHRR_OI-GLOB-v02.0-fv02.0.nc
+    priority: 1
+    forward-processing-priority: 5
+    projection: Grid
+    dimensionNames:
+      latitude: lat
+      longitude: lon
+      time: time
+      variable: analysed_sst
+    slices:
+      lat: 100
+      lon: 100
+      time: 1
