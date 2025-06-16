@@ -58,13 +58,13 @@ resource "null_resource" "create_subscription" {
   }
 
   provisioner "local-exec" {
-    command = "source venv/bin/activate; python subscriber.py ${var.config_file} ${var.ccid} --queue ${aws_sqs_queue.queue.arn} --dryrun; cp subscriptions/C2930763263-LARC_CLOUD-subscription.xml subscriptions/${var.ccid}-subscription.xml"
+    command = "source venv/bin/activate; python subscriber.py ${var.config_file} ${var.ccid} --queue ${aws_sqs_queue.queue.arn}"
     working_dir = var.script_dir
     interpreter = ["/bin/bash", "-c"]
   }
 
   provisioner "local-exec" {
-    command = "source venv/bin/activate; python delete.py ${self.triggers.config_file} --response-xml subscriptions/${self.triggers.ccid}-subscription.xml --dryrun"
+    command = "source venv/bin/activate; python delete.py ${self.triggers.config_file} --response-xml subscriptions/${self.triggers.ccid}-subscription.xml"
     working_dir = self.triggers.script_dir
     interpreter = ["/bin/bash", "-c"]
     when = destroy
