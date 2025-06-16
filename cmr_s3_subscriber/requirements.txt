@@ -1,0 +1,5 @@
+earthaccess
+requests
+pyyaml
+# maap-py @ git+https://github.com/MAAP-Project/maap-py.git
+
