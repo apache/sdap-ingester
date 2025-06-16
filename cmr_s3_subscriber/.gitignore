@@ -1,0 +1,7 @@
+lambda/*.zip
+subscriptions/
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/config.yaml
+terraform/terraform.tfstate*
+terraform/*.tfvars
