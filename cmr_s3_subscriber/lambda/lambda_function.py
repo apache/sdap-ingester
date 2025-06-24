@@ -105,7 +105,7 @@ def _submit_maap_job(short_name, granule_ur):
         readable_granule_name=granule_ur,
         cmr_host="cmr.earthdata.nasa.gov",
         limit=1
-    )[0]['concept-id']
+    )[0]['collection-concept-id']
 
     algo = os.environ['MAAP_ALGO_ID']
     algo_version = os.environ['MAAP_ALGO_VERSION']
