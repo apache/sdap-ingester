@@ -126,7 +126,7 @@ module "subscriptions" {
 
   ccid        = each.value
   config_file = local_file.subscriber_config_file.filename
-  script_dir  = "/Users/rileykk/FireAlarm/subscriber"
+  script_dir  = var.script_dir
 }
 
 resource "aws_lambda_event_source_mapping" "sqs_triggers" {

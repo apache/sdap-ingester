@@ -21,6 +21,26 @@ variable "edl_password" {
   sensitive   = true
 }
 
+variable "script_dir" {
+  type        = string
+  description = "Path to directory containing CMR subscription scripts and python venv"
+
+  validation {
+    condition     = fileexists(join("/", [trimsuffix(pathexpand(var.script_dir), "/"), "subscriber.py"]))
+    error_message = "Cannot find subscriber script in script_dir"
+  }
+
+  validation {
+    condition     = fileexists(join("/", [trimsuffix(pathexpand(var.script_dir), "/"), "delete.py"]))
+    error_message = "Cannot find subscription deletion script in script_dir"
+  }
+
+  validation {
+    condition     = fileexists(join("/", [trimsuffix(pathexpand(var.script_dir), "/"), "venv", "bin", "python"]))
+    error_message = "Cannot find python venv in script_dir (expected to be in script_dir/venv)"
+  }
+}
+
 variable "ccids" {
   type        = list(string)
   description = "List of CMR collection-concept-IDs to subscribe to. Note: Initial apply should have either no CCIDs listed or triggers disabled until the notification SNS topic is subscribed to"

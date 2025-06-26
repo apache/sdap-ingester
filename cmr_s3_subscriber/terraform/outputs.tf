@@ -20,7 +20,7 @@ output "staging_bucket" {
 }
 
 output "subscription_info" {
-  value = {for ccid, sub in module.subscriptions: ccid => sub.queue_arn}
+  value = { for ccid, sub in module.subscriptions : ccid => sub.queue_arn }
 }
 
 output "triggers_enabled" {
