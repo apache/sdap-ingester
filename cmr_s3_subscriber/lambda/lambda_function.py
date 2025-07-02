@@ -114,7 +114,7 @@ def _submit_maap_job(short_name, granule_ur):
     kwargs = {v.removeprefix('_maap_kwarg_'): os.environ[v] for v in os.environ.keys() if v.startswith('_maap_kwarg_')}
 
     job = maap.submitJob(
-        identifier=granule_ur,
+        identifier=f"CMR_subscriber_ingest_{granule_ur}",
         algo_id=algo,
         version=algo_version,
         queue=queue,
