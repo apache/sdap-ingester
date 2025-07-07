@@ -17,6 +17,7 @@
 import hashlib
 import json
 import os
+from functools import cache
 from urllib.parse import urlparse
 
 import boto3
@@ -298,6 +299,7 @@ def _process_umm(umm):
     )
 
 
+@cache
 def _try_get_s3_creds(endpoint, bearer_token):
     try:
         headers = {
