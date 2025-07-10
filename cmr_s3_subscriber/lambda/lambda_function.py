@@ -17,6 +17,7 @@
 import hashlib
 import json
 import os
+import traceback
 from functools import cache
 from urllib.parse import urlparse
 
@@ -112,10 +113,13 @@ def _fail_out_record(record, reason='exceeded retries'):
     )
 
 
-def _submit_maap_job(short_name, granule_ur):
+def _submit_maap_job(short_name, granule_ur, maap_config=None):
     from maap.maap import MAAP
 
     maap = MAAP()
+
+    if maap_config is None:
+        raise Exception('MAAP config not provided')
 
     ccid = maap.searchGranule(
         short_name=short_name,
@@ -130,13 +134,21 @@ def _submit_maap_job(short_name, granule_ur):
 
     kwargs = {v.removeprefix('_maap_kwarg_'): os.environ[v] for v in os.environ.keys() if v.startswith('_maap_kwarg_')}
 
-    job = maap.submitJob(
+    kwargs.update(maap_config)
+
+    job_kwargs = dict(
         identifier=f"CMR_subscriber_ingest_{granule_ur}",
         algo_id=algo,
         version=algo_version,
         queue=queue,
         granule_id=granule_ur,
         collection_id=ccid,
+    )
+
+    print(f'Submitting MAAP job with parameters: {dict(**job_kwargs, **kwargs)}')
+
+    job = maap.submitJob(
+        **job_kwargs,
         **kwargs
     )
 
@@ -170,7 +182,11 @@ def _handle_cmr_notification(message, bearer_token):
 
     if 'MAAP_PGT' in os.environ:
         print('Submitting job through MAAP instead of staging in this function')
-        return _submit_maap_job(processed_umm['collection'], message["granule-ur"])
+        return _submit_maap_job(
+            processed_umm['collection'],
+            message["granule-ur"],
+            processed_umm['maap_config']
+        )
 
     print(f'Downloading files for granule {processed_umm["granule"]}')
 
@@ -282,10 +298,18 @@ def _process_umm(umm):
         }
     )
 
+    print(f'Checked lookup table for {collection}')
+    print(collection_query['Items'])
+
     if len(collection_query['Items']) == 0:
         s3_prefix = collection
+        maap_config = None
     else:
-        s3_prefix = collection_query['Items'][0]['s3_prefix']['S']
+        collection_entry = collection_query['Items'][0]
+
+        s3_prefix = collection_entry['s3_prefix']['S'] if 's3_prefix' in collection_entry else collection
+        maap_config = collection_entry['maap_config']['M'] if 'maap_config' in collection_entry else {}
+        maap_config = {k: list(v.values())[0] for k, v in maap_config.items()}
 
     if s3_prefix[-1] != '/':
         s3_prefix += '/'
@@ -295,7 +319,8 @@ def _process_umm(umm):
         collection=collection,
         files=file_map,
         s3_prefix=s3_prefix,
-        s3_credentials_url=creds_url
+        s3_credentials_url=creds_url,
+        maap_config=maap_config,
     )
 
 
@@ -385,6 +410,8 @@ def lambda_handler(event, context):
             else:
                 print(f'Failed to process record {record["messageId"]} and will not retry: {e}')
                 _fail_out_record(record)
+
+            print(traceback.format_exc())
 
     # TODO implement
     return {

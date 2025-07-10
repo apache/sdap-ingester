@@ -28,6 +28,34 @@ resource "aws_sqs_queue" "queue" {
   visibility_timeout_seconds = 1800
 }
 
+data "aws_dynamodb_table" "table" {
+  name = var.ddb_table
+}
+
+locals {
+  options_json = var.options == null ? {} : merge(
+    var.options.s3_path == null ? {} : {s3_prefix = {S = var.options.s3_path}},
+    var.options.maap_config == null ? {} : {maap_config = {
+      M = merge(
+        { zarr_config_url = { S = var.options.maap_config.zarr_config_url } },
+        { variables = { S = var.options.maap_config.variables } },
+        var.options.maap_config.polygon == null ? {} : {polygon = { S = var.options.maap_config.polygon }}
+      )
+    }}
+  )
+}
+
+resource "aws_dynamodb_table_item" "collection_options" {
+  hash_key   = data.aws_dynamodb_table.table.hash_key
+  item       = jsonencode(merge(
+    zipmap([data.aws_dynamodb_table.table.hash_key], [{S = var.options.shortname}]),
+    local.options_json
+  ))
+  table_name = data.aws_dynamodb_table.table.name
+
+  count = var.options != null ? 1 : 0
+}
+
 data "aws_iam_policy_document" "queue_policy" {
   statement {
     sid = "__owner_statement"
@@ -64,7 +92,7 @@ data "aws_iam_policy_document" "queue_policy" {
 }
 
 resource "null_resource" "create_subscription" {
-  depends_on = [aws_sqs_queue.queue]
+  depends_on = [aws_sqs_queue.queue, aws_dynamodb_table_item.collection_options]
 
   triggers = {
     script_dir = var.script_dir

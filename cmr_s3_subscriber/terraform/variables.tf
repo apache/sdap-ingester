@@ -61,6 +61,21 @@ variable "ccids" {
   description = "List of CMR collection-concept-IDs to subscribe to. Note: Initial apply should have either no CCIDs listed or triggers disabled until the notification SNS topic is subscribed to"
 }
 
+variable "collection_options" {
+  type = map(object({
+    shortname = string
+    s3_path   = optional(string)
+    maap_config = optional(object({
+      zarr_config_url = string
+      variables       = optional(string, "*")
+      polygon         = optional(string)
+    }))
+  }))
+  description = "Mapping of CCID to collection options. If specified, must provide the short name of the collection plus an s3 path and/or MAAP options. MAAP options consist of an S3 URL for job configuration and an optional list of variables (either '*' or a space-separated list wrapped in quotes)"
+
+  # TODO: Validations
+}
+
 variable "enable_triggers" {
   type        = bool
   description = "Whether to enable the SQS -> Lambda triggers. Note: Initial apply should have either no CCIDs listed or triggers disabled until the notification SNS topic is subscribed to"

@@ -142,6 +142,8 @@ module "subscriptions" {
   ccid        = each.value
   config_file = local_file.subscriber_config_file.filename
   script_dir  = var.script_dir
+  ddb_table   = aws_dynamodb_table.collection_lookup.name
+  options     = lookup(var.collection_options, each.value, null)
 }
 
 resource "aws_lambda_event_source_mapping" "sqs_triggers" {

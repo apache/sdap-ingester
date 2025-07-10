@@ -28,3 +28,22 @@ variable "script_dir" {
   type = string
   description = "Path to directory containing CMR scripts and their venv"
 }
+
+variable "ddb_table" {
+  type = string
+  description = "DynamoDB table for CCID-options mappings"
+}
+
+variable "options" {
+  type = object({
+    shortname = string
+    s3_path = optional(string)
+    maap_config = optional(object({
+      zarr_config_url = string
+      variables = optional(string, "*")
+      polygon = optional(string)
+    }))
+  })
+  description = "Collection options"
+  nullable = true
+}
