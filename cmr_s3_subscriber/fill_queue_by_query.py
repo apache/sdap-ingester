@@ -132,6 +132,18 @@ def parse_arguments():
              'overridden'
     )
 
+    parser.add_argument(
+        '--dryrun',
+        action='store_true',
+        help='Do not push generated messages to SQS'
+    )
+
+    parser.add_argument(
+        '--samples',
+        action='store_true',
+        help='Print samples of transformed data to stdout'
+    )
+
     return parser.parse_args()
 
 
@@ -223,11 +235,19 @@ def main(args):
     if len(matched_granules) != n_hits:
         print('Mismatch between number of granules and initial number of hits')
         exit(1)
+    elif len(matched_granules) == 0:
+        print('No granules returned from CMR')
+        return
 
-    print(json.dumps(matched_granules[0], indent=2))
+    if args.samples:
+        print(json.dumps(matched_granules[0], indent=2))
 
     if args.staged_data is not None:
         matched_granules = filter_granules(matched_granules, args.staged_data)
+
+    if len(matched_granules) == 0:
+        print('No new granules returned from CMR')
+        return
 
     if args.limit is not None:
         print(f'Limiting {len(matched_granules)} granules to {args.limit}')
@@ -255,7 +275,8 @@ def main(args):
         } for m in matched_granules
     ]
 
-    print(json.dumps(matched_granules[0], indent=2))
+    if args.samples:
+        print(json.dumps(matched_granules[0], indent=2))
 
     print('Converting to SQS messages')
 
@@ -285,7 +306,12 @@ def main(args):
         } for m in matched_granules
     ]
 
-    print(json.dumps(matched_granules[0], indent=2))
+    if args.samples:
+        print(json.dumps(matched_granules[0], indent=2))
+
+    if args.dryrun:
+        print(f'Produced {len(matched_granules)} messages that would be sent to SQS.')
+        return
 
     sqs = boto3.client('sqs')
 
@@ -309,5 +335,3 @@ def main(args):
 
 if __name__ == '__main__':
     main(parse_arguments())
-    # filter_granules([], 's3://aqacf-nexus-stage/TEMPO/TEMPO_NO2_L3_V03/')
-
