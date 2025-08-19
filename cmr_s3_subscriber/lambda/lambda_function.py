@@ -17,6 +17,7 @@
 import hashlib
 import json
 import os
+import re
 import traceback
 from functools import cache
 from urllib.parse import urlparse
@@ -169,13 +170,19 @@ def _handle_cmr_notification(message, bearer_token):
         umm_response.raise_for_status()
     except:
         if umm_response.status_code == 404:
-            print(f'No record exists for granule {message["granule-ur"]} ({granule_metadata_url}). It was likely '
-                  f'superseded and will thus be skipped')
-            return
+            print(f'Got a 404 for granule {message["granule-ur"]} at URL {granule_metadata_url}, it was likely '
+                  f'superseded. Trying to pull the latest revision.')
+
+            maybe_umm = _maybe_get_latest_revision(message['location'])
+
+            if maybe_umm is None:
+                return
+            else:
+                umm_response = maybe_umm
         else:
             raise
-    umm = umm_response.json()
 
+    umm = umm_response.json()
     processed_umm = _process_umm(umm)
 
     print(json.dumps(processed_umm, indent=2))
@@ -245,6 +252,71 @@ def _handle_cmr_notification(message, bearer_token):
         os.unlink(dl_path)
 
 
+def _maybe_get_latest_revision(location_url):
+    match = re.search(r'/\d+$', location_url)
+
+    if match is None:
+        return None
+
+    latest_rev_url = location_url[:match.start()] + '.umm_json'
+
+    umm_response = requests.get(latest_rev_url)
+    try:
+        umm_response.raise_for_status()
+    except:
+        if umm_response.status_code == 404:
+            print(f'No record exists for latest revision URL ({latest_rev_url}). It was may no longer exist '
+                  f'and will thus be skipped')
+            return None
+        else:
+            raise
+
+    umm = umm_response.json()
+    collection = umm['CollectionReference']['ShortName']
+
+    print('Got latest revision metadata, now checking if it is allowed to use this for this collection')
+
+    collection_options = _search_collection_options(collection)
+
+    if collection_options is None:
+        print('Skipping this granule because there is no configuration to allow using latest revision metadata')
+        return None
+
+    if 'use_latest_rev' not in collection_options:
+        print('Skipping this granule because there is no configuration to allow using latest revision metadata')
+        return None
+
+    if collection_options['use_latest_rev']['BOOL']:
+        print('Collection supports using latest revision metadata, continuing...')
+        return umm_response
+    else:
+        print('Skipping this granule because its collection configuration disallows using latest revision metadata')
+        return None
+
+
+@cache
+def _search_collection_options(collection):
+    collection_query = ddb.query(
+        TableName=DDB_ARN,
+        KeyConditionExpression='#collection_short_name = :c',
+        ExpressionAttributeValues={
+            ':c': {'S': collection}
+        },
+        ExpressionAttributeNames={
+            '#collection_short_name': 'collection'
+        }
+    )
+
+    print(f'Checked lookup table for {collection}')
+    print(collection_query['Items'])
+
+    if len(collection_query['Items']) == 0:
+        return None
+    else:
+        collection_entry = collection_query['Items'][0]
+        return collection_entry
+
+
 def _process_umm(umm):
     # I don't think this is guaranteed (this or EntryTitle). What does other field look like?
     collection = umm['CollectionReference']['ShortName']
@@ -287,26 +359,12 @@ def _process_umm(umm):
             creds_url = url['URL']
             break
 
-    collection_query = ddb.query(
-        TableName=DDB_ARN,
-        KeyConditionExpression='#collection_short_name = :c',
-        ExpressionAttributeValues={
-            ':c': {'S': collection}
-        },
-        ExpressionAttributeNames={
-            '#collection_short_name': 'collection'
-        }
-    )
+    collection_entry = _search_collection_options(collection)
 
-    print(f'Checked lookup table for {collection}')
-    print(collection_query['Items'])
-
-    if len(collection_query['Items']) == 0:
+    if collection_entry is None:
         s3_prefix = collection
         maap_config = None
     else:
-        collection_entry = collection_query['Items'][0]
-
         s3_prefix = collection_entry['s3_prefix']['S'] if 's3_prefix' in collection_entry else collection
         maap_config = collection_entry['maap_config']['M'] if 'maap_config' in collection_entry else {}
         maap_config = {k: list(v.values())[0] for k, v in maap_config.items()}

@@ -55,6 +55,12 @@ def parse_args():
         help='Do not make CMR API calls except for auth'
     )
 
+    parser.add_argument(
+        '--new-only',
+        action='store_true',
+        help='Only subscribe to new new granules, ignoring revisions'
+    )
+
     return parser.parse_args()
 
 
@@ -82,7 +88,7 @@ def main(args):
         "Type": "granule",
         "Query": "*",
         "EndPoint": queue_arn,
-        "Mode": ["New", "Update"],
+        "Mode": ["New"] if args.new_only else ["New", "Update"],
         "Method": "ingest",
         "MetadataSpecification": {
             "URL": "https://cdn.earthdata.nasa.gov/umm/subscription/v1.1.1",

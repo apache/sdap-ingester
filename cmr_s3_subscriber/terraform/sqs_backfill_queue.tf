@@ -60,7 +60,7 @@ resource "aws_lambda_event_source_mapping" "backfill_trigger" {
   function_name    = aws_lambda_function.lambda.arn
   event_source_arn = aws_sqs_queue.backfill_queue.arn
 
-  enabled = var.enable_triggers
+  enabled = var.enable_backfill_trigger
 
   batch_size              = 3
   function_response_types = ["ReportBatchItemFailures"]

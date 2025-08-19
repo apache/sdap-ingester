@@ -63,12 +63,14 @@ variable "ccids" {
 
 variable "collection_options" {
   type = map(object({
-    shortname = string
-    s3_path   = optional(string)
+    shortname            = string
+    s3_path              = optional(string)
+    polygon              = optional(string)
+    trigger_on_revisions = optional(bool, true)
+    delay                = optional(number, 0)
     maap_config = optional(object({
       zarr_config_url = string
       variables       = optional(string, "*")
-      polygon         = optional(string)
     }))
   }))
   description = "Mapping of CCID to collection options. If specified, must provide the short name of the collection plus an s3 path and/or MAAP options. MAAP options consist of an S3 URL for job configuration and an optional list of variables (either '*' or a space-separated list wrapped in quotes)"
@@ -81,6 +83,13 @@ variable "enable_triggers" {
   description = "Whether to enable the SQS -> Lambda triggers. Note: Initial apply should have either no CCIDs listed or triggers disabled until the notification SNS topic is subscribed to"
 
   default = false
+}
+
+variable "enable_backfill_trigger" {
+  type = bool
+  description = "Whether to enable the SQS -> Lambda trigger for the backfill queue"
+
+  default = true
 }
 
 variable "lambda_vpc" {

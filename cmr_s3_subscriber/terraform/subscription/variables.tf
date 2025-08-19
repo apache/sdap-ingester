@@ -38,10 +38,12 @@ variable "options" {
   type = object({
     shortname = string
     s3_path = optional(string)
+    polygon = optional(string)
+    trigger_on_revisions = optional(bool, true)
+    delay = optional(number, 0)
     maap_config = optional(object({
       zarr_config_url = string
       variables = optional(string, "*")
-      polygon = optional(string)
     }))
   })
   description = "Collection options"

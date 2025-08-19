@@ -26,6 +26,7 @@ resource "aws_sqs_queue" "queue" {
   message_retention_seconds = 1209600
   policy = data.aws_iam_policy_document.queue_policy.json
   visibility_timeout_seconds = 1800
+  delay_seconds = var.options == null ? 0 : var.options.delay
 }
 
 data "aws_dynamodb_table" "table" {
@@ -34,22 +35,25 @@ data "aws_dynamodb_table" "table" {
 
 locals {
   options_json = var.options == null ? {} : merge(
-    var.options.s3_path == null ? {} : {s3_prefix = {S = var.options.s3_path}},
+    var.options.s3_path == null ? {} : {s3_prefix = { S = var.options.s3_path }},
+    var.options.polygon == null ? {} : {polygon = { S = var.options.polygon }},
     var.options.maap_config == null ? {} : {maap_config = {
       M = merge(
         { zarr_config_url = { S = var.options.maap_config.zarr_config_url } },
         { variables = { S = var.options.maap_config.variables } },
-        var.options.maap_config.polygon == null ? {} : {polygon = { S = var.options.maap_config.polygon }}
       )
     }}
   )
+
+  trigger_on_revisions = var.options == null ? true : var.options.trigger_on_revisions
 }
 
 resource "aws_dynamodb_table_item" "collection_options" {
   hash_key   = data.aws_dynamodb_table.table.hash_key
   item       = jsonencode(merge(
     zipmap([data.aws_dynamodb_table.table.hash_key], [{S = var.options.shortname}]),
-    local.options_json
+    local.options_json,
+    {use_latest_rev = { BOOL = !var.options.trigger_on_revisions }}
   ))
   table_name = data.aws_dynamodb_table.table.name
 
@@ -101,7 +105,7 @@ resource "null_resource" "create_subscription" {
   }
 
   provisioner "local-exec" {
-    command = "source venv/bin/activate; python subscriber.py ${var.config_file} ${var.ccid} --queue ${aws_sqs_queue.queue.arn}"
+    command = "source venv/bin/activate; python subscriber.py ${var.config_file} ${var.ccid} --queue ${aws_sqs_queue.queue.arn} ${local.trigger_on_revisions ? "" : "--new-only"}"
     working_dir = var.script_dir
     interpreter = ["/bin/bash", "-c"]
   }
