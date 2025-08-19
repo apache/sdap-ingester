@@ -144,6 +144,22 @@ def parse_arguments():
         help='Print samples of transformed data to stdout'
     )
 
+    parser.add_argument(
+        '--force-first-rev',
+        action='store_true',
+        help='For testing purposes, force the message granule URLs to be for revision 1 to better simulate new granule '
+             'notifications'
+    )
+
+    parser.add_argument(
+        '--dump',
+        choices=['sns', 'sqs'],
+        default=[],
+        help='If set, dump all generated messages to a file. sns == dump mocked CMR SNS subscription messages. sqs == '
+             'dump wrapped SQS messages',
+        nargs='*'
+    )
+
     return parser.parse_args()
 
 
@@ -270,13 +286,21 @@ def main(args):
             'concept-id': m['meta']['concept-id'],
             'granule-ur': m['umm']['GranuleUR'],
             'location': f"https://cmr.earthdata.nasa.gov:443/concepts/"
-                        f"{m['meta']['concept-id']}/{m['meta']['revision-id']}",
+                        f"{m['meta']['concept-id']}/{1 if args.force_first_rev else m['meta']['revision-id']}",
             'producer-granule-id': _try_get_pgid_from_umm(m['umm'])
         } for m in matched_granules
     ]
 
     if args.samples:
         print(json.dumps(matched_granules[0], indent=2))
+
+    if 'sns' in args.dump:
+        dump_fname = f'{args.ccid}_dump.sns.json'
+
+        with open(dump_fname, 'w') as f:
+            json.dump(matched_granules, f, indent=2)
+
+        print(f'Dumped generated SNS messages to {dump_fname}')
 
     print('Converting to SQS messages')
 
@@ -308,6 +332,14 @@ def main(args):
 
     if args.samples:
         print(json.dumps(matched_granules[0], indent=2))
+
+    if 'sqs' in args.dump:
+        dump_fname = f'{args.ccid}_dump.sqs.json'
+
+        with open(dump_fname, 'w') as f:
+            json.dump(matched_granules, f, indent=2)
+
+        print(f'Dumped generated SQS messages to {dump_fname}')
 
     if args.dryrun:
         print(f'Produced {len(matched_granules)} messages that would be sent to SQS.')
