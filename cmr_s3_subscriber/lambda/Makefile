@@ -33,7 +33,7 @@ package_maap.zip: lambda_function.py ../requirements.txt
 		--platform manylinux2014_x86_64 \
 		--implementation cp \
 		-r ../requirements_maap.txt \
-		--python-version 3.9 \
+		--python-version 3.12 \
 		--only-binary=:all: --upgrade
 	cd package_maap && zip -9r ../package_maap.zip .
 	zip -9 package_maap.zip lambda_function.py

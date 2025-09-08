@@ -16,6 +16,7 @@
 
 import hashlib
 import json
+import logging
 import os
 import re
 import traceback
@@ -25,7 +26,8 @@ from urllib.parse import urlparse
 import boto3
 import earthaccess
 import requests
-import logging
+from shapely import from_wkt, intersects
+from shapely.geometry import box
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -45,6 +47,8 @@ CHECKSUMS = {
     "SHA-384": hashlib.sha384,
     "SHA-512": hashlib.sha512,
 }
+
+GLOBAL = box(-180, -90, 180, 90)
 
 
 try:
@@ -115,7 +119,11 @@ def _fail_out_record(record, reason='exceeded retries'):
 
 
 def _submit_maap_job(short_name, granule_ur, maap_config=None):
-    from maap.maap import MAAP
+    try:
+        from maap.maap import MAAP
+    except ImportError:
+        print('FATAL: MAAP py package not installed. Try rebuilding zip package with the package_maap.zip target')
+        raise
 
     maap = MAAP()
 
@@ -185,7 +193,15 @@ def _handle_cmr_notification(message, bearer_token):
     umm = umm_response.json()
     processed_umm = _process_umm(umm)
 
-    print(json.dumps(processed_umm, indent=2))
+    print(json.dumps(processed_umm, indent=2, default=lambda o: repr(o)))
+
+    if processed_umm['collection_geo'] is not None:
+        desired_geo = processed_umm['collection_geo']
+        granule_geo = processed_umm['spatial_extent']
+
+        if not intersects(granule_geo, desired_geo):
+            print(f'Granule {message["granule-ur"]} does not intersect geo filter. Skipping.')
+            return
 
     if 'MAAP_PGT' in os.environ:
         print('Submitting job through MAAP instead of staging in this function')
@@ -359,15 +375,39 @@ def _process_umm(umm):
             creds_url = url['URL']
             break
 
+    try:
+        bounding_rectangles = umm['SpatialExtent']['HorizontalSpatialDomain']['Geometry']['BoundingRectangles']
+
+        if len(bounding_rectangles) > 1:
+            raise ValueError('Multiple bounding rectangles given when one expected')
+
+        bbox_dict = bounding_rectangles[0]
+
+        bbox = box(
+            bbox_dict['WestBoundingCoordinate'],
+            bbox_dict['SouthBoundingCoordinate'],
+            bbox_dict['EastBoundingCoordinate'],
+            bbox_dict['NorthBoundingCoordinate'],
+        )
+    except Exception as e:
+        print(f'WARN: Unable to get bbox from umm: {e!r}. Using global extent instead')
+        bbox = GLOBAL
+
     collection_entry = _search_collection_options(collection)
 
     if collection_entry is None:
         s3_prefix = collection
+        desired_geo = None
         maap_config = None
     else:
         s3_prefix = collection_entry['s3_prefix']['S'] if 's3_prefix' in collection_entry else collection
+        desired_geo = from_wkt(collection_entry['polygon']['S']) if 'polygon' in collection_entry else None
         maap_config = collection_entry['maap_config']['M'] if 'maap_config' in collection_entry else {}
         maap_config = {k: list(v.values())[0] for k, v in maap_config.items()}
+
+    if desired_geo.geom_type != 'Polygon':
+        print(f'WARN: Collection settings define incorrect geo filter geometry type. Must be POLYGON. Disabling filter')
+        desired_geo = None
 
     if s3_prefix[-1] != '/':
         s3_prefix += '/'
@@ -379,6 +419,8 @@ def _process_umm(umm):
         s3_prefix=s3_prefix,
         s3_credentials_url=creds_url,
         maap_config=maap_config,
+        spatial_extent=bbox,
+        collection_geo=desired_geo,
     )
 
 

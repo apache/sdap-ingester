@@ -1,5 +1,6 @@
 earthaccess
 requests
 pyyaml
+shapely
 # maap-py @ git+https://github.com/MAAP-Project/maap-py.git
 
