@@ -63,11 +63,12 @@ variable "ccids" {
 
 variable "collection_options" {
   type = map(object({
-    shortname            = string
-    s3_path              = optional(string)
-    polygon              = optional(string)
-    trigger_on_revisions = optional(bool, true)
-    delay                = optional(number, 0)
+    shortname               = string
+    s3_path                 = optional(string)
+    polygon                 = optional(string)
+    trigger_on_revisions    = optional(bool, true)
+    trigger_enable_override = optional(bool)
+    delay                   = optional(number, 0)
     maap_config = optional(object({
       zarr_config_url = string
       variables       = optional(string, "*")
@@ -86,7 +87,7 @@ variable "enable_triggers" {
 }
 
 variable "enable_backfill_trigger" {
-  type = bool
+  type        = bool
   description = "Whether to enable the SQS -> Lambda trigger for the backfill queue"
 
   default = true

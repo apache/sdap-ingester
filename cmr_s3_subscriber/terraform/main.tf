@@ -151,7 +151,7 @@ resource "aws_lambda_event_source_mapping" "sqs_triggers" {
   for_each         = module.subscriptions
   event_source_arn = each.value.queue_arn
 
-  enabled = var.enable_triggers
+  enabled = var.collection_options[each.value.ccid].trigger_enable_override != null ? var.collection_options[each.value.ccid].trigger_enable_override : var.enable_triggers
 
   batch_size              = 3
   function_response_types = ["ReportBatchItemFailures"]
