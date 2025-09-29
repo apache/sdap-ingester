@@ -152,6 +152,7 @@ def _submit_maap_job(short_name, granule_ur, maap_config=None):
         queue=queue,
         granule_id=granule_ur,
         collection_id=ccid,
+        concept_id=ccid,
     )
 
     print(f'Submitting MAAP job with parameters: {dict(**job_kwargs, **kwargs)}')
@@ -160,6 +161,11 @@ def _submit_maap_job(short_name, granule_ur, maap_config=None):
         **job_kwargs,
         **kwargs
     )
+
+    if job.id is None or job.id == '':
+        print(f'MAAP job submission failed: {job.error_details}')
+        print(job)
+        raise Exception('MAAP job submission failed')
 
     print(f'Submitted job {job.id}')
 
@@ -405,7 +411,7 @@ def _process_umm(umm):
         maap_config = collection_entry['maap_config']['M'] if 'maap_config' in collection_entry else {}
         maap_config = {k: list(v.values())[0] for k, v in maap_config.items()}
 
-    if desired_geo.geom_type != 'Polygon':
+    if desired_geo is not None and desired_geo.geom_type != 'Polygon':
         print(f'WARN: Collection settings define incorrect geo filter geometry type. Must be POLYGON. Disabling filter')
         desired_geo = None
 
