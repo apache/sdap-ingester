@@ -516,7 +516,7 @@ def lambda_handler(event, context):
         try:
             _process_record(json.loads(record['body']), bearer_token)
         except Exception as e:
-            rec_count = int(record.get('Attributes', {}).get("ApproximateReceiveCount", "5"))
+            rec_count = int(record.get('attributes', {}).get("ApproximateReceiveCount", "5"))
 
             if rec_count <= 5:
                 batch_item_failures.append({"itemIdentifier": record['messageId']})
