@@ -34,16 +34,15 @@ data "aws_dynamodb_table" "table" {
 }
 
 locals {
-  options_json = var.options == null ? {} : merge(
+  // Need to use this weird ternary. Apparently terraform can't handle {} or {k = v,...},
+  // so it's [{}, {k = v, ...}][condition ? 0 : 1]
+  options_json = [{}, merge(
     var.options.s3_path == null ? {} : {s3_prefix = { S = var.options.s3_path }},
     var.options.polygon == null ? {} : {polygon = { S = var.options.polygon }},
-    var.options.maap_config == null ? {} : {maap_config = {
-      M = merge(
-        { zarr_config_url = { S = var.options.maap_config.zarr_config_url } },
-        { variables = { S = var.options.maap_config.variables } },
-      )
-    }}
-  )
+    [{}, {maap_config = {
+      M = {for key in keys(var.options.maap_config) : key => {S = var.options.maap_config[key]}}
+    }}][var.options.maap_config == null ? 0 : 1]
+  )][var.options == null ? 0 : 1]
 
   trigger_on_revisions = var.options == null ? true : var.options.trigger_on_revisions
 }

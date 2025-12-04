@@ -69,10 +69,7 @@ variable "collection_options" {
     trigger_on_revisions    = optional(bool, true)
     trigger_enable_override = optional(bool)
     delay                   = optional(number, 0)
-    maap_config = optional(object({
-      zarr_config_url = string
-      variables       = optional(string, "*")
-    }))
+    maap_config = optional(map(string))
   }))
   description = "Mapping of CCID to collection options. If specified, must provide the short name of the collection plus an s3 path and/or MAAP options. MAAP options consist of an S3 URL for job configuration and an optional list of variables (either '*' or a space-separated list wrapped in quotes)"
 

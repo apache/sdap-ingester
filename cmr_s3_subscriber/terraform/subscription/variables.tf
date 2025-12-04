@@ -41,10 +41,7 @@ variable "options" {
     polygon = optional(string)
     trigger_on_revisions = optional(bool, true)
     delay = optional(number, 0)
-    maap_config = optional(object({
-      zarr_config_url = string
-      variables = optional(string, "*")
-    }))
+    maap_config = optional(map(string))
   })
   description = "Collection options"
   nullable = true
