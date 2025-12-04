@@ -20,6 +20,7 @@ import logging
 import os
 import re
 import traceback
+from copy import deepcopy
 from functools import cache
 from urllib.parse import urlparse
 
@@ -155,12 +156,19 @@ def _submit_maap_job(short_name, granule_ur, maap_config=None):
         concept_id=ccid,
     )
 
-    print(f'Submitting MAAP job with parameters: {dict(**job_kwargs, **kwargs)}')
+    final_maap_args = deepcopy(job_kwargs)
+    final_maap_args.update(kwargs)
 
-    job = maap.submitJob(
-        **job_kwargs,
-        **kwargs
-    )
+    # print(f'Submitting MAAP job with parameters: {dict(**job_kwargs, **kwargs)}')
+    #
+    # job = maap.submitJob(
+    #     **job_kwargs,
+    #     **kwargs
+    # )
+
+    print(f'Submitting MAAP job with parameters: {final_maap_args}')
+
+    job = maap.submitJob(**final_maap_args)
 
     if job.id is None or job.id == '':
         print(f'MAAP job submission failed: {job.error_details}')
