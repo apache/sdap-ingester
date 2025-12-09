@@ -28,7 +28,7 @@ import boto3
 import earthaccess
 import requests
 from shapely import from_wkt, intersects
-from shapely.geometry import box
+from shapely.geometry import box, Polygon, MultiPolygon
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -390,19 +390,35 @@ def _process_umm(umm):
             break
 
     try:
-        bounding_rectangles = umm['SpatialExtent']['HorizontalSpatialDomain']['Geometry']['BoundingRectangles']
+        spatial_extent = umm['SpatialExtent']['HorizontalSpatialDomain']
 
-        if len(bounding_rectangles) > 1:
-            raise ValueError('Multiple bounding rectangles given when one expected')
+        if 'Geometry' in spatial_extent:
+            if 'BoundingRectangles' in spatial_extent['Geometry']:
+                bounding_rectangles = spatial_extent['Geometry']['BoundingRectangles']
 
-        bbox_dict = bounding_rectangles[0]
+                if len(bounding_rectangles) > 1:
+                    raise ValueError('Multiple bounding rectangles given when one expected')
 
-        bbox = box(
-            bbox_dict['WestBoundingCoordinate'],
-            bbox_dict['SouthBoundingCoordinate'],
-            bbox_dict['EastBoundingCoordinate'],
-            bbox_dict['NorthBoundingCoordinate'],
-        )
+                bbox_dict = bounding_rectangles[0]
+
+                bbox = box(
+                    bbox_dict['WestBoundingCoordinate'],
+                    bbox_dict['SouthBoundingCoordinate'],
+                    bbox_dict['EastBoundingCoordinate'],
+                    bbox_dict['NorthBoundingCoordinate'],
+                )
+            elif 'GPolygons' in spatial_extent['Geometry']:
+                polygons = []
+
+                for polygon in spatial_extent['Geometry']['GPolygons']:
+                    polygons.append(Polygon([(p['Longitude'], p['Latitude']) for p in polygon['Boundary']['Points']]))
+
+                if len(polygons) == 1:
+                    bbox = polygons[0]
+                else:
+                    bbox = MultiPolygon(polygons)
+        else:
+            raise ValueError('Spatial extent geometry not provided')
     except Exception as e:
         print(f'WARN: Unable to get bbox from umm: {e!r}. Using global extent instead')
         bbox = GLOBAL
