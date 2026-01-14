@@ -40,6 +40,8 @@ ddb = boto3.client('dynamodb')
 SNS_ARN = os.environ['SNS_ARN']
 DDB_ARN = os.environ['DDB_ARN']
 
+PROJECT = os.environ.get('PROJECT', 'CMR SUBSCRIBER')
+
 
 CHECKSUMS = {
     "MD5": hashlib.md5,
@@ -106,7 +108,7 @@ def _sns_send(subject, message):
 def _forward_confirmation(record):
     print('Forwarding subscription confirmation by SNS')
     _sns_send(
-        '[FireAlarm] Confirm forward ingest CMR subscription',
+        f'[{PROJECT}] Confirm forward ingest CMR subscription',
         record
     )
 
@@ -114,7 +116,7 @@ def _forward_confirmation(record):
 def _fail_out_record(record, reason='exceeded retries'):
     print('Publishing record failure to SNS')
     _sns_send(
-        f'[FireAlarm] CMR forward ingest job failed ({reason})',
+        f'[{PROJECT}] CMR forward ingest job failed ({reason})',
         record
     )
 

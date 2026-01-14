@@ -116,6 +116,7 @@ resource "aws_lambda_function" "lambda" {
       DDB_ARN    = aws_dynamodb_table.collection_lookup.arn
       SECRET_ARN = aws_secretsmanager_secret.edl_secret.arn
       DST_BUCKET = local.bucket
+      PROJECT    = var.project != null ? var.project : null
     }
   }
 

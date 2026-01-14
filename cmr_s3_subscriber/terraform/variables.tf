@@ -36,6 +36,12 @@ variable "edl_password" {
   sensitive   = true
 }
 
+variable "project" {
+  type        = string
+  description = "Name of the project this is deployed to. Used for notification headers."
+  default     = null
+}
+
 variable "script_dir" {
   type        = string
   description = "Path to directory containing CMR subscription scripts and python venv"
@@ -69,7 +75,7 @@ variable "collection_options" {
     trigger_on_revisions    = optional(bool, true)
     trigger_enable_override = optional(bool)
     delay                   = optional(number, 0)
-    maap_config = optional(map(string))
+    maap_config             = optional(map(string))
   }))
   description = "Mapping of CCID to collection options. If specified, must provide the short name of the collection plus an s3 path and/or MAAP options. MAAP options consist of an S3 URL for job configuration and an optional list of variables (either '*' or a space-separated list wrapped in quotes)"
 
