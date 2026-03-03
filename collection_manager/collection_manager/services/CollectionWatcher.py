@@ -101,6 +101,10 @@ class CollectionWatcher:
             logger.info('Refreshing collection config')
 
             for collection_dict in collections_yaml['collections']:
+                if 'remote-id' in collection_dict:
+                    logger.info(f'Collection "{collection_dict.get("id", "NO ID")}" is remotely configured. Skipping.')
+                    continue
+
                 try:
                     collection = Collection.from_dict(collection_dict)
                     if collection.storage_type() == CollectionStorageType.ZARR:
