@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - SDAP-534: Added proper support for data variables in NetCDF groups. Can handle multiple data variables across different groups. Coordinates are still required to be in root.
 ### Changed
+- Properly handle skipping of remote collections when reloading the collections config in the CM.
 ### Deprecated
 ### Removed
 ### Fixed
