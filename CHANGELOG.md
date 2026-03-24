@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+- SDAP-539: Fixed issue where similar S3 paths could lead to granules being incorrectly and quietly ignored in very specific scenarios
 - Fixed issue with Collection Manager Docker build failing due to setuptools issue
 ### Security
 

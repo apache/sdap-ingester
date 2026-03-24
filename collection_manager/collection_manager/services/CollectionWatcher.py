@@ -245,5 +245,10 @@ class _GranuleEventHandler(FileSystemEventHandler):
                     else:
                         modified_time = int(os.path.getmtime(path))
                     self._loop.create_task(self._callback(path, modified_time, collection))
+                else:
+                    logger.error(f'Event for file {path} will be discarded as it is not owned by the collection it '
+                                 f'matched to: {collection.dataset_id} ({collection.path}). This should not happen. '
+                                 f'Please report this with the relevant logs and collection configuration to '
+                                 f'dev@sdap.apache.org or https://issues.apache.org/jira/projects/SDAP/issues/')
             except IsADirectoryError:
                 return

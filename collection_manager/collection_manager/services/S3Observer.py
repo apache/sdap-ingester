@@ -152,7 +152,7 @@ class S3Observer:
         return new_cache
 
     def _get_object_key(full_path: str):
-        key = urlparse(full_path).path.strip("/")
+        key = urlparse(full_path).path.lstrip("/")
         return key
 
 
