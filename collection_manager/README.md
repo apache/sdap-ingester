@@ -9,11 +9,11 @@ Manager service will publish a message to RabbitMQ to be picked up by the Granul
 
 ## Prerequisites
 
-Python 3.7
+Python 3.11
 
 Use a conda environment for example:
 
-    $ conda create -n cmenv python=3.7
+    $ conda create -n cmenv python=3.11
     $ conda activate cmenv    
 
 ## Building the service

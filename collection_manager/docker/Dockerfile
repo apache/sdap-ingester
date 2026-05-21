@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.8.13
+FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y apt-transport-https gnupg2 ca-certificates curl
-RUN mkdir -p -m 755 /etc/apt/keyrings && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-RUN echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
-RUN apt-get update && apt-get install -y kubectl
+ARG KUBECTL_VERSION=v1.29.14
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && \
+    curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    chmod +x /usr/local/bin/kubectl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY VERSION.txt /VERSION.txt
 COPY common /common
@@ -30,6 +32,6 @@ COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
 
 RUN cd /common && python setup.py install 
 RUN pip install -U setuptools
-RUN cd /collection_manager && python setup.py install && pip uninstall -y chardet  && pip install boto3==1.16.10 requests==2.26.0
+RUN cd /collection_manager && pip install .
 
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
