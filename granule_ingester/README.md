@@ -9,7 +9,7 @@ data to Cassandra and Solr.
 
 ## Prerequisites
 
-Python 3.7
+Python 3.11
 
 ## Building the service
 From `incubator-sdap-ingester`, run:

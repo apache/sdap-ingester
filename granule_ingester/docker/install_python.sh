@@ -27,22 +27,22 @@ rm -rf /var/lib/apt/lists/*
 echo "Downloading & extracting source tarball"
 
 cd /tmp/
-wget https://www.python.org/ftp/python/3.8.17/Python-3.8.17.tgz
-tar xzf Python-3.8.17.tgz
-cd Python-3.8.17
+wget https://www.python.org/ftp/python/3.11.15/Python-3.11.15.tgz
+tar xzf Python-3.11.15.tgz
+cd Python-3.11.15
 
 echo "Running install"
 
-./configure --prefix=/opt/python/3.8.17/ --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi
+./configure --prefix=/opt/python/3.11.15/ --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi
 make -j "$(nproc)"
 make altinstall
 
 echo "Cleaning up install dir"
 
-rm /tmp/Python-3.8.17.tgz
+rm /tmp/Python-3.11.15.tgz
 cd /tmp/
-rm -rf Python-3.8.17
+rm -rf Python-3.11.15
 
 echo "Final steps..."
 
-/opt/python/3.8.17/bin/python3.8 -m pip install --upgrade pip setuptools wheel
+/opt/python/3.11.15/bin/python3.11 -m pip install --upgrade pip setuptools wheel

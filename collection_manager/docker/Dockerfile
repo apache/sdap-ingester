@@ -30,8 +30,7 @@ COPY collection_manager/requirements.txt /collection_manager/requirements.txt
 COPY collection_manager/README.md /collection_manager/README.md
 COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
 
-RUN cd /common && python setup.py install 
-RUN pip install -U setuptools
+RUN cd /common && pip install .
 RUN cd /collection_manager && pip install .
 
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
