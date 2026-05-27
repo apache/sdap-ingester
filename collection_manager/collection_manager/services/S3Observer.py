@@ -132,7 +132,8 @@ class S3Observer:
         new_cache = {}
 
         start = time.perf_counter()
-        async with aioboto3.resource("s3") as s3:
+        session = aioboto3.Session()
+        async with session.resource("s3") as s3:
             bucket = await s3.Bucket(self._bucket)
 
             n_keys = 0
