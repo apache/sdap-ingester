@@ -99,7 +99,8 @@ class GranuleLoader:
         parsed_url = parse.urlparse(url)
         logger.info(
             "Downloading S3 file from bucket '{}' with key '{}'".format(parsed_url.hostname, parsed_url.path[1:]))
-        async with aioboto3.resource("s3") as s3:
+        session = aioboto3.Session()
+        async with session.resource("s3") as s3:
             obj = await s3.Object(bucket_name=parsed_url.hostname, key=parsed_url.path[1:])
             response = await obj.get()
             data = await response['Body'].read()

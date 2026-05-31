@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDAP-534: Added proper support for data variables in NetCDF groups. Can handle multiple data variables across different groups. Coordinates are still required to be in root.
 ### Changed
 - Properly handle skipping of remote collections when reloading the collections config in the CM.
+- SDAP-542: Updated collection manager and granule ingester build to python 3.11.
 ### Deprecated
 ### Removed
 ### Fixed
