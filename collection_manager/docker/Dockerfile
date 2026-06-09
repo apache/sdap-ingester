@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Build from the repository root:
+#   docker build -f collection_manager/docker/Dockerfile -t sdap-collection-manager .
+
 FROM python:3.11-slim
 
 ARG KUBECTL_VERSION=v1.29.14
@@ -22,15 +25,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY VERSION.txt /VERSION.txt
-COPY common /common
-COPY collection_manager/collection_manager /collection_manager/collection_manager
-COPY collection_manager/setup.py /collection_manager/setup.py
-COPY collection_manager/requirements.txt /collection_manager/requirements.txt
-COPY collection_manager/README.md /collection_manager/README.md
+COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+COPY common/pyproject.toml common/
+COPY collection_manager/pyproject.toml collection_manager/
+COPY config_operator/pyproject.toml config_operator/
+COPY granule_ingester/pyproject.toml granule_ingester/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-workspace --package collection_manager
+
+COPY common/ common/
+COPY collection_manager/ collection_manager/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --package collection_manager
+
+ENV PATH="/app/.venv/bin:$PATH"
 COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
-
-RUN cd /common && pip install .
-RUN cd /collection_manager && pip install .
-
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

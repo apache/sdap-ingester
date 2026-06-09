@@ -16,7 +16,7 @@
 # limitations under the License.
 
 
-python /collection_manager/collection_manager/main.py \
+python /app/collection_manager/collection_manager/main.py \
   $([[ ! -z "$COLLECTIONS_PATH" ]] && echo --collections-path=$COLLECTIONS_PATH) \
   $([[ ! -z "$RABBITMQ_HOST" ]] && echo --rabbitmq-host=$RABBITMQ_HOST) \
   $([[ ! -z "$RABBITMQ_USERNAME" ]] && echo --rabbitmq-username=$RABBITMQ_USERNAME) \
