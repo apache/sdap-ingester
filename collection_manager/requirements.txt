@@ -17,7 +17,7 @@ PyYAML==6.0.2
 pysolr==3.10.0
 watchdog==0.10.2
 requests==2.31.0
-tenacity==6.2.0
+tenacity==8.2.3
 aioboto3==11.3.0
 aiobotocore==2.6.0
 boto3==1.28.17

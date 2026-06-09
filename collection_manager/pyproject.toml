@@ -4,4 +4,17 @@ version = "0.1.0"
 description = "TBD"
 readme = "README"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "aio-pika==6.7.1",
+    "aioboto3==11.3.0",
+    "aiobotocore==2.6.0",
+    "aiohttp==3.8.5",
+    "boto3==1.28.17",
+    "pysolr==3.10.0",
+    "pyyaml==6.0.2",
+    "requests==2.31.0",
+    "tenacity==8.2.3",
+    "urllib3==1.26.20",
+    "watchdog==0.10.2",
+    "yarl<=1.9.4",
+]
