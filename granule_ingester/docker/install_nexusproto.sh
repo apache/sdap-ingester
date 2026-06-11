@@ -29,6 +29,8 @@ if [ ! -z ${BUILD_NEXUSPROTO+x} ]; then
   git init
   git pull ${GIT_REPO} ${GIT_BRANCH}
 
+  uv pip install pip setuptools wheel
+
   ./gradlew pythonInstall --info
 
   ./gradlew install --info
@@ -37,5 +39,12 @@ if [ ! -z ${BUILD_NEXUSPROTO+x} ]; then
   cd ..
   rm -rf nexusproto
 else
-  pip install nexusproto
+  uv pip install nexusproto
 fi
+
+# nexusproto hard-pins protobuf==3.2.0 (2017), whose runtime references the
+# removed collections.MutableMapping and cannot import on Python 3.11. Override
+# it with the last 3.x protobuf, which is 3.11-compatible and still loads the
+# nexusproto bindings. Must run AFTER nexusproto install, otherwise its == pin
+# pulls 3.2.0 back in.
+uv pip install "protobuf==3.20.3"

@@ -102,15 +102,6 @@ wheels = [
 ]
 
 [[package]]
-name = "aiojobs"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/03/54/751969398e2039b4dc458fa153dc066a0f7337a5b480d58944f59b7b38ae/aiojobs-1.4.0.tar.gz", hash = "sha256:463665c75d1fcc46c78d44375c1034abf5e3f087894b0fc5ec4dd16ef90fdc98", size = 139598, upload-time = "2025-04-05T00:39:07.771Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/89/5a30b3c041712a8b2dadb5ccef2bae12a874469650c61c018705039699cd/aiojobs-1.4.0-py3-none-any.whl", hash = "sha256:e95eb0d10d1f6095aefb04d228d2b4b3747514503f26540de722c2228a8500ca", size = 9455, upload-time = "2025-04-05T00:39:06.279Z" },
-]
-
-[[package]]
 name = "aiomultiprocess"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -380,8 +371,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "gitpython", specifier = "==3.1.2" },
-    { name = "kopf", specifier = "==0.26" },
-    { name = "kubernetes", specifier = "==11.0" },
+    { name = "kopf", specifier = ">=1.36,<2" },
+    { name = "kubernetes", specifier = ">=27,<31" },
 ]
 
 [package.metadata.requires-dev]
@@ -661,40 +652,39 @@ wheels = [
 
 [[package]]
 name = "kopf"
-version = "0.26"
+version = "1.42.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
-    { name = "aiojobs" },
     { name = "click" },
     { name = "iso8601" },
-    { name = "pykube-ng" },
-    { name = "typing-extensions" },
+    { name = "python-json-logger" },
+    { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/b6/d785f0f9c811d8558512f4661ff3311e8ccbce031b0108ffc80d2d009160/kopf-0.26.tar.gz", hash = "sha256:4b9c50f12c01a4944b89d6297efa4e9dd86ad49dcc5b5cbaff655c78b2a8ddb4", size = 211402, upload-time = "2020-03-05T16:07:55.478Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/2c/abfb69435f80f31ca069adbe6d327e2cbd533f89e605e95a648d957eb721/kopf-1.42.5.tar.gz", hash = "sha256:3a66895197e3e6bf3484681112cd59d4e2700db853adcfd313344eb3a0559600", size = 1213383, upload-time = "2026-02-07T08:42:47.454Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/b9/93ab1482099fa6274dcca5504f35951132a74339d4217858ed29ff38ce56/kopf-0.26-py3-none-any.whl", hash = "sha256:da9452accf225ad9d22563cca1cac2c95bd1c8ea9703d83ca0da36b72af31e96", size = 99423, upload-time = "2020-03-05T16:07:53.275Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/99/0e52246e61df9540c9f578a7b828b91de7cdf57009b75e88120760d346d2/kopf-1.42.5-py3-none-any.whl", hash = "sha256:a799aa36c47bb45a43a3044b1b18617369a2a455590b14a1ed4c773c29b0c3d1", size = 216427, upload-time = "2026-02-07T08:42:45.49Z" },
 ]
 
 [[package]]
 name = "kubernetes"
-version = "11.0.0"
+version = "30.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "google-auth" },
+    { name = "oauthlib" },
     { name = "python-dateutil" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "requests-oauthlib" },
-    { name = "setuptools" },
     { name = "six" },
     { name = "urllib3" },
     { name = "websocket-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/3f/2fef94fb65e8f94d768356e5fb9be222d18027e6167ccc65e2090917a771/kubernetes-11.0.0.tar.gz", hash = "sha256:1a2472f8b01bc6aa87e3a34781f859bded5a5c8ff791a53d889a8bd6cc550430", size = 724559, upload-time = "2020-03-12T19:36:17.551Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/3c/9f29f6cab7f35df8e54f019e5719465fa97b877be2454e99f989270b4f34/kubernetes-30.1.0.tar.gz", hash = "sha256:41e4c77af9f28e7a6c314e3bd06a8c6229ddd787cad684e0ab9f69b498e98ebc", size = 887810, upload-time = "2024-06-06T15:58:30.031Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/46/d4b9364fcab59b5f9248e014c7592df8de84ad6548a6fe3de2d805bb75fc/kubernetes-11.0.0-py3-none-any.whl", hash = "sha256:4af81201520977139a143f96123fb789fa351879df37f122916b9b6ed050bbaf", size = 1529332, upload-time = "2020-03-12T19:36:15.878Z" },
+    { url = "https://files.pythonhosted.org/packages/62/a1/2027ddede72d33be2effc087580aeba07e733a7360780ae87226f1f91bd8/kubernetes-30.1.0-py2.py3-none-any.whl", hash = "sha256:e212e8b7579031dd2e512168b617373bc1e03888d41ac4e04039240a292d478d", size = 1706042, upload-time = "2024-06-06T15:58:27.13Z" },
 ]
 
 [[package]]
@@ -852,20 +842,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pykube-ng"
-version = "23.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/10/ee/c78cd9b1a574b63ce365b6a6f066082dbbc8aee93aacc83d7bc32aed7919/pykube-ng-23.6.0.tar.gz", hash = "sha256:46de8e17ed87c1a1014667d60e7d94a1f3fa2b8037b41e67d32c28b5869af35d", size = 26058, upload-time = "2023-06-16T18:02:22.247Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/b9/4292259e80f93163d9ba0c69ccb3d44cf240acbdcb18adbc81a8f8d2e3d6/pykube_ng-23.6.0-py3-none-any.whl", hash = "sha256:63f20f634bfcd83966edec32f892286f75dffb817a2c097434ecc039e558ec8f", size = 26181, upload-time = "2023-06-16T18:02:23.649Z" },
-]
-
-[[package]]
 name = "pysolr"
 version = "3.10.0"
 source = { registry = "https://pypi.org/simple" }
@@ -900,6 +876,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
+]
+
+[[package]]
+name = "python-json-logger"
+version = "4.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/ff/3cc9165fd44106973cd7ac9facb674a65ed853494592541d339bdc9a30eb/python_json_logger-4.1.0.tar.gz", hash = "sha256:b396b9e3ed782b09ff9d6e4f1683d46c83ad0d35d2e407c09a9ebbf038f88195", size = 17573, upload-time = "2026-03-29T04:39:56.805Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/be/0631a861af4d1c875f096c07d34e9a63639560a717130e7a87cbc82b7e3f/python_json_logger-4.1.0-py3-none-any.whl", hash = "sha256:132994765cf75bf44554be9aa49b06ef2345d23661a96720262716438141b6b2", size = 15021, upload-time = "2026-03-29T04:39:55.266Z" },
 ]
 
 [[package]]

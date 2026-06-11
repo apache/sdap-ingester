@@ -6,8 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
     "gitpython==3.1.2",
-    "kopf==0.26",
-    "kubernetes==11.0",
+    # kopf 0.26 (2020) cannot import on Python 3.11 (dataclass mutable-default
+    # error); 1.36+ adds 3.11 support. HandlerFatalError was renamed
+    # PermanentError in the 1.x line (see main.py).
+    "kopf>=1.36,<2",
+    "kubernetes>=27,<31",
 ]
 
 
