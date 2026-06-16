@@ -1,0 +1,16 @@
+[project]
+name = "sdap-ingester"
+version = "1.4.0"
+description = "Software for ingesting data into SDAP NEXUS"
+readme = "README"
+requires-python = ">=3.11, <3.12"
+
+[tool.uv.workspace]
+members = ["collection_manager", "common", "config_operator", "granule_ingester"]
+
+[tool.uv.sources]
+sdap_collection_manager = { workspace = true }
+sdap_ingester_common = { workspace = true }
+config_operator = { workspace = true }
+granule_ingester = { workspace = true }
+

@@ -14,44 +14,33 @@
 # limitations under the License.
 
 [project]
-name = "granule_ingester"
+name = "sdap_collection_manager"
 version = "1.4.0"
-description = "Ingester component for Apache SDAP"
+description = "A helper that watches a YAML file stored on the filesystem, and all the directories listed in that file."
 authors = [{ name = "SDAP PMC", email = "dev@sdap.apache.org" }]
 requires-python = ">=3.11,<3.12"
 readme = "README.md"
 license = "Apache-2.0"
 classifiers=[
-    'Development Status :: 6 - Mature',
-    'Intended Audience :: Science/Research',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3.11',
-    "License :: OSI Approved :: Apache Software License"
-]
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+        "Development Status :: 4 - Beta",
+    ]
 dependencies = [
     "sdap_ingester_common",
 
-    "cassandra-driver==3.30.0",
-    "aiomultiprocess==0.7.0",
+    "aio-pika==6.7.1",
     "aioboto3==11.3.0",
     "aiobotocore==2.6.0",
+    "aiohttp==3.8.5",
     "boto3==1.28.17",
-    "tblib==1.6.0",
     "pysolr==3.10.0",
-    "kazoo==2.8.0",
-    "aio-pika==6.7.1",
-    "elasticsearch[async]==8.11.0",
-    "urllib3==1.26.20",
-    "numpy>=1.26.4,<2",
-    "scipy>=1.11.4,<2",
-    "netcdf4>=1.6.5,<2",
-    "pandas>=2.1.4,<3",
-    "pytz>=2024.1,<2025",
-    "xarray",
     "pyyaml==6.0.2",
-    "aiohttp>=3.8.0",
+    "requests==2.31.0",
     "tenacity==8.2.3",
-    "requests>=2.27.1",
+    "urllib3==1.26.20",
+    "watchdog==0.10.2",
+    "yarl<=1.9.4",
 ]
 
 [project.urls]
@@ -63,7 +52,7 @@ dev = ["pytest>=7.1.2,<8"]
 [tool.uv]
 
 [tool.uv.build-backend]
-module-name = ["granule_ingester"]
+module-name = ["collection_manager"]
 module-root = ""
 
 [build-system]

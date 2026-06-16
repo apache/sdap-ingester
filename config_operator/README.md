@@ -21,16 +21,20 @@ To update the configmap from the same directory run:
 
 # Developers
 
-    git clone ...
-    cd config_operator
-    pip install -e .
-    pytest -d
+Python 3.11 and [uv](https://docs.astral.sh/uv/) (uv provisions and manages the
+virtual environment). From `incubator-sdap-ingester`, run:
+
+    uv sync --package config_operator
+    uv run --package config_operator pytest config_operator/tests
 
 # Containerization
 
 ## Docker
 
-    docker build . -f containers/docker/Dockerfile -t nexusjpl/config-operator:latest
+From `incubator-sdap-ingester` (the build needs the repository root as context so
+uv can resolve the workspace):
+
+    docker build . -f config_operator/containers/docker/Dockerfile -t nexusjpl/config-operator:latest
         
 To publish the docker image on dockerhub do (step necessary for kubernetes deployment):
 

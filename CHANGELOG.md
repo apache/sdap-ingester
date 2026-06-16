@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Properly handle skipping of remote collections when reloading the collections config in the CM.
 - SDAP-542: Updated collection manager and granule ingester build to python 3.11.
+- SDAP-543: Migrated package and dependency management to a uv workspace with a single root `uv.lock`. This supersedes Poetry (SDAP-511), which had itself replaced the original setuptools (`setup.py`) plus `requirements.txt` install workflow. Component Docker builds now use `uv sync --package <component>`.
 ### Deprecated
 ### Removed
 ### Fixed
