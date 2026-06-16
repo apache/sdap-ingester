@@ -8,11 +8,11 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "collection-manager",
-    "common",
     "config-operator",
     "granule-ingester",
+    "sdap-collection-manager",
     "sdap-ingester",
+    "sdap-ingester-common",
 ]
 
 [[package]]
@@ -285,51 +285,6 @@ wheels = [
 ]
 
 [[package]]
-name = "collection-manager"
-version = "0.1.0"
-source = { editable = "collection_manager" }
-dependencies = [
-    { name = "aio-pika" },
-    { name = "aioboto3" },
-    { name = "aiobotocore" },
-    { name = "aiohttp" },
-    { name = "boto3" },
-    { name = "common" },
-    { name = "pysolr" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "tenacity" },
-    { name = "urllib3" },
-    { name = "watchdog" },
-    { name = "yarl" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aio-pika", specifier = "==6.7.1" },
-    { name = "aioboto3", specifier = "==11.3.0" },
-    { name = "aiobotocore", specifier = "==2.6.0" },
-    { name = "aiohttp", specifier = "==3.8.5" },
-    { name = "boto3", specifier = "==1.28.17" },
-    { name = "common", editable = "common" },
-    { name = "pysolr", specifier = "==3.10.0" },
-    { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "requests", specifier = "==2.31.0" },
-    { name = "tenacity", specifier = "==8.2.3" },
-    { name = "urllib3", specifier = "==1.26.20" },
-    { name = "watchdog", specifier = "==0.10.2" },
-    { name = "yarl", specifier = "<=1.9.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=7.1.2,<8" }]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -339,23 +294,8 @@ wheels = [
 ]
 
 [[package]]
-name = "common"
-version = "0.1.0"
-source = { editable = "common" }
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=7.1.2,<8" }]
-
-[[package]]
 name = "config-operator"
-version = "0.1.0"
+version = "1.4.0"
 source = { editable = "config_operator" }
 dependencies = [
     { name = "gitpython" },
@@ -551,7 +491,6 @@ dependencies = [
     { name = "aiomultiprocess" },
     { name = "boto3" },
     { name = "cassandra-driver" },
-    { name = "common" },
     { name = "elasticsearch", extra = ["async"] },
     { name = "kazoo" },
     { name = "netcdf4" },
@@ -562,6 +501,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "requests" },
     { name = "scipy" },
+    { name = "sdap-ingester-common" },
     { name = "tblib" },
     { name = "tenacity" },
     { name = "urllib3" },
@@ -582,7 +522,6 @@ requires-dist = [
     { name = "aiomultiprocess", specifier = "==0.7.0" },
     { name = "boto3", specifier = "==1.28.17" },
     { name = "cassandra-driver", specifier = "==3.30.0" },
-    { name = "common", editable = "common" },
     { name = "elasticsearch", extras = ["async"], specifier = "==8.11.0" },
     { name = "kazoo", specifier = "==2.8.0" },
     { name = "netcdf4", specifier = ">=1.6.5,<2" },
@@ -593,6 +532,7 @@ requires-dist = [
     { name = "pyyaml", specifier = "==6.0.2" },
     { name = "requests", specifier = ">=2.27.1" },
     { name = "scipy", specifier = ">=1.11.4,<2" },
+    { name = "sdap-ingester-common", editable = "common" },
     { name = "tblib", specifier = "==1.6.0" },
     { name = "tenacity", specifier = "==8.2.3" },
     { name = "urllib3", specifier = "==1.26.20" },
@@ -975,9 +915,69 @@ wheels = [
 ]
 
 [[package]]
+name = "sdap-collection-manager"
+version = "1.4.0"
+source = { editable = "collection_manager" }
+dependencies = [
+    { name = "aio-pika" },
+    { name = "aioboto3" },
+    { name = "aiobotocore" },
+    { name = "aiohttp" },
+    { name = "boto3" },
+    { name = "pysolr" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sdap-ingester-common" },
+    { name = "tenacity" },
+    { name = "urllib3" },
+    { name = "watchdog" },
+    { name = "yarl" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aio-pika", specifier = "==6.7.1" },
+    { name = "aioboto3", specifier = "==11.3.0" },
+    { name = "aiobotocore", specifier = "==2.6.0" },
+    { name = "aiohttp", specifier = "==3.8.5" },
+    { name = "boto3", specifier = "==1.28.17" },
+    { name = "pysolr", specifier = "==3.10.0" },
+    { name = "pyyaml", specifier = "==6.0.2" },
+    { name = "requests", specifier = "==2.31.0" },
+    { name = "sdap-ingester-common", editable = "common" },
+    { name = "tenacity", specifier = "==8.2.3" },
+    { name = "urllib3", specifier = "==1.26.20" },
+    { name = "watchdog", specifier = "==0.10.2" },
+    { name = "yarl", specifier = "<=1.9.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=7.1.2,<8" }]
+
+[[package]]
 name = "sdap-ingester"
-version = "0.1.0"
+version = "1.4.0"
 source = { virtual = "." }
+
+[[package]]
+name = "sdap-ingester-common"
+version = "1.4.0"
+source = { editable = "common" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=7.1.2,<8" }]
 
 [[package]]
 name = "setuptools"

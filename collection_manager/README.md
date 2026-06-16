@@ -15,15 +15,15 @@ virtual environment).
 ## Building the service
 From `incubator-sdap-ingester`, run:
 
-    $ uv sync --package collection_manager
+    $ uv sync --package sdap_collection_manager
 
-This creates `.venv` with the `collection_manager` package and its dependencies.
+This creates `.venv` with the `sdap_collection_manager` package and its dependencies.
 
 
 ## Running the service
 From `incubator-sdap-ingester`, run:
 
-    $ uv run --package collection_manager python collection_manager/collection_manager/main.py -h
+    $ uv run --package sdap_collection_manager python collection_manager/collection_manager/main.py -h
     
 ### The Collections Configuration File
 
@@ -108,7 +108,7 @@ the actual dimensions are referenced by index variables.
 ## Running the tests
 From `incubator-sdap-ingester/`, run:
 
-    $ uv run --package collection_manager pytest collection_manager/tests
+    $ uv run --package sdap_collection_manager pytest collection_manager/tests
     
 ## Building the Docker image
 From `incubator-sdap-ingester`, run:

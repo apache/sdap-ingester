@@ -1,7 +1,7 @@
 [project]
 name = "sdap-ingester"
-version = "0.1.0"
-description = "TBD"
+version = "1.4.0"
+description = "Software for ingesting data into SDAP NEXUS"
 readme = "README"
 requires-python = ">=3.11, <3.12"
 
@@ -9,8 +9,8 @@ requires-python = ">=3.11, <3.12"
 members = ["collection_manager", "common", "config_operator", "granule_ingester"]
 
 [tool.uv.sources]
-collection_manager = { workspace = true }
-common = { workspace = true }
+sdap_collection_manager = { workspace = true }
+sdap_ingester_common = { workspace = true }
 config_operator = { workspace = true }
 granule_ingester = { workspace = true }
 

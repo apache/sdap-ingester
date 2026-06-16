@@ -39,12 +39,12 @@ COPY collection_manager/pyproject.toml collection_manager/
 COPY config_operator/pyproject.toml config_operator/
 COPY granule_ingester/pyproject.toml granule_ingester/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-workspace --package collection_manager
+    uv sync --frozen --no-dev --no-install-workspace --package sdap_collection_manager
 
 COPY common/ common/
 COPY collection_manager/ collection_manager/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --package collection_manager
+    uv sync --frozen --no-dev --package sdap_collection_manager
 
 ENV PATH="/app/.venv/bin:$PATH"
 COPY collection_manager/docker/entrypoint.sh /entrypoint.sh
