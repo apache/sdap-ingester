@@ -13,14 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3
+FROM python:3.11-slim
 
-COPY /config_operator /config_operator/config_operator
-COPY /setup.py /config_operator/setup.py
-COPY /requirements.txt /config_operator/requirements.txt
-COPY /README.md /config_operator/README.md
+# GitPython (used by RemoteGitConfig) shells out to the git binary at import
+# time; the slim base image does not ship it, so install it explicitly.
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN cd /config_operator && pip install .
-COPY /config_operator/main.py /main.py
+COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
 
-CMD ["kopf",  "run",  "/main.py",  "--verbose"]
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+COPY common/pyproject.toml common/
+COPY collection_manager/pyproject.toml collection_manager/
+COPY config_operator/pyproject.toml config_operator/
+COPY granule_ingester/pyproject.toml granule_ingester/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-workspace --package config_operator
+
+COPY config_operator/ config_operator/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --package config_operator
+
+ENV PATH="/app/.venv/bin:$PATH"
+CMD ["kopf", "run", "/app/config_operator/config_operator/main.py", "--verbose"]

@@ -17,7 +17,7 @@
 
 echo $IS_VERBOSE ;
 
-python /sdap/granule_ingester/main.py \
+python /app/granule_ingester/granule_ingester/main.py \
   $([[ ! -z "$RABBITMQ_HOST" ]] && echo --rabbitmq-host=$RABBITMQ_HOST) \
   $([[ ! -z "$RABBITMQ_USERNAME" ]] && echo --rabbitmq-username=$RABBITMQ_USERNAME) \
   $([[ ! -z "$RABBITMQ_PASSWORD" ]] && echo --rabbitmq-password=$RABBITMQ_PASSWORD) \

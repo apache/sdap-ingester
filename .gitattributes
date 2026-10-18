@@ -1,0 +1,11 @@
+# Normalize line endings so Linux container builds are not broken by CRLF
+# introduced on Windows checkouts. Shell scripts and Dockerfiles are executed
+# inside Linux images and MUST stay LF regardless of core.autocrlf.
+*.sh        text eol=lf
+*.bash      text eol=lf
+Dockerfile  text eol=lf
+entrypoint  text eol=lf
+
+# uv lockfile is generated/consumed verbatim; keep it LF and untouched by
+# end-of-line normalization heuristics.
+uv.lock     text eol=lf

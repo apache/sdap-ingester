@@ -13,24 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
+# Keep the Docker build context small and reproducible. The component
+# Dockerfiles copy each package's source wholesale (e.g. COPY common/ common/),
+# so anything not excluded here would otherwise leak into the image.
 
-import setuptools
+# Version control
+.git
+.gitignore
+.github
 
-PACKAGE_NAME = "sdap_ingester_common"
+# Local virtual environments (the image builds its own via `uv sync`)
+.venv
+**/.venv
 
-setuptools.setup(
-    name=PACKAGE_NAME,
-    author="Apache - SDAP",
-    author_email="dev@sdap.apache.org",
-    description="a module of common functions for the sdap ingester components",
-    url="https://github.com/apache/incubator-sdap-ingester",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
-        "Development Status :: 4 - Beta",
-    ],
-    python_requires='>=3.11',
-    include_package_data=True
-)
+# Python build/runtime artifacts
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+**/*.egg
+**/build
+**/dist
+.python-version
+
+# Test / tooling caches
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+.coverage
+htmlcov
+
+# Editor / OS noise
+.idea
+.vscode
+.DS_Store
