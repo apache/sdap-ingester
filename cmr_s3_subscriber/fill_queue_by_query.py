@@ -345,7 +345,7 @@ def main(args):
         print(f'Produced {len(matched_granules)} messages that would be sent to SQS.')
         return
 
-    sqs = boto3.client('sqs')
+    sqs = boto3.client('sqs', region_name='us-west-2')
 
     queue_url = sqs.get_queue_url(QueueName=queue_arn.split(':')[-1])['QueueUrl']
 

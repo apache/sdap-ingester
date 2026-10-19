@@ -27,6 +27,7 @@ from urllib.parse import urlparse
 import boto3
 import earthaccess
 import requests
+import shapely
 from shapely import from_wkt, intersects
 from shapely.geometry import box, Polygon, MultiPolygon
 
@@ -58,6 +59,13 @@ try:
     import requests_mock
 except ImportError:
     print('Request mocking disabled')
+
+
+def _json_encode(obj: object) -> str:
+    if isinstance(obj, shapely.geometry.base.BaseGeometry):
+        return obj.wkt
+    else:
+        return repr(obj)
 
 
 def _set_edl_environ():
@@ -149,7 +157,7 @@ def _submit_maap_job(short_name, granule_ur, maap_config=None):
     kwargs.update(maap_config)
 
     job_kwargs = dict(
-        identifier=f"CMR_subscriber_ingest_{granule_ur}",
+        identifier=short_name,
         algo_id=algo,
         version=algo_version,
         queue=queue,
@@ -160,13 +168,6 @@ def _submit_maap_job(short_name, granule_ur, maap_config=None):
 
     final_maap_args = deepcopy(job_kwargs)
     final_maap_args.update(kwargs)
-
-    # print(f'Submitting MAAP job with parameters: {dict(**job_kwargs, **kwargs)}')
-    #
-    # job = maap.submitJob(
-    #     **job_kwargs,
-    #     **kwargs
-    # )
 
     print(f'Submitting MAAP job with parameters: {final_maap_args}')
 
@@ -209,7 +210,7 @@ def _handle_cmr_notification(message, bearer_token):
     umm = umm_response.json()
     processed_umm = _process_umm(umm)
 
-    print(json.dumps(processed_umm, indent=2, default=lambda o: repr(o)))
+    print(json.dumps(processed_umm, indent=2, default=_json_encode))
 
     if processed_umm['collection_geo'] is not None:
         desired_geo = processed_umm['collection_geo']
