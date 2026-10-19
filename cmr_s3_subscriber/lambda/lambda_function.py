@@ -527,8 +527,6 @@ def lambda_handler(event, context):
     auth = earthaccess.login(strategy='environment')
     bearer_token = auth.token['access_token']
 
-    print(f'Bearer token: {bearer_token}')
-
     batch_item_failures = []
 
     for record in event['Records']:
