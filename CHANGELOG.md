@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - Unreleased
 ### Added
 - SDAP-534: Added proper support for data variables in NetCDF groups. Can handle multiple data variables across different groups. Coordinates are still required to be in root.
+- Added a terraform-managed utility for subscribing input data staging to CMR collections, with an alternative to support submitting jobs to the [NASA MAAP platform](https://maap-project.org/)
+  - This latter capability was developed for the [NASA Coastal Zone Digital Twin](https://esto.nasa.gov/aist/coastal-zone-digital-twin-czdt-understanding-ocean-ecosystems-2/) project, and demonstrates ingesting data as ephemeral Zarr datasets rather than using duplicate storage
 ### Changed
 ### Deprecated
 ### Removed
