@@ -1,0 +1,11 @@
+{
+  "Records": [
+    {
+      "messageId": "b0574ee3-336a-4753-bb33-766eca3dbf92",
+      "body": "{\"Type\": \"Notification\", \"MessageId\": \"bc8511b9-9e4d-5130-9ff9-710989b0531e\", \"TopicArn\": \"arn:aws:sns:us-east-1:621933553860:cmr-subscriptions-prod\", \"Subject\": \"Update Notification\", \"Message\": \"{\\\"concept-id\\\": \\\"G3550282859-LARC_CLOUD\\\", \\\"granule-ur\\\": \\\"TEMPO_NO2_L3_V03_20250527T123504Z_S004.nc\\\", \\\"location\\\": \\\"https://localhost:443/concepts/G3550282859-LARC_CLOUD/2\\\", \\\"producer-granule-id\\\": \\\"TEMPO_NO2_L3_V03_20250527T123504Z_S004.nc\\\"}\", \"Timestamp\": \"2025-05-27T19:42:53.639Z\", \"SignatureVersion\": \"1\", \"Signature\": \"eDDx7tBu5YTU+ltKuHNjTsLraBSGSZTBazEVcmnpKJL3yS0pM7795FheN/u/xTyr3StzgQVxjPUQV5UK9rulZACH2QmNT4ZXKWOfAB8EAZDI/+/0EnTkRx5bWPLbNKRdcA99aPdlhcU62FfCSTHHHrichvV2gn/R5P2h7fR/+G5/1RJWPuplI5BNUvh8XdG0zpn8IAu8vFzH8BhNGGtGQJ+tZicflYPrZ4ZlF4SsEGm02l36FTe8ccpXCNswDbsK5Z8tRejMUntHMoEUOp4BmLUex70kpgjcciDQH4jRRmLmf6jkKSo4IaMl6M88WXcHvM+pWr7jDANSCxK2lv977A==\", \"SigningCertURL\": \"https://sns.us-east-1.amazonaws.com/SimpleNotificationService-9c6465fa7f48f5cacd23014631ec1136.pem\", \"UnsubscribeURL\": \"https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:621933553860:cmr-subscriptions-prod:b8d71539-6e1f-4ba9-90de-0b6cac50352b\", \"MessageAttributes\": {\"collection-concept-id\": {\"Type\": \"String\", \"Value\": \"C2930763263-LARC_CLOUD\"}, \"mode\": {\"Type\": \"String\", \"Value\": \"Update\"}, \"subscriber\": {\"Type\": \"String\", \"Value\": \"aqacf\"}}}",
+      "Attributes": {
+        "ApproximateReceiveCount": "6"
+      }
+    }
+  ]
+}
